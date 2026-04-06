@@ -37,10 +37,10 @@ function renderListingCard(listing) {
 
   return `
     <article class="card">
-      <div class="card-art ${artClass}" ${gameArtUrl ? `style="background-image:url('${gameArtUrl}');background-size:cover;background-position:center;"` : ''}>
-        ${gameArtUrl ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,0.3);border-radius:16px 16px 0 0;"></div>` : ''}
+      <div class="card-art ${artClass}" ${gameArtUrl ? `style="background-image:url('${gameArtUrl}');background-size:cover;background-position:center top;"` : ''}>
+        ${gameArtUrl ? `<div style="position:absolute;inset:0;border-radius:16px 16px 0 0;background:linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.45) 100%);"></div>` : ''}
         ${hotBadge}
-        <span class="game-server" style="position:relative;">${serverName}</span>
+        ${serverName ? `<span style="position:absolute;bottom:10px;left:12px;background:rgba(0,0,0,0.55);color:#fff;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;backdrop-filter:blur(4px);">${serverName}</span>` : ''}
       </div>
       <div class="card-body">
         <div class="card-price-row">
