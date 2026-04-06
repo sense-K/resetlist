@@ -189,8 +189,14 @@
     const authUser = await requireAuth()
     if (!authUser) return
 
-    const { data: user } = await db.from('User').select('id, nickname').eq('id', authUser.id).single()
-    if (!user) return
+    // User 테이블 조회, 없으면 생성
+    let { data: user } = await db.from('User').select('id, nickname').eq('id', authUser.id).single()
+    if (!user) {
+      const now = new Date().toISOString()
+      const nickname = authUser.email?.split('@')[0] ?? '사용자'
+      await db.from('User').insert({ id: authUser.id, nickname, isPhoneVerified: false, createdAt: now, updatedAt: now })
+      user = { id: authUser.id, nickname }
+    }
 
     const { data: listings } = await db
       .from('Listing')
