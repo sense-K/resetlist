@@ -75,7 +75,7 @@
     loadListings({ container: 'listings-container', gameSlug: GAME_SLUG, serverId: document.getElementById('server-filter').value || undefined, page: p })
   }
 
-  loadServers(); updateCount(); loadPage(1)
+  loadAndRenderGameUI(GAME_SLUG); loadServers(); updateCount(); loadPage(1)
 </script>
 </body>
 </html>

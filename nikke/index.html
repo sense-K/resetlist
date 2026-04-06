@@ -62,7 +62,7 @@
     const { count } = await db.from('Listing').select('*', { count: 'exact', head: true }).eq('status', 'active').eq('gameId', game.id)
     document.getElementById('listing-count').textContent = count + '개'
   }
-  loadServers(); updateCount()
+  loadAndRenderGameUI(GAME_SLUG); loadServers(); updateCount()
   loadListings({ container: 'listings-container', gameSlug: GAME_SLUG })
 </script>
 </body>

@@ -351,7 +351,8 @@
           <span class="badge ${g.isActive ? 'badge-green' : 'badge-gray'}">${g.isActive ? '활성' : '비활성'}</span>
         </td>
         <td style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="btn-sm btn-gray" onclick="editGameImage('${g.id}', '${g.imageUrl ?? ''}')">이미지 수정</button>
+          <button class="btn-sm btn-gray" onclick="editGameImage('${g.id}', '${g.imageUrl ?? ''}', 'imageUrl', '앱 아이콘')">앱 아이콘</button>
+          <button class="btn-sm btn-gray" onclick="editGameImage('${g.id}', '${g.artImageUrl ?? ''}', 'artImageUrl', '카드 배경 이미지')">카드 배경</button>
           <button class="btn-sm btn-gray" onclick="toggleGame('${g.id}', ${g.isActive})">${g.isActive ? '비활성화' : '활성화'}</button>
           <button class="btn-sm btn-red" onclick="deleteGame('${g.id}', '${g.nameKo}')">삭제</button>
         </td>
@@ -374,10 +375,10 @@
     loadGames()
   }
 
-  async function editGameImage(id, currentUrl) {
-    const url = prompt('앱 아이콘 이미지 URL을 입력하세요:', currentUrl)
+  async function editGameImage(id, currentUrl, field, label) {
+    const url = prompt(`${label} URL을 입력하세요:`, currentUrl)
     if (url === null) return
-    const { error } = await db.from('Game').update({ imageUrl: url || null }).eq('id', id)
+    const { error } = await db.from('Game').update({ [field]: url || null }).eq('id', id)
     if (error) { alert('수정 실패: ' + error.message); return }
     loadGames()
   }
