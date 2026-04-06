@@ -479,10 +479,55 @@ a { text-decoration: none; color: inherit; }
   font-weight: 700;
   padding: 3px 9px;
   border-radius: 999px;
+  background: #f3f4f6;
+  color: #555;
 }
-.char-badge.tier-s { background: #fef3c7; color: #92400e; }
-.char-badge.tier-a { background: #ede9fe; color: #5b21b6; }
 .char-badge.tier-more { background: #f3f4f6; color: #888888; }
+
+/* ===== 등급 색상 시스템 ===== */
+/* 캐릭터 뱃지 (리스팅 카드) */
+.char-badge.grade-witch     { background: #1e1b4b; color: #c4b5fd; }
+.char-badge.grade-beast     { background: #0f172a; color: #e2e8f0; }
+.char-badge.grade-ancient-aw { background: linear-gradient(90deg,#92400e,#d97706); color: #fff; background-clip: text; -webkit-background-clip: text; }
+.char-badge.grade-ancient-aw { background: #92400e; color: #fde68a; }
+.char-badge.grade-ancient   { background: #78350f; color: #fde68a; }
+.char-badge.grade-legendary { background: #c2410c; color: #fed7aa; }
+.char-badge.grade-dragon    { background: #065f46; color: #a7f3d0; }
+.char-badge.grade-superepic { background: #4c1d95; color: #ddd6fe; }
+.char-badge.grade-epic      { background: #1e40af; color: #bfdbfe; }
+.char-badge.grade-rare      { background: #166534; color: #bbf7d0; }
+
+/* 캐릭터 카드 테두리 (등록 페이지 선택 그리드) */
+.grade-border-witch     { border-color: #7c3aed !important; }
+.grade-border-beast     { border-color: #334155 !important; }
+.grade-border-ancient-aw { border-color: #d97706 !important; }
+.grade-border-ancient   { border-color: #b45309 !important; }
+.grade-border-legendary { border-color: #ea580c !important; }
+.grade-border-dragon    { border-color: #059669 !important; }
+.grade-border-superepic { border-color: #7c3aed !important; }
+.grade-border-epic      { border-color: #3b82f6 !important; }
+.grade-border-rare      { border-color: #22c55e !important; }
+
+/* 등급 뱃지 (등록 페이지 카드 좌상단) */
+.grade-tag {
+  position: absolute;
+  top: 5px; left: 5px;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 4px;
+  line-height: 1.4;
+  z-index: 1;
+}
+.grade-tag.grade-witch     { background: #1e1b4b; color: #c4b5fd; }
+.grade-tag.grade-beast     { background: #0f172a; color: #e2e8f0; }
+.grade-tag.grade-ancient-aw { background: #92400e; color: #fde68a; }
+.grade-tag.grade-ancient   { background: #78350f; color: #fde68a; }
+.grade-tag.grade-legendary { background: #c2410c; color: #fed7aa; }
+.grade-tag.grade-dragon    { background: #065f46; color: #a7f3d0; }
+.grade-tag.grade-superepic { background: #4c1d95; color: #ddd6fe; }
+.grade-tag.grade-epic      { background: #1e40af; color: #bfdbfe; }
+.grade-tag.grade-rare      { background: #166534; color: #bbf7d0; }
 
 .card-desc {
   font-size: 12px;

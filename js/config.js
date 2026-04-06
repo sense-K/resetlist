@@ -105,6 +105,40 @@ async function loadAndRenderGameUI(activeSlug) {
   }
 }
 
+// 등급명 → CSS 클래스명 변환
+function gradeClass(grade) {
+  const map = {
+    '위치': 'witch',
+    '비스트': 'beast',
+    '에인션트 각성': 'ancient-aw',
+    '에인션트': 'ancient',
+    '레전더리': 'legendary',
+    '드래곤': 'dragon',
+    '슈퍼에픽': 'superepic',
+    '에픽': 'epic',
+    '레어': 'rare',
+    '커먼': 'common',
+  }
+  return map[grade] ?? ''
+}
+
+// 등급 표시용 줄임말
+function gradeShort(grade) {
+  const map = {
+    '위치': '위치',
+    '비스트': '비스트',
+    '에인션트 각성': '에인•각',
+    '에인션트': '에인션트',
+    '레전더리': '레전',
+    '드래곤': '드래곤',
+    '슈퍼에픽': '슈에픽',
+    '에픽': '에픽',
+    '레어': '레어',
+    '커먼': '커먼',
+  }
+  return map[grade] ?? grade
+}
+
 function renderSidebarGames(activeSlug) {
   // placeholder — loadAndRenderGameUI가 덮어씀
   return `<div class="sidebar-section"><div class="sidebar-label">게임</div><div class="sidebar-game-list" style="color:#aaa;font-size:13px;padding:8px;">불러오는 중...</div></div>`

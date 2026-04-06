@@ -344,7 +344,7 @@
     if (!selectedGameId) return
     const { data: chars } = await db
       .from('Character')
-      .select('id, nameKo, imageUrl')
+      .select('id, nameKo, tier, imageUrl')
       .eq('gameId', selectedGameId)
       .eq('isActive', true)
       .order('nameKo')
@@ -361,12 +361,15 @@
 
     grid.innerHTML = allChars.map(c => {
       const isSelected = selectedChars.some(x => x.id === c.id)
+      const gc = typeof gradeClass === 'function' ? gradeClass(c.tier) : ''
+      const gs = typeof gradeShort === 'function' ? gradeShort(c.tier) : (c.tier || '')
       return `
-        <div class="char-item${isSelected ? ' selected' : ''}" id="char-${c.id}" onclick="toggleChar(${JSON.stringify(c).replace(/"/g, '&quot;')})">
+        <div class="char-item${isSelected ? ' selected' : ''}${gc ? ' grade-border-' + gc : ''}" id="char-${c.id}" onclick="toggleChar(${JSON.stringify(c).replace(/"/g, '&quot;')})">
           ${c.imageUrl
             ? `<img src="${c.imageUrl}" alt="${c.nameKo}" loading="lazy">`
             : `<div class="char-no-img">?</div>`
           }
+          ${gc ? `<span class="grade-tag grade-${gc}">${gs}</span>` : ''}
           <div class="char-name-label">${c.nameKo}</div>
           <div class="check-overlay">
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">

@@ -21,7 +21,8 @@ function renderListingCard(listing) {
   const charBadges = visibleChars.map(lc => {
     const c = lc.character
     if (!c) return ''
-    return `<span class="char-badge">${c.nameKo}</span>`
+    const gc = typeof gradeClass === 'function' ? gradeClass(c.tier) : ''
+    return `<span class="char-badge${gc ? ' grade-' + gc : ''}">${c.nameKo}</span>`
   }).join('')
 
   const extraBadge = extraCount > 0
@@ -81,7 +82,7 @@ async function loadListings({ container, gameSlug, serverId, page = 1, limit = 9
         server:Server(nameKo),
         user:User(nickname),
         characters:ListingCharacter(
-          character:Character(nameKo, imageUrl)
+          character:Character(nameKo, tier, imageUrl)
         )
       `)
       .eq('status', 'active')
