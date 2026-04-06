@@ -500,7 +500,10 @@
       const authUser = await requireAuth()
       if (!authUser) return
 
+      const listingId = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10)
+
       const { data: listing, error } = await db.from('Listing').insert({
+        id: listingId,
         userId: authUser.id,
         gameId: selectedGameId,
         serverId: selectedServerId,

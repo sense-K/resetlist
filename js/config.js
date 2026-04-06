@@ -83,6 +83,7 @@ async function requireAuth() {
     await db.from('User').insert({
       id: session.user.id,
       nickname: session.user.email?.split('@')[0] ?? '사용자',
+      phone: '',
       isPhoneVerified: false,
       createdAt: now
     })
