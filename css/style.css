@@ -412,13 +412,14 @@ a { text-decoration: none; color: inherit; }
 
 /* 카드 상단 게임 아트 영역 */
 .card-art {
-  height: 120px;
+  height: 130px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 6px;
   position: relative;
+  overflow: hidden;
 }
 .card-art .game-emoji { font-size: 40px; }
 .card-art .game-server {

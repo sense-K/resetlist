@@ -8,6 +8,7 @@ function getArtClass(gameSlug) {
 function renderListingCard(listing) {
   const gameSlug = listing.game?.slug ?? ''
   const gameEmoji = listing.game?.emoji ?? ''
+  const gameImageUrl = listing.game?.imageUrl ?? ''
   const serverName = listing.server?.nameKo ?? ''
   const nickname = listing.user?.nickname ?? '익명'
   const artClass = getArtClass(gameSlug)
@@ -35,10 +36,14 @@ function renderListingCard(listing) {
 
   return `
     <article class="card">
-      <div class="card-art ${artClass}">
+      <div class="card-art ${artClass}" ${gameImageUrl ? `style="background-image:url('${gameImageUrl}');background-size:cover;background-position:center;"` : ''}>
+        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.35);border-radius:16px 16px 0 0;"></div>
         ${hotBadge}
-        <span class="game-emoji">${gameEmoji}</span>
-        <span class="game-server">${serverName}</span>
+        ${gameImageUrl
+          ? `<img src="${gameImageUrl}" alt="" style="position:relative;width:64px;height:64px;border-radius:14px;object-fit:cover;box-shadow:0 4px 16px rgba(0,0,0,0.4);">`
+          : `<span class="game-emoji" style="position:relative;">${gameEmoji}</span>`
+        }
+        <span class="game-server" style="position:relative;">${serverName}</span>
       </div>
       <div class="card-body">
         <div class="card-price-row">
@@ -76,7 +81,7 @@ async function loadListings({ container, gameSlug, serverId, page = 1, limit = 9
       .from('Listing')
       .select(`
         id, price, discountAmount, description, createdAt, viewCount, status,
-        game:Game(nameKo, slug, emoji),
+        game:Game(nameKo, slug, emoji, imageUrl),
         server:Server(nameKo),
         user:User(nickname),
         characters:ListingCharacter(
