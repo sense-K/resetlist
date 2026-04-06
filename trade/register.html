@@ -517,7 +517,7 @@
         updatedAt: new Date().toISOString(),
       }).select().single()
 
-      if (error) throw error
+      if (error) throw new Error('Listing 저장 실패: ' + error.message + ' / code: ' + error.code)
 
       if (selectedChars.length > 0) {
         await db.from('ListingCharacter').insert(
@@ -529,7 +529,7 @@
       window.location.href = '/'
     } catch (e) {
       console.error(e)
-      alert('등록에 실패했어요. 다시 시도해주세요.')
+      alert('등록 실패: ' + (e?.message || JSON.stringify(e)))
       btn.disabled = false; btn.textContent = '판매글 등록'
     }
   }
