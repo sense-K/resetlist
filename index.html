@@ -14,33 +14,73 @@
 
 <div id="navbar"></div>
 
-<div class="hero">
-  <h1>리세계 매물, 한 곳에서 거래하세요</h1>
-  <p>원신 · 블루아카이브 · 니케 · 쿠키런킹덤</p>
-  <div class="hero-stats">
-    <div class="hero-stat">
-      <strong id="stat-listings">-</strong>
-      <span>전체 매물</span>
+<!-- 히어로 -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <h1>리세계 직거래,<br>지금 시작하세요.</h1>
+      <p>원신 · 블루아카이브 · 니케 · 쿠키런킹덤 계정 직거래 플랫폼</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span>전체 매물</span>
+          <strong id="stat-listings">-</strong>
+        </div>
+        <div class="hero-stat">
+          <span>지원 게임</span>
+          <strong>4개</strong>
+        </div>
+        <div class="hero-stat">
+          <span>오늘 등록</span>
+          <strong id="stat-today">-</strong>
+        </div>
+      </div>
     </div>
-    <div class="hero-stat">
-      <strong>4</strong>
-      <span>지원 게임</span>
+    <div class="hero-games">
+      <a href="/genshin/" class="hero-game-card genshin" style="grid-row: 1 / 2;">
+        <span class="emoji">🌙</span>
+        <span class="name">원신</span>
+      </a>
+      <a href="/bluearchive/" class="hero-game-card blue">
+        <span class="emoji">📘</span>
+        <span class="name">블루아카이브</span>
+      </a>
+      <a href="/nikke/" class="hero-game-card nikke">
+        <span class="emoji">⚡</span>
+        <span class="name">니케</span>
+      </a>
+      <a href="/cookierunkingdom/" class="hero-game-card cookie">
+        <span class="emoji">🍪</span>
+        <span class="name">쿠키런킹덤</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- 탭 바 -->
+<div class="tab-bar">
+  <div class="tab-bar-inner">
+    <span class="tab-section-title">모든 매물</span>
+    <div class="tab-divider"></div>
+    <div class="tab-list">
+      <a href="/" class="tab-item active">전체</a>
+      <a href="/genshin/" class="tab-item">🌙 원신</a>
+      <a href="/bluearchive/" class="tab-item">📘 블루아카이브</a>
+      <a href="/nikke/" class="tab-item">⚡ 니케</a>
+      <a href="/cookierunkingdom/" class="tab-item">🍪 쿠키런킹덤</a>
+    </div>
+    <div class="tab-sort">
+      <button class="sort-btn active">최신순</button>
+      <span class="sort-divider">|</span>
+      <button class="sort-btn">가격순</button>
     </div>
   </div>
 </div>
 
 <div class="page-wrapper">
-  <!-- 게임 선택 4열 그리드 -->
-  <div class="game-grid" id="game-grid"></div>
-
-  <!-- 최근 매물 -->
-  <div class="content-header">
-    <div class="content-title">최근 등록 매물</div>
-    <a href="/trade/register.html" class="btn btn-primary">✏️ 판매글 등록</a>
-  </div>
-  <div id="recent-listings">
+  <div id="listings-container">
     <div class="loading">불러오는 중...</div>
   </div>
+  <a href="#" class="btn-more" id="more-btn" style="display:none;">매물 더보기</a>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -49,34 +89,20 @@
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('home')
 
-  // 게임 그리드
-  document.getElementById('game-grid').innerHTML = GAMES.map(g => `
-    <a href="${g.path}" class="game-card">
-      <span class="game-emoji">${g.emoji}</span>
-      <span class="game-name">${g.nameKo}</span>
-      <span class="game-count" id="count-${g.slug}">조회 중...</span>
-      <span class="game-arrow">매물 보기 →</span>
-    </a>
-  `).join('')
-
-  async function loadGameCounts() {
-    for (const g of GAMES) {
-      const { data: game } = await db.from('Game').select('id').eq('slug', g.slug).single()
-      if (!game) continue
-      const { count } = await db.from('Listing').select('*', { count: 'exact', head: true }).eq('status', 'active').eq('gameId', game.id)
-      const el = document.getElementById(`count-${g.slug}`)
-      if (el) el.textContent = `매물 ${count ?? 0}개`
-    }
-  }
-
   async function loadStats() {
     const { count } = await db.from('Listing').select('*', { count: 'exact', head: true }).eq('status', 'active')
     document.getElementById('stat-listings').textContent = (count ?? 0) + '개'
+
+    const today = new Date(); today.setHours(0,0,0,0)
+    const { count: todayCount } = await db.from('Listing')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'active')
+      .gte('createdAt', today.toISOString())
+    document.getElementById('stat-today').textContent = '+' + (todayCount ?? 0) + '개'
   }
 
-  loadListings({ container: 'recent-listings', limit: 6 })
+  loadListings({ container: 'listings-container', limit: 9 })
   loadStats()
-  loadGameCounts()
 </script>
 </body>
 </html>

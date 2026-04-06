@@ -7,10 +7,10 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 // ===== 게임 목록 =====
 const GAMES = [
-  { slug: 'genshin',            nameKo: '원신',         emoji: '🌙', path: '/genshin/' },
-  { slug: 'bluearchive',        nameKo: '블루아카이브',  emoji: '📘', path: '/bluearchive/' },
-  { slug: 'nikke',              nameKo: '니케',          emoji: '⚡', path: '/nikke/' },
-  { slug: 'cookierunkingdom',   nameKo: '쿠키런킹덤',   emoji: '🍪', path: '/cookierunkingdom/' },
+  { slug: 'genshin',          nameKo: '원신',        emoji: '🌙', artClass: 'genshin',       path: '/genshin/' },
+  { slug: 'bluearchive',      nameKo: '블루아카이브', emoji: '📘', artClass: 'bluearchive',   path: '/bluearchive/' },
+  { slug: 'nikke',            nameKo: '니케',         emoji: '⚡', artClass: 'nikke',         path: '/nikke/' },
+  { slug: 'cookierunkingdom', nameKo: '쿠키런킹덤',  emoji: '🍪', artClass: 'cookierunkingdom', path: '/cookierunkingdom/' },
 ]
 
 // ===== 공용 유틸 =====
@@ -29,24 +29,37 @@ function timeAgo(dateStr) {
   return Math.floor(h / 24) + '일 전'
 }
 
-function renderGameTabs(activeSlug) {
-  return GAMES.map(g => `
-    <a href="${g.path}" class="game-tab ${g.slug === activeSlug ? 'active' : ''}">
-      <span class="emoji">${g.emoji}</span>${g.nameKo}
-    </a>
-  `).join('')
-}
-
 function renderNavbar(activePage = '') {
   return `
     <nav class="navbar">
       <div class="navbar-inner">
-        <a href="/" class="navbar-logo">리스트업 <span>리세계 거래</span></a>
+        <a href="/" class="navbar-logo">리스트업</a>
         <div class="navbar-menu">
-          <a href="/" class="${activePage === 'home' ? 'active' : ''}">홈</a>
-          <a href="/trade/register.html" class="${activePage === 'sell' ? 'active' : ''}">판매하기</a>
+          <a href="/" class="${activePage === 'home' ? '' : 'muted'}">거래소</a>
+          <a href="#" class="muted">공지사항</a>
+          <a href="#" class="muted">이용안내</a>
+        </div>
+        <div class="navbar-actions">
+          <a href="#" class="login-btn">로그인</a>
+          <a href="/trade/register.html" class="navbar-sell-btn">판매하기 ↗</a>
         </div>
       </div>
     </nav>
+  `
+}
+
+function renderSidebarGames(activeSlug) {
+  return `
+    <div class="sidebar-section">
+      <div class="sidebar-label">게임</div>
+      <div class="sidebar-game-list">
+        <a href="/" class="sidebar-game-item ${!activeSlug ? 'active' : ''}">전체</a>
+        ${GAMES.map(g => `
+          <a href="${g.path}" class="sidebar-game-item ${g.slug === activeSlug ? 'active' : ''}">
+            ${g.emoji} ${g.nameKo}
+          </a>
+        `).join('')}
+      </div>
+    </div>
   `
 }

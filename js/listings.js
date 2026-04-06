@@ -1,50 +1,65 @@
 // ===== 매물 카드 렌더링 =====
 
-function renderListingCard(listing) {
-  const chars = listing.characters?.map(lc => {
-    const c = lc.character
-    if (!c) return ''
-    const tierClass = c.tier === 'S' ? 'tier-s' : c.tier === 'A' ? 'tier-a' : ''
-    const img = c.imageUrl
-      ? `<img src="${c.imageUrl}" alt="${c.nameKo}" loading="lazy">`
-      : ''
-    return `<span class="char-badge ${tierClass}">${img}${c.nameKo}</span>`
-  }).join('') ?? ''
+function getArtClass(gameSlug) {
+  const map = { genshin: 'genshin', bluearchive: 'bluearchive', nikke: 'nikke', cookierunkingdom: 'cookierunkingdom' }
+  return map[gameSlug] || 'genshin'
+}
 
-  const gameName = listing.game?.nameKo ?? ''
+function renderListingCard(listing) {
+  const gameSlug = listing.game?.slug ?? ''
   const gameEmoji = listing.game?.emoji ?? ''
   const serverName = listing.server?.nameKo ?? ''
   const nickname = listing.user?.nickname ?? '익명'
-  const trustScore = listing.user?.trustScore ?? 0
+  const artClass = getArtClass(gameSlug)
+
+  const chars = listing.characters ?? []
+  const visibleChars = chars.slice(0, 4)
+  const extraCount = chars.length - visibleChars.length
+
+  const charBadges = visibleChars.map(lc => {
+    const c = lc.character
+    if (!c) return ''
+    const tierClass = c.tier === 'S' ? 'tier-s' : c.tier === 'A' ? 'tier-a' : ''
+    return `<span class="char-badge ${tierClass}">${c.tier} ${c.nameKo}</span>`
+  }).join('')
+
+  const extraBadge = extraCount > 0
+    ? `<span class="char-badge tier-more">+${extraCount}</span>`
+    : ''
 
   const discountHtml = listing.discountAmount
-    ? `<span style="font-size:13px;color:#10b981;font-weight:600;">↓ ${formatPrice(listing.discountAmount)} 할인</span>`
+    ? `<span class="card-discount">↓ ${formatPrice(listing.discountAmount)} 할인</span>`
     : ''
+
+  const hotBadge = listing.viewCount > 50 ? `<div class="badge-hot">🔥 HOT</div>` : ''
 
   return `
     <article class="card">
-      <div class="card-header">
-        <span class="card-game">${gameEmoji} ${gameName} · ${serverName}</span>
-        <div style="text-align:right;">
-          <div class="card-price">${formatPrice(listing.price)}<small>/개</small></div>
+      <div class="card-art ${artClass}">
+        ${hotBadge}
+        <span class="game-emoji">${gameEmoji}</span>
+        <span class="game-server">${serverName}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-price-row">
+          <span class="card-price">${formatPrice(listing.price)}</span>
           ${discountHtml}
         </div>
-      </div>
-      <div class="card-characters">${chars}</div>
-      ${listing.description ? `<p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;line-height:1.5;">${listing.description}</p>` : ''}
-      <div class="card-footer">
-        <div class="seller-info">
-          <span>👤 ${nickname}</span>
-          ${trustScore > 0 ? `<span class="trust-score">★ ${trustScore}</span>` : ''}
+        <div class="card-chars">${charBadges}${extraBadge}</div>
+        ${listing.description ? `<div class="card-desc">${listing.description}</div>` : ''}
+        <div class="card-footer">
+          <div class="card-seller">
+            <span>👤 ${nickname}</span>
+          </div>
+          <span>${timeAgo(listing.createdAt)}</span>
         </div>
-        <span>${timeAgo(listing.createdAt)}</span>
       </div>
     </article>
   `
 }
 
 // ===== 매물 목록 로드 =====
-async function loadListings({ container, gameSlug, serverId, page = 1, limit = 20 }) {
+async function loadListings({ container, gameSlug, serverId, page = 1, limit = 9 }) {
   const el = document.getElementById(container)
   if (!el) return
 
@@ -60,10 +75,10 @@ async function loadListings({ container, gameSlug, serverId, page = 1, limit = 2
     let query = db
       .from('Listing')
       .select(`
-        id, price, discountAmount, description, contactInfo, createdAt, status,
+        id, price, discountAmount, description, createdAt, viewCount, status,
         game:Game(nameKo, slug, emoji),
         server:Server(nameKo),
-        user:User(nickname, trustScore),
+        user:User(nickname),
         characters:ListingCharacter(
           character:Character(nameKo, tier, imageUrl)
         )
