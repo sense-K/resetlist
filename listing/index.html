@@ -58,6 +58,30 @@
       backdrop-filter: blur(4px);
     }
 
+    /* 거래 상태 배지 */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+    .status-badge.trading {
+      background: #fef3c7;
+      color: #d97706;
+    }
+    .status-badge.sold {
+      background: #f3f4f6;
+      color: #888;
+    }
+    .status-badge.active {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+
     /* 가격 영역 */
     .detail-price-block {
       display: flex;
@@ -157,39 +181,183 @@
     }
     .detail-seller-name { font-size: 14px; font-weight: 700; }
     .detail-seller-meta { font-size: 12px; color: #888; }
+    .seller-stats { display: flex; gap: 10px; font-size: 12px; color: #888; }
+    .seller-stat { display: flex; align-items: center; gap: 3px; }
 
-    /* 연락하기 버튼 */
+    /* 구매 버튼 영역 */
+    .buy-box {
+      margin-top: 24px;
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .buy-box-header {
+      padding: 16px 20px 0;
+    }
+    .buy-box-title {
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .buy-box-desc {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 16px;
+    }
+    .buy-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 0 20px 20px;
+    }
+    .buy-option-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 16px 12px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .buy-option-btn:hover { border-color: #111; background: #f8f8f8; }
+    .buy-option-btn .buy-label {
+      font-size: 14px;
+      font-weight: 800;
+      color: #111;
+    }
+    .buy-option-btn .buy-price {
+      font-size: 18px;
+      font-weight: 900;
+      color: #111;
+    }
+    .buy-option-btn .buy-sublabel {
+      font-size: 11px;
+      color: #888;
+    }
+    .buy-option-btn.review-btn {
+      border-color: #ef4444;
+      background: #fff5f5;
+    }
+    .buy-option-btn.review-btn .buy-label { color: #ef4444; }
+    .buy-option-btn.review-btn .buy-price { color: #ef4444; }
+    .buy-option-btn.review-btn:hover { background: #fee2e2; }
+
+    /* 연락처 공개 영역 */
     .contact-box {
       background: #111;
       border-radius: 14px;
       padding: 20px;
-      margin-top: 24px;
+      margin-top: 16px;
       text-align: center;
     }
     .contact-box .contact-label {
       color: rgba(255,255,255,0.6);
       font-size: 12px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
+    .contact-type-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+    .contact-type-badge.normal { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8); }
+    .contact-type-badge.review { background: #ef4444; color: #fff; }
     .contact-info-text {
       color: #fff;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
       margin-bottom: 14px;
       word-break: break-all;
+    }
+    .contact-btn-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
     }
     .contact-copy-btn {
       background: rgba(255,255,255,0.15);
       color: #fff;
       border: none;
       border-radius: 8px;
-      padding: 10px 24px;
+      padding: 10px 20px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       transition: background 0.15s;
     }
     .contact-copy-btn:hover { background: rgba(255,255,255,0.25); }
+    .contact-open-btn {
+      background: #fee500;
+      color: #111;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .contact-open-btn:hover { opacity: 0.85; }
+
+    /* 거래취소 버튼 */
+    .cancel-trade-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px;
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: #aaa;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .cancel-trade-btn:hover { border-color: #ef4444; color: #ef4444; }
+
+    /* 리뷰 작성 유도 */
+    .review-prompt-box {
+      background: #fff7ed;
+      border: 1.5px solid #fed7aa;
+      border-radius: 14px;
+      padding: 20px;
+      margin-top: 16px;
+      text-align: center;
+    }
+    .review-prompt-box p { font-size: 14px; color: #92400e; margin-bottom: 12px; }
+    .review-write-btn {
+      background: #f97316;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 11px 28px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .review-write-btn:hover { opacity: 0.85; }
+
+    /* 거래중/완료 상태 박스 */
+    .status-info-box {
+      background: #f8f8f8;
+      border-radius: 14px;
+      padding: 20px;
+      margin-top: 16px;
+      text-align: center;
+      color: #888;
+      font-size: 14px;
+    }
 
     /* 메타 정보 */
     .detail-meta {
@@ -228,6 +396,8 @@
   document.getElementById('navbar').innerHTML = renderNavbar()
 
   const listingId = new URLSearchParams(location.search).get('id')
+  let currentListing = null
+  let currentUser = null
 
   if (!listingId) {
     document.getElementById('detail-content').innerHTML = '<div class="loading-full">잘못된 접근이에요.</div>'
@@ -236,13 +406,17 @@
   }
 
   async function loadDetail() {
+    // 현재 로그인 유저
+    const { data: { session } } = await db.auth.getSession()
+    currentUser = session?.user ?? null
+
     const { data: listing, error } = await db
       .from('Listing')
       .select(`
-        id, price, discountAmount, description, contactInfo, createdAt, viewCount, status,
+        id, price, discountAmount, description, kakaoOpenChatUrl, createdAt, viewCount, status, userId,
         game:Game(nameKo, slug, emoji, imageUrl, artImageUrl),
         server:Server(nameKo),
-        user:User(nickname),
+        user:User(nickname, tradeCount, avgRating),
         characters:ListingCharacter(
           character:Character(nameKo, tier, imageUrl)
         )
@@ -255,20 +429,38 @@
       return
     }
 
-    // 조회수 증가 (비동기, 결과 무시)
+    currentListing = listing
+
+    // 조회수 증가
     db.from('Listing').update({ viewCount: (listing.viewCount || 0) + 1 }).eq('id', listingId)
 
-    render(listing)
+    // 현재 유저의 이 판매글 거래 조회
+    let myTrade = null
+    if (currentUser) {
+      const { data: trade } = await db
+        .from('Trade')
+        .select('id, type, status')
+        .eq('listingId', listingId)
+        .eq('buyerId', currentUser.id)
+        .eq('status', 'active')
+        .maybeSingle()
+      myTrade = trade
+    }
+
+    render(listing, myTrade)
   }
 
-  function render(l) {
+  async function render(l, myTrade) {
     const gameArtUrl = l.game?.artImageUrl ?? ''
     const gameImageUrl = l.game?.imageUrl ?? ''
     const gameName = l.game?.nameKo ?? ''
     const gameEmoji = l.game?.emoji ?? ''
     const serverName = l.server?.nameKo ?? ''
     const nickname = l.user?.nickname ?? '익명'
+    const tradeCount = l.user?.tradeCount ?? 0
+    const avgRating = l.user?.avgRating ? Number(l.user.avgRating).toFixed(1) : null
     const chars = (l.characters ?? []).map(lc => lc.character).filter(Boolean)
+    const isMine = currentUser && currentUser.id === l.userId
 
     document.title = `${gameName} 계정 판매 | 리스트업`
 
@@ -285,7 +477,19 @@
       : '<span style="color:#aaa;font-size:13px;">선택된 캐릭터 없음</span>'
 
     const discountHtml = l.discountAmount
-      ? `<span class="detail-discount">↓ ${formatPrice(l.discountAmount)} 할인</span>` : ''
+      ? `<span class="detail-discount">↓ ${formatPrice(l.discountAmount)} 할인 (리뷰할인 구매 시)</span>` : ''
+
+    // 상태 배지
+    const statusMap = { active: ['판매중', 'active'], trading: ['거래중', 'trading'], sold: ['판매완료', 'sold'] }
+    const [statusText, statusClass] = statusMap[l.status] ?? ['판매중', 'active']
+
+    // 하단 액션 박스 결정
+    const actionHtml = await buildActionBox(l, myTrade, isMine)
+
+    // 판매자 별점
+    const ratingHtml = avgRating
+      ? `<span class="seller-stat">⭐ ${avgRating}</span>`
+      : ''
 
     document.getElementById('detail-content').innerHTML = `
       <div class="detail-banner">
@@ -301,6 +505,8 @@
       </div>
 
       <div class="detail-wrap">
+        <span class="status-badge ${statusClass}">${statusText}</span>
+
         <div class="detail-price-block">
           <span class="detail-price">${formatPrice(l.price)}</span>
           ${discountHtml}
@@ -322,29 +528,205 @@
             <div class="detail-seller-avatar">👤</div>
             <div>
               <div class="detail-seller-name">${nickname}</div>
-              <div class="detail-seller-meta">${timeAgo(l.createdAt)} 등록</div>
+              <div class="detail-seller-meta">
+                <span>${timeAgo(l.createdAt)} 등록</span>
+              </div>
             </div>
           </div>
-          <div class="detail-meta">
-            <span>👁 ${l.viewCount || 0}</span>
+          <div class="seller-stats">
+            ${ratingHtml}
+            <span class="seller-stat">🤝 ${tradeCount}거래</span>
+            <span class="seller-stat">👁 ${l.viewCount || 0}</span>
           </div>
         </div>
 
-        <div class="contact-box">
-          <div class="contact-label">판매자 연락처</div>
-          <div class="contact-info-text" id="contact-text">${l.contactInfo ?? '연락처 없음'}</div>
-          <button class="contact-copy-btn" onclick="copyContact()">연락처 복사</button>
-        </div>
+        ${actionHtml}
       </div>
     `
   }
 
-  function copyContact() {
-    const text = document.getElementById('contact-text')?.textContent ?? ''
-    navigator.clipboard.writeText(text).then(() => {
+  async function buildActionBox(l, myTrade, isMine) {
+    // 내 글인 경우
+    if (isMine) {
+      if (l.status === 'trading') {
+        return `
+          <div class="status-info-box">
+            거래 진행 중이에요.<br>
+            <button class="cancel-trade-btn" style="margin-top:12px;" onclick="cancelTradeAsSeller()">거래 취소</button>
+            <button class="cancel-trade-btn" style="margin-top:8px;border-color:#10b981;color:#10b981;" onclick="completeTrade()">거래 완료</button>
+          </div>`
+      }
+      if (l.status === 'sold') {
+        return `<div class="status-info-box">판매 완료된 계정이에요.</div>`
+      }
+      return `<div class="status-info-box">내가 등록한 판매글이에요.</div>`
+    }
+
+    // 내가 신청한 거래가 완료된 경우 (리뷰 작성 유도)
+    if (currentUser && l.status === 'sold') {
+      const { data: completedTrade } = await db
+        .from('Trade')
+        .select('id, type')
+        .eq('listingId', listingId)
+        .eq('buyerId', currentUser.id)
+        .eq('status', 'completed')
+        .maybeSingle()
+      if (completedTrade) {
+        const { data: existingReview } = await db.from('Review').select('id').eq('tradeId', completedTrade.id).maybeSingle()
+        if (!existingReview && completedTrade.type === 'review_discount') {
+          return `
+            <div class="review-prompt-box" style="margin-top:16px;">
+              <p>거래가 완료됐어요! 리뷰를 남기면 다음 거래에 도움이 돼요 🙏</p>
+              <button class="review-write-btn" onclick="location.href='/review/?tradeId=${completedTrade.id}'">리뷰 작성하기</button>
+            </div>`
+        }
+      }
+    }
+
+    // 이미 내가 거래 신청한 경우
+    if (myTrade) {
+      const chatUrl = l.kakaoOpenChatUrl ?? ''
+      const typeBadge = myTrade.type === 'review_discount'
+        ? '<span class="contact-type-badge review">리뷰할인 구매</span>'
+        : '<span class="contact-type-badge normal">일반 구매</span>'
+      return `
+        <div class="contact-box">
+          <div class="contact-label">오픈채팅방에서 판매자에게 연락하세요</div>
+          ${typeBadge}
+          <div class="contact-info-text">${chatUrl || '연락처 없음'}</div>
+          <div class="contact-btn-row">
+            ${chatUrl ? `<a class="contact-open-btn" href="${chatUrl}" target="_blank" rel="noopener">카카오 오픈채팅 열기</a>` : ''}
+            <button class="contact-copy-btn" onclick="copyContact('${chatUrl}')">링크 복사</button>
+          </div>
+        </div>
+        <button class="cancel-trade-btn" onclick="cancelTrade('${myTrade.id}')">거래 취소</button>
+        ${myTrade.type === 'review_discount' ? `
+        <div class="review-prompt-box" style="margin-top:10px;">
+          <p>거래 완료 후 리뷰를 남기면 할인이 적용돼요 🙏<br><small style="color:#aaa;">판매자가 거래완료 처리 후 리뷰 작성 가능해요</small></p>
+        </div>` : ''}`
+    }
+
+    // 판매중 상태 → 구매 신청 가능
+    if (l.status === 'active') {
+      const discountPrice = l.discountAmount ? l.price - l.discountAmount : null
+      return `
+        <div class="buy-box">
+          <div class="buy-box-header">
+            <div class="buy-box-title">구매 방식을 선택하세요</div>
+            <div class="buy-box-desc">구매 신청 후 오픈채팅 링크가 공개돼요</div>
+          </div>
+          <div class="buy-options">
+            <button class="buy-option-btn" onclick="requestTrade('normal')">
+              <span class="buy-label">일반 구매</span>
+              <span class="buy-price">${formatPrice(l.price)}</span>
+              <span class="buy-sublabel">리뷰 없음</span>
+            </button>
+            <button class="buy-option-btn review-btn" onclick="requestTrade('review_discount')" ${!l.discountAmount ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>
+              <span class="buy-label">리뷰할인 구매</span>
+              <span class="buy-price">${discountPrice ? formatPrice(discountPrice) : formatPrice(l.price)}</span>
+              <span class="buy-sublabel">${l.discountAmount ? formatPrice(l.discountAmount) + ' 할인 · 리뷰 작성' : '할인 없음'}</span>
+            </button>
+          </div>
+        </div>`
+    }
+
+    // 거래중 (다른 사람이 신청)
+    if (l.status === 'trading') {
+      return `<div class="status-info-box">현재 다른 분과 거래 진행 중이에요.</div>`
+    }
+
+    // 판매완료
+    return `<div class="status-info-box">판매 완료된 계정이에요.</div>`
+  }
+
+  async function requestTrade(type) {
+    if (!currentUser) {
+      window.location.href = '/auth/?next=' + encodeURIComponent(location.pathname + location.search)
+      return
+    }
+
+    const l = currentListing
+    const btn = event.currentTarget
+    btn.disabled = true
+
+    try {
+      const tradeId = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10)
+
+      const { error: tradeErr } = await db.from('Trade').insert({
+        id: tradeId,
+        listingId: l.id,
+        buyerId: currentUser.id,
+        sellerId: l.userId,
+        type,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+      })
+      if (tradeErr) throw tradeErr
+
+      // 판매글 상태 → 거래중
+      await db.from('Listing').update({ status: 'trading' }).eq('id', l.id)
+
+      // 새로고침
+      location.reload()
+    } catch (e) {
+      console.error(e)
+      alert('오류가 발생했어요. 다시 시도해주세요.')
+      btn.disabled = false
+    }
+  }
+
+  async function cancelTrade(tradeId) {
+    if (!confirm('거래를 취소할까요?')) return
+    await db.from('Trade').update({ status: 'cancelled' }).eq('id', tradeId)
+    await db.from('Listing').update({ status: 'active' }).eq('id', listingId)
+    location.reload()
+  }
+
+  async function cancelTradeAsSeller() {
+    if (!confirm('거래를 취소할까요? 구매자와 확인 후 취소해주세요.')) return
+    // 진행중인 거래 취소
+    await db.from('Trade').update({ status: 'cancelled' }).eq('listingId', listingId).eq('status', 'active')
+    await db.from('Listing').update({ status: 'active' }).eq('id', listingId)
+    location.reload()
+  }
+
+  async function completeTrade() {
+    if (!confirm('거래를 완료 처리할까요?')) return
+    try {
+      const now = new Date().toISOString()
+
+      // 진행중인 거래 찾기
+      const { data: trade } = await db
+        .from('Trade')
+        .select('id, buyerId, type')
+        .eq('listingId', listingId)
+        .eq('status', 'active')
+        .maybeSingle()
+
+      if (!trade) { alert('진행중인 거래가 없어요.'); return }
+
+      // Trade 완료
+      await db.from('Trade').update({ status: 'completed', completedAt: now }).eq('id', trade.id)
+
+      // Listing 판매완료
+      await db.from('Listing').update({ status: 'sold' }).eq('id', listingId)
+
+      // 판매자 tradeCount +1
+      const { data: seller } = await db.from('User').select('tradeCount').eq('id', currentListing.userId).single()
+      await db.from('User').update({ tradeCount: (seller?.tradeCount ?? 0) + 1 }).eq('id', currentListing.userId)
+
+      alert('거래 완료 처리됐어요!')
+      location.reload()
+    } catch (e) {
+      console.error(e)
+      alert('오류가 발생했어요.')
+    }
+  }
+
+  function copyContact(url) {
+    navigator.clipboard.writeText(url).then(() => {
       const btn = document.querySelector('.contact-copy-btn')
-      btn.textContent = '복사됐어요 ✓'
-      setTimeout(() => { btn.textContent = '연락처 복사' }, 2000)
+      if (btn) { btn.textContent = '복사됐어요 ✓'; setTimeout(() => { btn.textContent = '링크 복사' }, 2000) }
     })
   }
 </script>

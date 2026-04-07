@@ -69,9 +69,9 @@
       <a href="/cookierunkingdom/" class="tab-item">🍪 쿠키런킹덤</a>
     </div>
     <div class="tab-sort">
-      <button class="sort-btn active">최신순</button>
+      <button class="sort-btn active" id="sort-latest" onclick="setSort('latest')">최신순</button>
       <span class="sort-divider">|</span>
-      <button class="sort-btn">가격순</button>
+      <button class="sort-btn" id="sort-price" onclick="setSort('price')">가격순</button>
     </div>
   </div>
 </div>
@@ -99,6 +99,14 @@
       .eq('status', 'active')
       .gte('createdAt', today.toISOString())
     document.getElementById('stat-today').textContent = '+' + (todayCount ?? 0) + '개'
+  }
+
+  let currentSort = 'latest'
+  function setSort(sort) {
+    currentSort = sort
+    document.getElementById('sort-latest').classList.toggle('active', sort === 'latest')
+    document.getElementById('sort-price').classList.toggle('active', sort === 'price')
+    loadListings({ container: 'listings-container', limit: 9, sort })
   }
 
   loadListings({ container: 'listings-container', limit: 9 })

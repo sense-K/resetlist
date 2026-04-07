@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>리뷰 작성 | 리스트업</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .review-wrap {
+      max-width: 480px;
+      margin: 40px auto;
+      padding: 0 20px 60px;
+    }
+    .review-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1.5px solid var(--border);
+      padding: 28px;
+    }
+    .review-title {
+      font-size: 20px;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+    .review-subtitle {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 28px;
+    }
+
+    /* 별점 */
+    .star-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .star-btn {
+      font-size: 36px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.1s;
+      line-height: 1;
+      filter: grayscale(1);
+      opacity: 0.3;
+    }
+    .star-btn.active {
+      filter: none;
+      opacity: 1;
+    }
+    .star-btn:hover { transform: scale(1.15); }
+    .rating-label {
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 20px;
+      min-height: 20px;
+    }
+
+    /* 판매글 요약 */
+    .listing-summary {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #f8f8f8;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+    }
+    .listing-summary img {
+      width: 44px; height: 44px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    .listing-summary-emoji {
+      width: 44px; height: 44px;
+      border-radius: 8px;
+      background: #e5e7eb;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    .listing-summary-info { flex: 1; }
+    .listing-summary-game { font-size: 12px; color: #888; margin-bottom: 2px; }
+    .listing-summary-price { font-size: 16px; font-weight: 800; }
+
+    .review-success {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .review-success .success-icon { font-size: 48px; margin-bottom: 16px; }
+    .review-success h2 { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
+    .review-success p { font-size: 14px; color: #888; margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="review-wrap">
+  <div id="review-content">
+    <div style="text-align:center;padding:60px;color:#888;">불러오는 중...</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script>
+  document.getElementById('navbar').innerHTML = renderNavbar()
+
+  const params = new URLSearchParams(location.search)
+  const tradeId = params.get('tradeId')
+  let selectedRating = 0
+
+  if (!tradeId) {
+    document.getElementById('review-content').innerHTML = '<div style="text-align:center;padding:60px;color:#888;">잘못된 접근이에요.</div>'
+  } else {
+    init()
+  }
+
+  async function init() {
+    const authUser = await requireAuth()
+    if (!authUser) return
+
+    // 거래 조회
+    const { data: trade, error } = await db
+      .from('Trade')
+      .select(`
+        id, type, status, listingId, sellerId,
+        listing:Listing(price, game:Game(nameKo, emoji, imageUrl), user:User(nickname))
+      `)
+      .eq('id', tradeId)
+      .eq('buyerId', authUser.id)
+      .single()
+
+    if (error || !trade) {
+      document.getElementById('review-content').innerHTML = '<div style="text-align:center;padding:60px;color:#888;">거래 정보를 찾을 수 없어요.</div>'
+      return
+    }
+
+    if (trade.status !== 'completed') {
+      document.getElementById('review-content').innerHTML = '<div style="text-align:center;padding:60px;color:#888;">거래 완료 후 리뷰를 작성할 수 있어요.</div>'
+      return
+    }
+
+    // 이미 리뷰 작성했는지 확인
+    const { data: existing } = await db.from('Review').select('id').eq('tradeId', tradeId).maybeSingle()
+    if (existing) {
+      document.getElementById('review-content').innerHTML = '<div style="text-align:center;padding:60px;color:#888;">이미 리뷰를 작성했어요.</div>'
+      return
+    }
+
+    renderForm(trade)
+  }
+
+  function renderForm(trade) {
+    const l = trade.listing
+    const gameImg = l?.game?.imageUrl
+    const gameEmoji = l?.game?.emoji ?? ''
+    const gameName = l?.game?.nameKo ?? ''
+    const sellerNick = l?.user?.nickname ?? '판매자'
+
+    document.getElementById('review-content').innerHTML = `
+      <div class="review-card">
+        <div class="review-title">거래는 어떠셨나요?</div>
+        <div class="review-subtitle">${sellerNick} 판매자에게 별점과 한마디를 남겨주세요</div>
+
+        <div class="listing-summary">
+          ${gameImg
+            ? `<img src="${gameImg}" alt="${gameName}">`
+            : `<div class="listing-summary-emoji">${gameEmoji}</div>`
+          }
+          <div class="listing-summary-info">
+            <div class="listing-summary-game">${gameName}</div>
+            <div class="listing-summary-price">${formatPrice(l.price)}</div>
+          </div>
+        </div>
+
+        <div class="star-row" id="star-row">
+          ${[1,2,3,4,5].map(i => `
+            <button class="star-btn" id="star-${i}" onclick="setRating(${i})">⭐</button>
+          `).join('')}
+        </div>
+        <div class="rating-label" id="rating-label">별점을 선택해주세요</div>
+
+        <div class="form-group">
+          <label class="form-label">한마디 <span style="color:var(--text-muted);font-size:12px;">(선택)</span></label>
+          <textarea class="form-textarea" id="review-content-input" placeholder="거래 후기를 자유롭게 남겨주세요" rows="3"></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-full" id="submit-btn" onclick="submitReview('${trade.id}', '${trade.sellerId}', '${trade.listingId}')">리뷰 등록</button>
+      </div>
+    `
+  }
+
+  const ratingLabels = { 1: '별로였어요', 2: '아쉬웠어요', 3: '보통이에요', 4: '좋았어요', 5: '최고였어요! 🎉' }
+
+  function setRating(rating) {
+    selectedRating = rating
+    for (let i = 1; i <= 5; i++) {
+      document.getElementById('star-' + i).classList.toggle('active', i <= rating)
+    }
+    document.getElementById('rating-label').textContent = ratingLabels[rating] ?? ''
+  }
+
+  async function submitReview(tradeId, sellerId, listingId) {
+    if (!selectedRating) { alert('별점을 선택해주세요'); return }
+
+    const btn = document.getElementById('submit-btn')
+    btn.disabled = true; btn.textContent = '등록 중...'
+
+    try {
+      const { data: { session } } = await db.auth.getSession()
+      const reviewerId = session.user.id
+      const content = document.getElementById('review-content-input').value.trim() || null
+
+      const reviewId = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10)
+      const { error } = await db.from('Review').insert({
+        id: reviewId,
+        tradeId,
+        listingId,
+        reviewerId,
+        targetId: sellerId,
+        rating: selectedRating,
+        content,
+        createdAt: new Date().toISOString(),
+      })
+      if (error) throw error
+
+      // 판매자 avgRating 재계산
+      const { data: reviews } = await db.from('Review').select('rating').eq('targetId', sellerId)
+      if (reviews && reviews.length > 0) {
+        const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
+        await db.from('User').update({ avgRating: Math.round(avg * 100) / 100 }).eq('id', sellerId)
+      }
+
+      // 완료 화면
+      document.getElementById('review-content').innerHTML = `
+        <div class="review-card review-success">
+          <div class="success-icon">🎉</div>
+          <h2>리뷰가 등록됐어요!</h2>
+          <p>소중한 후기 감사해요.</p>
+          <a href="/" class="btn btn-primary">홈으로 돌아가기</a>
+        </div>
+      `
+    } catch (e) {
+      console.error(e)
+      alert('오류가 발생했어요. 다시 시도해주세요.')
+      btn.disabled = false; btn.textContent = '리뷰 등록'
+    }
+  }
+</script>
+</body>
+</html>

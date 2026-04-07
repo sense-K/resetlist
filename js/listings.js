@@ -61,7 +61,7 @@ function renderListingCard(listing) {
 }
 
 // ===== 매물 목록 로드 =====
-async function loadListings({ container, gameSlug, serverId, page = 1, limit = 9 }) {
+async function loadListings({ container, gameSlug, serverId, page = 1, limit = 9, sort = 'latest' }) {
   const el = document.getElementById(container)
   if (!el) return
 
@@ -86,7 +86,7 @@ async function loadListings({ container, gameSlug, serverId, page = 1, limit = 9
         )
       `)
       .eq('status', 'active')
-      .order('createdAt', { ascending: false })
+      .order(sort === 'price' ? 'price' : 'createdAt', { ascending: sort === 'price' })
       .range((page - 1) * limit, page * limit - 1)
 
     if (gameId) query = query.eq('gameId', gameId)
