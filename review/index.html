@@ -225,13 +225,15 @@
         content,
         createdAt: new Date().toISOString(),
       })
-      if (error) throw error
+      if (error) throw new Error('Review insert: ' + error.message)
 
       // 판매자 avgRating 재계산
-      const { data: reviews } = await db.from('Review').select('rating').eq('targetId', sellerId)
+      const { data: reviews, error: re } = await db.from('Review').select('rating').eq('targetId', sellerId)
+      if (re) throw new Error('Review select: ' + re.message)
       if (reviews && reviews.length > 0) {
         const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
-        await db.from('User').update({ avgRating: Math.round(avg * 100) / 100 }).eq('id', sellerId)
+        const { error: ue } = await db.from('User').update({ avgRating: Math.round(avg * 100) / 100 }).eq('id', sellerId)
+        if (ue) throw new Error('User avgRating update: ' + ue.message)
       }
 
       // 완료 화면
@@ -245,7 +247,7 @@
       `
     } catch (e) {
       console.error(e)
-      alert('오류가 발생했어요. 다시 시도해주세요.')
+      alert('에러: ' + (e?.message ?? JSON.stringify(e)))
       btn.disabled = false; btn.textContent = '리뷰 등록'
     }
   }

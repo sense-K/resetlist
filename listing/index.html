@@ -527,7 +527,7 @@
           <div class="detail-seller-info">
             <div class="detail-seller-avatar">👤</div>
             <div>
-              <div class="detail-seller-name">${nickname}</div>
+              <a class="detail-seller-name" href="/user/?id=${l.userId}" style="text-decoration:none;color:inherit;">${nickname}</a>
               <div class="detail-seller-meta">
                 <span>${timeAgo(l.createdAt)} 등록</span>
               </div>
@@ -576,7 +576,7 @@
         if (!existingReview && completedTrade.type === 'review_discount') {
           return `
             <div class="review-prompt-box" style="margin-top:16px;">
-              <p>거래가 완료됐어요! 리뷰를 남기면 다음 거래에 도움이 돼요 🙏</p>
+              <p>거래가 완료됐어요!<br><strong style="color:#92400e;">리뷰할인 구매 신청을 하셨으니 리뷰 작성을 꼭 부탁드려요 🙏</strong></p>
               <button class="review-write-btn" onclick="location.href='/review/?tradeId=${completedTrade.id}'">리뷰 작성하기</button>
             </div>`
         }
@@ -602,7 +602,7 @@
         <button class="cancel-trade-btn" onclick="cancelTrade('${myTrade.id}')">거래 취소</button>
         ${myTrade.type === 'review_discount' ? `
         <div class="review-prompt-box" style="margin-top:10px;">
-          <p>거래 완료 후 리뷰를 남기면 할인이 적용돼요 🙏<br><small style="color:#aaa;">판매자가 거래완료 처리 후 리뷰 작성 가능해요</small></p>
+          <p>리뷰할인 구매 신청을 하셨어요.<br><strong style="color:#92400e;">거래 완료 후 리뷰 작성이 필수예요!</strong><br><small style="color:#aaa;">판매자가 거래완료 처리 후 리뷰 작성 가능해요</small></p>
         </div>` : ''}`
     }
 
