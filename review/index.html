@@ -139,7 +139,7 @@
     }
 
     if (trade.status !== 'completed') {
-      document.getElementById('review-content').innerHTML = '<div style="text-align:center;padding:60px;color:#888;">거래 완료 후 리뷰를 작성할 수 있어요.</div>'
+      document.getElementById('review-content').innerHTML = '<div style="text-align:center;padding:60px;color:#888;">거래 완료 후 후기를 작성할 수 있어요.</div>'
       return
     }
 
@@ -162,8 +162,8 @@
 
     document.getElementById('review-content').innerHTML = `
       <div class="review-card">
-        <div class="review-title">거래는 어떠셨나요?</div>
-        <div class="review-subtitle">${sellerNick} 판매자에게 별점과 한마디를 남겨주세요</div>
+        <div class="review-title">거래 후기를 남겨주세요</div>
+        <div class="review-subtitle">${sellerNick} 판매자에 대한 솔직한 후기가 다른 구매자에게 큰 도움이 돼요</div>
 
         <div class="listing-summary">
           ${gameImg
@@ -188,7 +188,7 @@
           <textarea class="form-textarea" id="review-content-input" placeholder="거래 후기를 자유롭게 남겨주세요" rows="3"></textarea>
         </div>
 
-        <button class="btn btn-primary btn-full" id="submit-btn" onclick="submitReview('${trade.id}', '${trade.sellerId}', '${trade.listingId}')">리뷰 등록</button>
+        <button class="btn btn-primary btn-full" id="submit-btn" onclick="submitReview('${trade.id}', '${trade.sellerId}', '${trade.listingId}')">후기 등록</button>
       </div>
     `
   }

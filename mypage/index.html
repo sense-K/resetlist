@@ -278,9 +278,9 @@
     const chars = (l.characters ?? []).map(lc => lc.character?.nameKo).filter(Boolean)
     const tradeStatusClass = t.status === 'active' ? 'status-trading' : 'status-sold'
     const tradeStatusText = t.status === 'active' ? '거래중' : t.status === 'completed' ? '거래완료' : '취소됨'
-    const typeLabel = t.type === 'review_discount' ? ' · 리뷰할인' : ''
-    const reviewBtn = t.status === 'completed' && t.type === 'review_discount'
-      ? `<button class="my-listing-delete" style="border-color:#f97316;color:#f97316;" onclick="event.stopPropagation();location.href='/review/?tradeId=${t.id}'">리뷰작성</button>`
+    const typeLabel = ''
+    const reviewBtn = t.status === 'completed'
+      ? `<button class="my-listing-delete" style="border-color:#f97316;color:#f97316;" onclick="event.stopPropagation();location.href='/review/?tradeId=${t.id}'">후기작성</button>`
       : ''
     return `
       <div class="my-listing-item" onclick="location.href='/listing/?id=${l.id}'">
