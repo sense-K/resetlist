@@ -253,8 +253,13 @@
         </div>
 
         ${actionHtml}
+
+        <div id="seller-reviews" style="margin-top:32px;"></div>
       </div>
     `
+
+    // 판매자 리뷰 로드
+    loadSellerReviews(l.userId)
   }
 
   function trustBadgeHtml(tradeCount) {
@@ -423,6 +428,47 @@
     await db.from('Trade').update({ status: 'cancelled' }).eq('listingId', listingId).in('status', ['active', 'seller_confirmed'])
     await db.from('Listing').update({ status: 'active' }).eq('id', listingId)
     location.reload()
+  }
+
+  async function loadSellerReviews(sellerId) {
+    const { data: reviews } = await db
+      .from('Review')
+      .select('rating, content, createdAt, listingId, listing:Listing(game:Game(nameKo, emoji))')
+      .eq('sellerId', sellerId)
+      .order('createdAt', { ascending: false })
+      .limit(10)
+
+    const el = document.getElementById('seller-reviews')
+    if (!el) return
+
+    if (!reviews || reviews.length === 0) {
+      el.innerHTML = `
+        <div style="font-size:15px;font-weight:800;margin-bottom:12px;">판매자 후기</div>
+        <div style="font-size:13px;color:#aaa;padding:20px 0;">아직 받은 후기가 없어요</div>`
+      return
+    }
+
+    const stars = n => '⭐'.repeat(n) + '☆'.repeat(5 - n)
+
+    el.innerHTML = `
+      <div style="font-size:15px;font-weight:800;margin-bottom:14px;">판매자 후기 <span style="color:#aaa;font-size:13px;font-weight:400;">${reviews.length}개</span></div>
+      <div style="border-top:1px solid var(--border);">
+        ${reviews.map(r => {
+          const gameName = r.listing?.game?.nameKo ?? ''
+          const gameEmoji = r.listing?.game?.emoji ?? ''
+          return `
+            <div style="padding:14px 0;border-bottom:1px solid var(--border);">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-size:13px;">${stars(r.rating)}</span>
+                  ${gameName ? `<span style="font-size:11px;color:#888;background:#f3f4f6;padding:2px 7px;border-radius:999px;">${gameEmoji} ${gameName}</span>` : ''}
+                </div>
+                <span style="font-size:11px;color:#aaa;">${timeAgo(r.createdAt)}</span>
+              </div>
+              <div style="font-size:13px;color:${r.content ? '#444' : '#bbb'};line-height:1.6;">${r.content || '내용 없음'}</div>
+            </div>`
+        }).join('')}
+      </div>`
   }
 
   function copyContact(url) {
