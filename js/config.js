@@ -76,17 +76,21 @@ async function requireAuth() {
     window.location.href = '/auth/?next=' + encodeURIComponent(location.pathname + location.search)
     return null
   }
-  // User 테이블에 없으면 자동 생성 (기존 가입자 대비)
-  const { data: existing } = await db.from('User').select('id').eq('id', session.user.id).single()
+  // User 테이블에 없으면 자동 생성
+  const { data: existing } = await db.from('User').select('id').eq('id', session.user.id).maybeSingle()
   if (!existing) {
     const now = new Date().toISOString()
-    await db.from('User').insert({
+    const { error: insertErr } = await db.from('User').insert({
       id: session.user.id,
       nickname: session.user.email?.split('@')[0] ?? '사용자',
       phone: '',
       isPhoneVerified: false,
       createdAt: now
     })
+    if (insertErr) {
+      console.error('User 생성 실패:', insertErr)
+      throw new Error('사용자 정보 생성에 실패했어요. 다시 로그인해주세요.')
+    }
   }
   return session.user
 }
