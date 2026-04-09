@@ -181,16 +181,26 @@ async function loadAndRenderGameUI(activeSlug) {
     `
   }
 
-  // 히어로 게임 카드 업데이트
-  const heroGames = document.querySelector('.hero-games')
-  if (heroGames) {
-    heroGames.innerHTML = games.map((g, i) => `
-      <a href="${gameSlugToPath(g.slug)}" class="hero-game-card ${g.slug}" style="${i === 0 ? 'grid-row:1/2;' : ''}">
-        ${g.imageUrl
-          ? `<img src="${g.imageUrl}" alt="${g.nameKo}" style="width:64px;height:64px;border-radius:14px;object-fit:cover;box-shadow:0 4px 16px rgba(0,0,0,0.4);">`
-          : `<span class="emoji">${g.emoji}</span>`
-        }
-        <span class="name">${g.nameKo}</span>
+  // 히어로 콜라주
+  const heroCollage = document.getElementById('hero-collage')
+  if (heroCollage) {
+    heroCollage.innerHTML = games.slice(0, 4).map(g =>
+      `<div class="collage-item" ${g.artImageUrl ? `style="background-image:url('${g.artImageUrl}')"` : ''}></div>`
+    ).join('')
+  }
+
+  // 게임 선택 카드
+  const gameCardsEl = document.getElementById('game-cards-section')
+  if (gameCardsEl) {
+    gameCardsEl.innerHTML = games.map(g => `
+      <a href="${gameSlugToPath(g.slug)}" class="game-select-card">
+        ${g.artImageUrl ? `<img src="${g.artImageUrl}" alt="${g.nameKo}">` : `<div style="width:100%;height:100%;background:#333;"></div>`}
+        <div class="game-select-card-overlay"></div>
+        <div class="game-select-card-info">
+          ${g.imageUrl ? `<img class="game-select-card-icon" src="${g.imageUrl}" alt="${g.nameKo}">` : `<span style="font-size:22px;">${g.emoji}</span>`}
+          <span class="game-select-card-name">${g.nameKo}</span>
+          <span class="game-select-card-arrow">↗</span>
+        </div>
       </a>
     `).join('')
   }

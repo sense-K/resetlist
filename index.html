@@ -27,7 +27,7 @@
         </div>
         <div class="hero-stat">
           <span>지원 게임</span>
-          <strong>4개</strong>
+          <strong id="stat-games">-</strong>
         </div>
         <div class="hero-stat">
           <span>오늘 등록</span>
@@ -35,48 +35,30 @@
         </div>
       </div>
     </div>
-    <div class="hero-games">
-      <a href="/genshin/" class="hero-game-card genshin" style="grid-row: 1 / 2;">
-        <span class="emoji">🌙</span>
-        <span class="name">원신</span>
-      </a>
-      <a href="/bluearchive/" class="hero-game-card blue">
-        <span class="emoji">📘</span>
-        <span class="name">블루아카이브</span>
-      </a>
-      <a href="/nikke/" class="hero-game-card nikke">
-        <span class="emoji">⚡</span>
-        <span class="name">니케</span>
-      </a>
-      <a href="/cookierunkingdom/" class="hero-game-card cookie">
-        <span class="emoji">🍪</span>
-        <span class="name">쿠키런킹덤</span>
-      </a>
-    </div>
+    <div class="hero-collage" id="hero-collage"></div>
   </div>
 </section>
 
-<!-- 탭 바 -->
-<div class="tab-bar">
-  <div class="tab-bar-inner">
-    <span class="tab-section-title">모든 계정</span>
-    <div class="tab-divider"></div>
-    <div class="tab-list">
-      <a href="/" class="tab-item active">전체</a>
-      <a href="/genshin/" class="tab-item">🌙 원신</a>
-      <a href="/bluearchive/" class="tab-item">📘 블루아카이브</a>
-      <a href="/nikke/" class="tab-item">⚡ 니케</a>
-      <a href="/cookierunkingdom/" class="tab-item">🍪 쿠키런킹덤</a>
+<!-- 게임 선택 카드 -->
+<section class="game-select-section">
+  <div class="game-select-inner">
+    <div class="game-select-header">
+      <span class="game-select-title">거래소 바로가기</span>
     </div>
+    <div class="game-cards-grid" id="game-cards-section"></div>
+  </div>
+</section>
+
+<!-- 최신 매물 -->
+<div class="page-wrapper">
+  <div class="listings-section-header">
+    <span class="listings-section-title">최신 매물</span>
     <div class="tab-sort">
       <button class="sort-btn active" id="sort-latest" onclick="setSort('latest')">최신순</button>
       <span class="sort-divider">|</span>
       <button class="sort-btn" id="sort-price" onclick="setSort('price')">가격순</button>
     </div>
   </div>
-</div>
-
-<div class="page-wrapper">
   <div id="listings-container">
     <div class="loading">불러오는 중...</div>
   </div>
@@ -90,13 +72,16 @@
   document.getElementById('navbar').innerHTML = renderNavbar('home')
 
   async function loadStats() {
-    const { count } = await db.from('Listing').select('*', { count: 'exact', head: true }).eq('status', 'active')
+    const { count } = await db.from('Listing').select('*', { count: 'exact', head: true }).in('status', ['active', 'trading'])
     document.getElementById('stat-listings').textContent = (count ?? 0) + '개'
+
+    const { count: gameCount } = await db.from('Game').select('*', { count: 'exact', head: true }).eq('isActive', true)
+    document.getElementById('stat-games').textContent = (gameCount ?? 0) + '개'
 
     const today = new Date(); today.setHours(0,0,0,0)
     const { count: todayCount } = await db.from('Listing')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'active')
+      .in('status', ['active', 'trading'])
       .gte('createdAt', today.toISOString())
     document.getElementById('stat-today').textContent = '+' + (todayCount ?? 0) + '개'
   }
@@ -106,10 +91,10 @@
     currentSort = sort
     document.getElementById('sort-latest').classList.toggle('active', sort === 'latest')
     document.getElementById('sort-price').classList.toggle('active', sort === 'price')
-    loadListings({ container: 'listings-container', limit: 9, sort })
+    loadListings({ container: 'listings-container', limit: 12, sort })
   }
 
-  loadListings({ container: 'listings-container', limit: 9 })
+  loadListings({ container: 'listings-container', limit: 12 })
   loadStats()
   loadAndRenderGameUI(null)
 </script>

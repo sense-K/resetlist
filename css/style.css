@@ -148,35 +148,111 @@ a { text-decoration: none; color: inherit; }
   color: var(--white);
 }
 
-/* 히어로 게임 카드 그리드 */
-.hero-games {
+/* 히어로 콜라주 */
+.hero-collage {
   display: grid;
-  grid-template-columns: 160px 160px;
-  grid-template-rows: 200px 95px;
-  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 400px;
   flex-shrink: 0;
 }
+.collage-item {
+  border-radius: 14px;
+  background-size: cover;
+  background-position: center;
+  background-color: #222;
+  height: 140px;
+}
+.collage-item:first-child {
+  grid-column: 1 / 3;
+  height: 170px;
+}
 
-.hero-game-card {
-  border-radius: 16px;
+/* 게임 선택 카드 섹션 */
+.game-select-section {
+  background: #f5f5f5;
+  padding: 40px 60px;
+}
+.game-select-inner {
+  max-width: 1300px;
+  margin: 0 auto;
+}
+.game-select-header {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  margin-bottom: 18px;
+}
+.game-select-title {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--black);
+}
+.game-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.game-select-card {
+  position: relative;
+  height: 190px;
+  border-radius: 16px;
+  overflow: hidden;
   cursor: pointer;
   text-decoration: none;
-  transition: transform 0.2s, opacity 0.2s;
+  display: block;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  background: #222;
 }
-.hero-game-card:hover { transform: translateY(-3px); opacity: 0.9; }
+.game-select-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(0,0,0,0.18); }
+.game-select-card img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+.game-select-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 30%, rgba(0,0,0,0.75) 100%);
+}
+.game-select-card-info {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.game-select-card-icon {
+  width: 30px; height: 30px;
+  border-radius: 7px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.game-select-card-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+}
+.game-select-card-arrow {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  margin-left: 2px;
+}
 
-.hero-game-card .emoji { font-size: 36px; }
-.hero-game-card .name { font-size: 13px; font-weight: 700; color: var(--white); }
-
-.hero-game-card.genshin { background: #1a1a2e; grid-row: 1 / 2; }
-.hero-game-card.blue { background: #1a0a2e; }
-.hero-game-card.nikke { background: #0a1a2e; }
-.hero-game-card.cookie { background: #2e1a0a; }
+/* 최신 매물 헤더 */
+.listings-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.listings-section-title {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--black);
+}
 
 /* ===== 게임 탭 바 ===== */
 .tab-bar {
@@ -395,8 +471,8 @@ a { text-decoration: none; color: inherit; }
 /* ===== 매물 카드 그리드 ===== */
 .listings-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
 }
 
 /* ===== 카드 ===== */
@@ -417,7 +493,7 @@ a { text-decoration: none; color: inherit; }
 
 /* 카드 상단 게임 아트 영역 */
 .card-art {
-  height: 130px;
+  height: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -426,7 +502,7 @@ a { text-decoration: none; color: inherit; }
   position: relative;
   overflow: hidden;
 }
-.card-art .game-emoji { font-size: 40px; }
+.card-art .game-emoji { font-size: 32px; }
 .card-art .game-server {
   font-size: 11px;
   color: rgba(255,255,255,0.5);
@@ -465,16 +541,16 @@ a { text-decoration: none; color: inherit; }
 }
 
 /* 카드 본문 */
-.card-body { padding: 14px 16px 16px; }
+.card-body { padding: 10px 12px 14px; }
 
 .card-price-row {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 .card-price {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 900;
   color: var(--black);
   letter-spacing: -0.5px;
@@ -828,10 +904,13 @@ a { text-decoration: none; color: inherit; }
   .navbar-hamburger { display: flex; }
   .mobile-menu { display: block; }
 
-  .hero { padding: 48px 20px 40px; }
+  .hero { padding: 40px 20px 36px; }
   .hero-inner { flex-direction: column; }
   .hero-text h1 { font-size: 32px; }
-  .hero-games { display: none; }
+  .hero-collage { display: none; }
+  .game-select-section { padding: 28px 16px; }
+  .game-cards-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .game-select-card { height: 140px; }
   .tab-bar-inner { padding: 0 20px; }
   .layout-with-sidebar { flex-direction: column; }
   .sidebar { width: 100%; position: static; }
@@ -839,7 +918,7 @@ a { text-decoration: none; color: inherit; }
   .sidebar-game-item { padding: 6px 14px; border: 1px solid var(--border); border-radius: 999px; }
   .sidebar-game-item.active { background: var(--black); border-color: var(--black); }
   .main-game-grid { grid-template-columns: 1fr 1fr; }
-  .listings-grid { grid-template-columns: 1fr; }
+  .listings-grid { grid-template-columns: 1fr 1fr; }
   .fab { bottom: 16px; right: 16px; padding: 12px 18px; font-size: 13px; }
 }
 
