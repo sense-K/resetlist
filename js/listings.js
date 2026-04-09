@@ -22,11 +22,14 @@ function renderListingCard(listing) {
     const c = lc.character
     if (!c) return ''
     const gc = typeof gradeClass === 'function' ? gradeClass(c.tier) : ''
+    if (c.imageUrl) {
+      return `<img class="char-img-badge${gc ? ' grade-' + gc : ''}" src="${c.imageUrl}" alt="${c.nameKo}" title="${c.nameKo}">`
+    }
     return `<span class="char-badge${gc ? ' grade-' + gc : ''}">${c.nameKo}</span>`
   }).join('')
 
   const extraBadge = extraCount > 0
-    ? `<span class="char-badge tier-more">+${extraCount}</span>`
+    ? `<span class="char-img-more">+${extraCount}</span>`
     : ''
 
   const discountHtml = listing.discountAmount

@@ -15,7 +15,6 @@ const GAMES = [
 
 // ===== 공용 유틸 =====
 function formatPrice(price) {
-  if (price >= 10000) return (price / 10000).toFixed(1).replace('.0', '') + '만원'
   return price.toLocaleString() + '원'
 }
 
