@@ -571,7 +571,18 @@
   }
 
   // ===== 초기화 =====
-  loadGames()
+  const ADMIN_EMAIL = 'zzabhm@gmail.com'
+
+  async function checkAdmin() {
+    const { data: { session } } = await db.auth.getSession()
+    if (!session || session.user.email !== ADMIN_EMAIL) {
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:16px;color:#888;">접근 권한이 없어요.</div>'
+      return false
+    }
+    return true
+  }
+
+  checkAdmin().then(ok => { if (ok) loadGames() })
 </script>
 </body>
 </html>
