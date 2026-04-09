@@ -35,8 +35,8 @@ function renderNavbar(activePage = '') {
       <div class="navbar-inner">
         <a href="/" class="navbar-logo">리스트업</a>
         <div class="navbar-menu">
-          <div class="nav-dropdown-wrap">
-            <span class="navbar-menu-item ${activePage === 'home' ? '' : 'muted'}">거래소 ▾</span>
+          <div class="nav-dropdown-wrap" id="nav-dropdown-wrap">
+            <span class="navbar-menu-item ${activePage === 'home' ? '' : 'muted'}" onclick="toggleNavDropdown()">거래소 ▾</span>
             <div class="nav-dropdown" id="nav-game-dropdown">
               <div class="nav-dropdown-loading">불러오는 중...</div>
             </div>
@@ -70,6 +70,17 @@ function renderNavbar(activePage = '') {
     <div class="mobile-menu-backdrop" id="mobile-menu-backdrop" onclick="toggleMobileMenu()"></div>
   `
 }
+
+function toggleNavDropdown() {
+  const wrap = document.getElementById('nav-dropdown-wrap')
+  wrap.classList.toggle('open')
+}
+
+// 드롭다운 외부 클릭 시 닫기
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('nav-dropdown-wrap')
+  if (wrap && !wrap.contains(e.target)) wrap.classList.remove('open')
+})
 
 function toggleMobileMenu() {
   const menu = document.getElementById('mobile-menu')

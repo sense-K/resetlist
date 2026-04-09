@@ -96,7 +96,7 @@ a { text-decoration: none; color: inherit; }
   min-width: 180px;
   z-index: 200;
 }
-.nav-dropdown-wrap:hover .nav-dropdown { display: block; }
+.nav-dropdown-wrap.open .nav-dropdown { display: block; }
 .nav-dropdown-item {
   display: flex;
   align-items: center;
