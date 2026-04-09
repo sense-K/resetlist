@@ -66,26 +66,47 @@
     .nickname-edit-form.show { display: flex; gap: 8px; }
     .nickname-edit-form input { flex: 1; }
 
+    /* 그룹 카드 */
+    .mypage-group {
+      background: #f8f8f8;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 4px 16px 8px;
+      margin-bottom: 16px;
+    }
+    .mypage-group-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #aaa;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 12px 0 4px;
+    }
+
     /* 섹션 */
     .mypage-section-title {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 800;
-      margin-bottom: 16px;
+      padding: 12px 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
       cursor: pointer;
       user-select: none;
+      border-top: 1px solid #e5e7eb;
     }
-    .mypage-section-title span { color: #aaa; font-size: 13px; font-weight: 400; }
+    .mypage-group > .mypage-section-title:first-of-type { border-top: none; }
+    .mypage-section-title span { color: #bbb; font-size: 12px; font-weight: 400; }
     .mypage-section-title .toggle-arrow {
-      font-size: 12px;
-      color: #aaa;
+      font-size: 11px;
+      color: #bbb;
       transition: transform 0.2s;
     }
     .mypage-section-title.collapsed .toggle-arrow { transform: rotate(-90deg); }
-    .mypage-collapsible { overflow: hidden; transition: max-height 0.3s ease; }
+    .mypage-collapsible { overflow: hidden; }
     .mypage-collapsible.collapsed { display: none; }
+    .mypage-collapsible .my-listing-item { background: #fff; border-radius: 12px; border: none; margin-bottom: 8px; padding: 12px 14px; }
+    .mypage-collapsible .my-listing-item:last-child { margin-bottom: 4px; }
 
     /* 내 판매글 목록 */
     .my-listing-item {
@@ -301,7 +322,7 @@
   function sectionHtml(id, title, count, items, collapsed = false) {
     return `
       <div class="mypage-section-title ${collapsed ? 'collapsed' : ''}" onclick="toggleSection('${id}')">
-        <span style="font-size:16px;font-weight:800;color:#111;">${title} <span>${count}개</span></span>
+        <span style="font-size:15px;font-weight:800;color:#111;">${title} <span>${count}개</span></span>
         <span class="toggle-arrow">▼</span>
       </div>
       <div id="${id}" class="mypage-collapsible ${collapsed ? 'collapsed' : ''}">
@@ -332,28 +353,31 @@
         <button class="btn btn-outline" onclick="toggleNicknameEdit()">취소</button>
       </div>
 
-      ${sectionHtml('sec-sale-active', '내 판매글', activeListings.length,
-        activeListings.length ? activeListings.map(renderListingItem).join('') : '<div class="empty-my">판매 중인 계정이 없어요<br><br><a href="/trade/register.html">판매글 올리기 →</a></div>'
-      )}
+      <div class="mypage-group">
+        <div class="mypage-group-label">판매</div>
+        ${sectionHtml('sec-sale-active', '내 판매글', activeListings.length,
+          activeListings.length ? activeListings.map(renderListingItem).join('') : '<div class="empty-my">판매 중인 계정이 없어요<br><br><a href="/trade/register.html">판매글 올리기 →</a></div>'
+        )}
+        ${sectionHtml('sec-sale-done', '판매 완료', soldListings.length,
+          soldListings.length ? soldListings.map(renderListingItem).join('') : '<div class="empty-my">판매 완료된 계정이 없어요</div>',
+          soldListings.length === 0
+        )}
+      </div>
 
-      ${sectionHtml('sec-sale-done', '판매 완료', soldListings.length,
-        soldListings.length ? soldListings.map(renderListingItem).join('') : '<div class="empty-my">판매 완료된 계정이 없어요</div>',
-        soldListings.length === 0
-      )}
-
-      ${sectionHtml('sec-buy-active', '구매 진행중', activeTrades.length,
-        activeTrades.length ? activeTrades.map(renderTradeItem).join('') : '<div class="empty-my">진행중인 구매가 없어요</div>'
-      )}
-
-      ${sectionHtml('sec-buy-done', '구매 완료', doneTrades.length,
-        doneTrades.length ? doneTrades.map(renderTradeItem).join('') : '<div class="empty-my">완료된 구매가 없어요</div>',
-        doneTrades.length === 0
-      )}
-
-      ${sectionHtml('sec-buy-cancelled', '취소된 거래', cancelledTrades.length,
-        cancelledTrades.length ? cancelledTrades.map(renderTradeItem).join('') : '<div class="empty-my">취소된 거래가 없어요</div>',
-        true
-      )}
+      <div class="mypage-group">
+        <div class="mypage-group-label">구매</div>
+        ${sectionHtml('sec-buy-active', '구매 진행중', activeTrades.length,
+          activeTrades.length ? activeTrades.map(renderTradeItem).join('') : '<div class="empty-my">진행중인 구매가 없어요</div>'
+        )}
+        ${sectionHtml('sec-buy-done', '구매 완료', doneTrades.length,
+          doneTrades.length ? doneTrades.map(renderTradeItem).join('') : '<div class="empty-my">완료된 구매가 없어요</div>',
+          doneTrades.length === 0
+        )}
+        ${sectionHtml('sec-buy-cancelled', '취소된 거래', cancelledTrades.length,
+          cancelledTrades.length ? cancelledTrades.map(renderTradeItem).join('') : '<div class="empty-my">취소된 거래가 없어요</div>',
+          true
+        )}
+      </div>
 
       <button class="logout-btn" onclick="logout()">로그아웃</button>
     `
