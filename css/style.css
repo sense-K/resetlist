@@ -64,6 +64,7 @@ a { text-decoration: none; color: inherit; }
   font-weight: 500;
   color: var(--black);
   transition: opacity 0.2s;
+  white-space: nowrap;
 }
 
 .navbar-menu a.muted { color: var(--text-muted); font-weight: 400; }
@@ -73,6 +74,8 @@ a { text-decoration: none; color: inherit; }
   display: flex;
   align-items: center;
   gap: 20px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .navbar-actions .login-btn {
@@ -741,7 +744,10 @@ a { text-decoration: none; color: inherit; }
 
 /* ===== 모바일 ===== */
 @media (max-width: 900px) {
-  .navbar-inner, .page-wrapper { padding: 0 20px; }
+  .navbar-inner, .page-wrapper { padding: 0 16px; gap: 16px; }
+  .navbar-menu { gap: 16px; }
+  .navbar-menu a { font-size: 13px; }
+  .navbar-sell-btn { padding: 8px 14px; font-size: 12px; }
   .hero { padding: 48px 20px 40px; }
   .hero-inner { flex-direction: column; }
   .hero-text h1 { font-size: 32px; }
