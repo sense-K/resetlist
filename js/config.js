@@ -149,7 +149,7 @@ function gameSlugToPath(slug) {
 
 // DB에서 게임 목록 동적으로 가져와서 탭/사이드바 렌더
 async function loadAndRenderGameUI(activeSlug) {
-  const { data: games } = await db.from('Game').select('id, nameKo, slug, emoji, imageUrl').eq('isActive', true).order('sortOrder', { nullsFirst: false }).order('nameKo')
+  const { data: games } = await db.from('Game').select('id, nameKo, slug, emoji, imageUrl, artImageUrl').eq('isActive', true).order('sortOrder', { nullsFirst: false }).order('nameKo')
   if (!games) return
 
   // 탭 바 업데이트
