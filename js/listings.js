@@ -15,7 +15,7 @@ function renderListingCard(listing) {
   const artClass = getArtClass(gameSlug)
 
   const chars = listing.characters ?? []
-  const visibleChars = chars.slice(0, 4)
+  const visibleChars = chars.slice(0, 8)
   const extraCount = chars.length - visibleChars.length
 
   const charBadges = visibleChars.map(lc => {
