@@ -366,7 +366,7 @@
     const emoji = document.getElementById('new-game-emoji').value.trim()
     const imageUrl = document.getElementById('new-game-image').value.trim()
     if (!nameKo || !slug) { alert('이름과 slug를 입력하세요'); return }
-    const { error } = await db.from('Game').insert({ nameKo, slug, emoji, imageUrl: imageUrl || null, isActive: true, createdAt: new Date().toISOString() })
+    const { error } = await db.from('Game').insert({ id: crypto.randomUUID(), nameKo, slug, emoji, imageUrl: imageUrl || null, isActive: true, createdAt: new Date().toISOString() })
     if (error) { alert('추가 실패: ' + error.message); return }
     document.getElementById('new-game-nameko').value = ''
     document.getElementById('new-game-slug').value = ''
