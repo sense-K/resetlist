@@ -618,15 +618,18 @@
 
   async function deleteListing(id) {
     if (!confirm('이 판매글을 삭제할까요?')) return
-    try {
-      await db.from('ListingCharacter').delete().eq('listingId', id)
-      await db.from('Trade').delete().eq('listingId', id)
-      const { error } = await db.from('Listing').delete().eq('id', id)
-      if (error) throw error
-      loadAdminListings()
-    } catch (e) {
-      alert('삭제 실패: ' + e.message)
+    const steps = [
+      { table: 'Review',           col: 'listingId' },
+      { table: 'ListingCharacter', col: 'listingId' },
+      { table: 'Trade',            col: 'listingId' },
+    ]
+    for (const { table, col } of steps) {
+      const { error } = await db.from(table).delete().eq(col, id)
+      if (error) { alert(`[${table}] 삭제 실패: ${error.message}\n코드: ${error.code}`); return }
     }
+    const { error } = await db.from('Listing').delete().eq('id', id)
+    if (error) { alert(`[Listing] 삭제 실패: ${error.message}\n코드: ${error.code}`); return }
+    loadAdminListings()
   }
 
   // ===== 초기화 =====
