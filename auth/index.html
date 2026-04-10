@@ -78,6 +78,25 @@
     }
     .auth-divider::before { left: 0; }
     .auth-divider::after { right: 0; }
+    .btn-google {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      font-family: inherit;
+    }
+    .btn-google:hover { background: #f8f8f8; border-color: #ccc; }
+    .btn-google img { width: 20px; height: 20px; }
   </style>
 </head>
 <body>
@@ -91,6 +110,14 @@
       <div class="auth-tab active" onclick="switchTab('login')">로그인</div>
       <div class="auth-tab" onclick="switchTab('signup')">회원가입</div>
     </div>
+
+    <!-- 구글 로그인 -->
+    <button class="btn-google" onclick="loginWithGoogle()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+      Google로 계속하기
+    </button>
+
+    <div class="auth-divider">또는 이메일로</div>
 
     <!-- 로그인 -->
     <div class="auth-panel active" id="panel-login">
@@ -209,6 +236,15 @@
     } else {
       sucEl.textContent = '가입 완료! 이메일을 확인한 뒤 로그인해주세요.'
     }
+  }
+
+  async function loginWithGoogle() {
+    const next = new URLSearchParams(location.search).get('next') || '/'
+    const { error } = await db.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: location.origin + next }
+    })
+    if (error) alert('구글 로그인 실패: ' + error.message)
   }
 
   function showErr(el, msg) {
