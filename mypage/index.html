@@ -68,20 +68,27 @@
 
     /* 그룹 카드 */
     .mypage-group {
-      background: #f8f8f8;
-      border: 1.5px solid #e5e7eb;
       border-radius: 16px;
       padding: 4px 16px 8px;
       margin-bottom: 16px;
     }
+    .mypage-group.group-sell {
+      background: #fdf8f0;
+      border: 1.5px solid #f0e4cc;
+    }
+    .mypage-group.group-buy {
+      background: #f0f5ff;
+      border: 1.5px solid #ccdaf5;
+    }
     .mypage-group-label {
       font-size: 11px;
       font-weight: 700;
-      color: #aaa;
       letter-spacing: 0.05em;
       text-transform: uppercase;
       padding: 12px 0 4px;
     }
+    .group-sell .mypage-group-label { color: #c47c2a; }
+    .group-buy  .mypage-group-label { color: #3a6ec4; }
 
     /* 섹션 */
     .mypage-section-title {
@@ -106,6 +113,8 @@
     .mypage-collapsible { overflow: hidden; }
     .mypage-collapsible.collapsed { display: none; }
     .mypage-collapsible .my-listing-item { background: #fff; border-radius: 12px; border: none; margin-bottom: 8px; padding: 12px 14px; }
+    .group-sell .mypage-section-title { border-top-color: #f0e4cc; }
+    .group-buy  .mypage-section-title { border-top-color: #ccdaf5; }
     .mypage-collapsible .my-listing-item:last-child { margin-bottom: 4px; }
 
     /* 내 판매글 목록 */
@@ -363,7 +372,7 @@
         <button class="btn btn-outline" onclick="toggleNicknameEdit()">취소</button>
       </div>
 
-      <div class="mypage-group">
+      <div class="mypage-group group-sell">
         <div class="mypage-group-label">판매</div>
         ${sectionHtml('sec-sale-active', '내 판매글', activeListings.length,
           activeListings.length ? activeListings.map(renderListingItem).join('') : '<div class="empty-my">판매 중인 계정이 없어요<br><br><a href="/trade/register.html">판매글 올리기 →</a></div>'
@@ -374,7 +383,7 @@
         )}
       </div>
 
-      <div class="mypage-group">
+      <div class="mypage-group group-buy">
         <div class="mypage-group-label">구매</div>
         ${sectionHtml('sec-buy-active', '구매 진행중', activeTrades.length,
           activeTrades.length ? activeTrades.map(renderTradeItem).join('') : '<div class="empty-my">진행중인 구매가 없어요</div>'
