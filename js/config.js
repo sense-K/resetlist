@@ -41,8 +41,6 @@ function renderNavbar(activePage = '') {
               <div class="nav-dropdown-loading">불러오는 중...</div>
             </div>
           </div>
-          <a href="#" class="muted">공지사항</a>
-          <a href="#" class="muted">이용안내</a>
         </div>
         <div class="navbar-actions" id="navbar-actions">
           <a href="/auth/" class="login-btn">로그인</a>
@@ -58,8 +56,6 @@ function renderNavbar(activePage = '') {
         <div class="mobile-menu-links">
           <div class="mobile-menu-section-label">거래소</div>
           <div id="mobile-game-links"></div>
-          <a href="#">공지사항</a>
-          <a href="#">이용안내</a>
         </div>
         <div class="mobile-menu-actions" id="mobile-menu-actions">
           <a href="/auth/" class="btn btn-outline" style="text-align:center;">로그인</a>
@@ -284,7 +280,49 @@ function gradeShort(grade) {
   return map[grade] ?? grade
 }
 
+function renderFooter() {
+  return `
+    <footer class="site-footer">
+      <div class="site-footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <span class="footer-logo">리스트업</span>
+            <p class="footer-desc">모바일 게임 계정 시세 조회 및 직거래 플랫폼</p>
+          </div>
+          <div class="footer-links">
+            <div class="footer-link-col">
+              <div class="footer-link-title">거래소</div>
+              <a href="/genshin/">원신</a>
+              <a href="/bluearchive/">블루아카이브</a>
+              <a href="/nikke/">니케</a>
+              <a href="/cookierunkingdom/">쿠키런킹덤</a>
+            </div>
+            <div class="footer-link-col">
+              <div class="footer-link-title">서비스</div>
+              <a href="/trade/register.html">판매하기</a>
+              <a href="/mypage/">마이페이지</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© 2025 리스트업. All rights reserved.</span>
+          <div class="footer-bottom-links">
+            <a href="#">이용약관</a>
+            <a href="#">개인정보처리방침</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  `
+}
+
 function renderSidebarGames(activeSlug) {
   // placeholder — loadAndRenderGameUI가 덮어씀
   return `<div class="sidebar-section"><div class="sidebar-label">게임</div><div class="sidebar-game-list" style="color:#aaa;font-size:13px;padding:8px;">불러오는 중...</div></div>`
 }
+
+// 푸터 자동 렌더링
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('footer')
+  if (el) el.innerHTML = renderFooter()
+})
