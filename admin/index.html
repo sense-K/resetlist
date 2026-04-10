@@ -453,9 +453,14 @@
 
   // ===== 서버 =====
   async function loadServers(gameId = null) {
-    let query = db.from('Server').select('id, nameKo, gameId, game:Game(nameKo, emoji, imageUrl)').order('nameKo')
+    let query = db.from('Server').select('id, nameKo, gameId, game:Game(nameKo, emoji, imageUrl)').order('gameId').order('nameKo')
     if (gameId) query = query.eq('gameId', gameId)
-    const { data: servers } = await query
+    const { data: serversRaw } = await query
+    const servers = (serversRaw ?? []).sort((a, b) => {
+      const ga = a.game?.nameKo ?? ''; const gb = b.game?.nameKo ?? ''
+      if (ga !== gb) return ga.localeCompare(gb, 'ko')
+      return a.nameKo.localeCompare(b.nameKo, 'ko')
+    })
     const tbody = document.getElementById('servers-table-body')
     if (!servers || servers.length === 0) {
       tbody.innerHTML = '<tr class="empty-row"><td colspan="3">등록된 서버가 없어요</td></tr>'
