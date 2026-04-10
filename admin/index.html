@@ -353,7 +353,8 @@
         </td>
         <td style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn-sm btn-gray" onclick="editGameImage('${g.id}', '${g.imageUrl ?? ''}', 'imageUrl', '앱 아이콘')">앱 아이콘</button>
-          <button class="btn-sm btn-gray" onclick="editGameImage('${g.id}', '${g.artImageUrl ?? ''}', 'artImageUrl', '카드 배경 이미지')">카드 배경</button>
+          <button class="btn-sm btn-gray" onclick="editGameImage('${g.id}', '${g.artImageUrl ?? ''}', 'artImageUrl', '카드 배경')">카드 배경</button>
+          <button class="btn-sm btn-gray" onclick="editGameInfo('${g.id}', '${g.nameKo}', '${g.nameEn ?? ''}', '${g.slug}', '${g.emoji ?? ''}')">수정</button>
           <button class="btn-sm btn-gray" onclick="toggleGame('${g.id}', ${g.isActive})">${g.isActive ? '비활성화' : '활성화'}</button>
           <button class="btn-sm btn-red" onclick="deleteGame('${g.id}', '${g.nameKo}')">삭제</button>
         </td>
@@ -382,6 +383,20 @@
     const url = prompt(`${label} URL을 입력하세요:`, currentUrl)
     if (url === null) return
     const { error } = await db.from('Game').update({ [field]: url || null }).eq('id', id)
+    if (error) { alert('수정 실패: ' + error.message); return }
+    loadGames()
+  }
+
+  async function editGameInfo(id, nameKo, nameEn, slug, emoji) {
+    const newNameKo = prompt('한국어 이름:', nameKo)
+    if (newNameKo === null) return
+    const newNameEn = prompt('영문 이름:', nameEn)
+    if (newNameEn === null) return
+    const newSlug = prompt('slug:', slug)
+    if (newSlug === null) return
+    const newEmoji = prompt('이모지:', emoji)
+    if (newEmoji === null) return
+    const { error } = await db.from('Game').update({ nameKo: newNameKo, nameEn: newNameEn, slug: newSlug, emoji: newEmoji }).eq('id', id)
     if (error) { alert('수정 실패: ' + error.message); return }
     loadGames()
   }
@@ -450,7 +465,10 @@
       <tr>
         <td style="display:flex;align-items:center;gap:8px;">${adminGameIcon(s.game ?? {}, 22)} ${s.game?.nameKo ?? ''}</td>
         <td><strong>${s.nameKo}</strong></td>
-        <td><button class="btn-sm btn-red" onclick="deleteServer('${s.id}', '${s.nameKo}')">삭제</button></td>
+        <td style="display:flex;gap:6px;">
+          <button class="btn-sm btn-gray" onclick="editServer('${s.id}', '${s.nameKo}')">수정</button>
+          <button class="btn-sm btn-red" onclick="deleteServer('${s.id}', '${s.nameKo}')">삭제</button>
+        </td>
       </tr>
     `).join('')
   }
@@ -463,6 +481,14 @@
     const { error } = await db.from('Server').insert({ gameId, nameKo })
     if (error) { alert('추가 실패: ' + error.message); return }
     document.getElementById('new-server-name').value = ''
+    loadServers(selectedServerGameId)
+  }
+
+  async function editServer(id, nameKo) {
+    const newName = prompt('서버 이름:', nameKo)
+    if (newName === null || !newName.trim()) return
+    const { error } = await db.from('Server').update({ nameKo: newName.trim() }).eq('id', id)
+    if (error) { alert('수정 실패: ' + error.message); return }
     loadServers(selectedServerGameId)
   }
 
@@ -506,7 +532,10 @@
         <td><strong>${c.nameKo}</strong></td>
         <td><span class="badge ${c.tier === 'S' ? 'badge-s' : 'badge-a'}">${c.tier}</span></td>
         <td style="display:flex;align-items:center;gap:8px;">${adminGameIcon(c.game ?? {}, 22)} ${c.game?.nameKo ?? ''}</td>
-        <td><button class="btn-sm btn-red" onclick="deleteChar('${c.id}', '${c.nameKo}')">삭제</button></td>
+        <td style="display:flex;gap:6px;">
+          <button class="btn-sm btn-gray" onclick="editChar('${c.id}', '${c.nameKo}', '${c.tier}', '${c.imageUrl ?? ''}')">수정</button>
+          <button class="btn-sm btn-red" onclick="deleteChar('${c.id}', '${c.nameKo}')">삭제</button>
+        </td>
       </tr>
     `).join('')
   }
@@ -527,6 +556,18 @@
     if (error) { alert('추가 실패: ' + error.message); return }
     document.getElementById('new-char-name').value = ''
     document.getElementById('new-char-image').value = ''
+    loadCharsForGame()
+  }
+
+  async function editChar(id, nameKo, tier, imageUrl) {
+    const newName = prompt('캐릭터 이름:', nameKo)
+    if (newName === null || !newName.trim()) return
+    const newTier = prompt('등급 (예: 비스트, 에픽, 레어 등):', tier)
+    if (newTier === null) return
+    const newImage = prompt('이미지 URL:', imageUrl)
+    if (newImage === null) return
+    const { error } = await db.from('Character').update({ nameKo: newName.trim(), tier: newTier.trim(), imageUrl: newImage.trim() || null }).eq('id', id)
+    if (error) { alert('수정 실패: ' + error.message); return }
     loadCharsForGame()
   }
 
