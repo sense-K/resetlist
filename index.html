@@ -19,20 +19,6 @@
   <div class="hero-inner">
     <div class="hero-text">
       <h1>리세계 직거래,<br>지금 시작하세요.</h1>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <span>전체 계정</span>
-          <strong id="stat-listings">-</strong>
-        </div>
-        <div class="hero-stat">
-          <span>지원 게임</span>
-          <strong id="stat-games">-</strong>
-        </div>
-        <div class="hero-stat">
-          <span>오늘 등록</span>
-          <strong id="stat-today">-</strong>
-        </div>
-      </div>
     </div>
     <div class="hero-collage" id="hero-collage"></div>
   </div>
@@ -70,21 +56,6 @@
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('home')
 
-  async function loadStats() {
-    const { count } = await db.from('Listing').select('*', { count: 'exact', head: true }).in('status', ['active', 'trading'])
-    document.getElementById('stat-listings').textContent = (count ?? 0) + '개'
-
-    const { count: gameCount } = await db.from('Game').select('*', { count: 'exact', head: true }).eq('isActive', true)
-    document.getElementById('stat-games').textContent = (gameCount ?? 0) + '개'
-
-    const today = new Date(); today.setHours(0,0,0,0)
-    const { count: todayCount } = await db.from('Listing')
-      .select('*', { count: 'exact', head: true })
-      .in('status', ['active', 'trading'])
-      .gte('createdAt', today.toISOString())
-    document.getElementById('stat-today').textContent = '+' + (todayCount ?? 0) + '개'
-  }
-
   let currentSort = 'latest'
   function setSort(sort) {
     currentSort = sort
@@ -94,7 +65,6 @@
   }
 
   loadListings({ container: 'listings-container', limit: 12 })
-  loadStats()
   loadAndRenderGameUI(null)
 </script>
 <div id="footer"></div>
