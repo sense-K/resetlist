@@ -1037,7 +1037,7 @@ a { text-decoration: none; color: inherit; }
 @media (min-width: 769px) {
   .navbar-hamburger { display: none !important; }
   .mobile-menu { display: none !important; }
-  .page-wrapper { padding: 0 60px; }
+  .page-wrapper { padding: 40px 60px 80px; }
   .fab { display: none !important; }
 }
 
