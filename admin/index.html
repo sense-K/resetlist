@@ -618,8 +618,15 @@
 
   async function deleteListing(id) {
     if (!confirm('이 판매글을 삭제할까요?')) return
-    await db.from('Listing').delete().eq('id', id)
-    loadAdminListings()
+    try {
+      await db.from('ListingCharacter').delete().eq('listingId', id)
+      await db.from('Trade').delete().eq('listingId', id)
+      const { error } = await db.from('Listing').delete().eq('id', id)
+      if (error) throw error
+      loadAdminListings()
+    } catch (e) {
+      alert('삭제 실패: ' + e.message)
+    }
   }
 
   // ===== 초기화 =====
