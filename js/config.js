@@ -198,8 +198,7 @@ async function loadAndRenderGameUI(activeSlug) {
   // 탭 바 업데이트
   const tabList = document.querySelector('.tab-list')
   if (tabList) {
-    tabList.innerHTML = `<a href="/" class="tab-item ${!activeSlug ? 'active' : ''}">전체</a>` +
-      games.map(g => `
+    tabList.innerHTML = games.map(g => `
         <a href="${gameSlugToPath(g.slug)}" class="tab-item ${g.slug === activeSlug ? 'active' : ''}" style="display:inline-flex;align-items:center;gap:5px;">
           ${gameIcon(g, 18)} ${g.nameKo}
         </a>
