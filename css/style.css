@@ -20,11 +20,7 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
-
-#footer { margin-top: auto; }
 
 a { text-decoration: none; color: inherit; }
 
@@ -428,6 +424,7 @@ a { text-decoration: none; color: inherit; }
   max-width: 1300px;
   margin: 0 auto;
   padding: 48px 60px 80px;
+  min-height: calc(100vh - 60px - 140px); /* 뷰포트 - 네비바 - 푸터 */
 }
 
 .layout-with-sidebar {
