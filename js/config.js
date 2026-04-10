@@ -289,27 +289,9 @@ function renderFooter() {
             <span class="footer-logo">리스트업</span>
             <p class="footer-desc">모바일 게임 계정 시세 조회 및 직거래 플랫폼</p>
           </div>
-          <div class="footer-links">
-            <div class="footer-link-col">
-              <div class="footer-link-title">거래소</div>
-              <a href="/genshin/">원신</a>
-              <a href="/bluearchive/">블루아카이브</a>
-              <a href="/nikke/">니케</a>
-              <a href="/cookierunkingdom/">쿠키런킹덤</a>
-            </div>
-            <div class="footer-link-col">
-              <div class="footer-link-title">서비스</div>
-              <a href="/trade/register.html">판매하기</a>
-              <a href="/mypage/">마이페이지</a>
-            </div>
-          </div>
         </div>
         <div class="footer-bottom">
           <span>© 2025 리스트업. All rights reserved.</span>
-          <div class="footer-bottom-links">
-            <a href="#">이용약관</a>
-            <a href="#">개인정보처리방침</a>
-          </div>
         </div>
       </div>
     </footer>
