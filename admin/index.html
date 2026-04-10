@@ -604,14 +604,14 @@
       return
     }
     tbody.innerHTML = listings.map(l => `
-      <tr>
+      <tr style="cursor:pointer;" onclick="window.open('/listing/?id=${l.id}', '_blank')">
         <td style="display:flex;align-items:center;gap:8px;">${adminGameIcon(l.game ?? {}, 22)} ${l.game?.nameKo ?? ''}</td>
         <td>${l.server?.nameKo ?? ''}</td>
         <td><strong>${formatPrice(l.price)}</strong></td>
         <td>${l.user?.nickname ?? '익명'}</td>
         <td style="color:#888;font-size:12px;">${new Date(l.createdAt).toLocaleDateString('ko-KR')}</td>
         <td><span class="badge ${l.status === 'active' ? 'badge-green' : 'badge-gray'}">${l.status === 'active' ? '활성' : '비활성'}</span></td>
-        <td><button class="btn-sm btn-red" onclick="deleteListing('${l.id}')">삭제</button></td>
+        <td><button class="btn-sm btn-red" onclick="event.stopPropagation();deleteListing('${l.id}')">삭제</button></td>
       </tr>
     `).join('')
   }
