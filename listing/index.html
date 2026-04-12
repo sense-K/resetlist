@@ -96,6 +96,24 @@
     .detail-meta { display: flex; gap: 16px; font-size: 12px; color: #aaa; margin-top: 12px; }
     .loading-full { display: flex; align-items: center; justify-content: center; height: 300px; color: #aaa; font-size: 14px; }
 
+    /* 공유 버튼 */
+    .share-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .share-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: 600; color: #888;
+      background: #f3f4f6; border: none; border-radius: 999px;
+      padding: 5px 12px; cursor: pointer; transition: all 0.15s;
+    }
+    .share-btn:hover { background: #e5e7eb; color: #111; }
+    .share-toast {
+      position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+      background: #111; color: #fff; font-size: 13px; font-weight: 600;
+      padding: 10px 20px; border-radius: 999px;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+      z-index: 9999; white-space: nowrap;
+    }
+    .share-toast.show { opacity: 1; }
+
     @media (max-width: 600px) {
       .detail-chars-grid { grid-template-columns: repeat(5, 1fr); }
       .detail-price { font-size: 26px; }
@@ -225,7 +243,10 @@
       </div>
 
       <div class="detail-wrap">
-        <span class="status-badge ${statusClass}">${statusText}</span>
+        <div class="share-row">
+          <span class="status-badge ${statusClass}" style="margin-bottom:0;">${statusText}</span>
+          <button class="share-btn" onclick="shareListing()">🔗 공유하기</button>
+        </div>
 
         <div class="detail-price-block">
           <span class="detail-price">${formatPrice(l.price)}</span>
@@ -499,6 +520,44 @@
             </div>`
         }).join('')}
       </div>`
+  }
+
+  async function shareListing() {
+    const url = window.location.href
+    const l = currentListing
+    const gameName = l?.game?.nameKo ?? ''
+    const price = l?.price ? Number(l.price).toLocaleString('ko-KR') + '원' : ''
+    const title = `${gameName} 리세계 판매계정 · ${price} | 리세리스트`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url })
+        return
+      } catch (e) {
+        if (e.name === 'AbortError') return // 사용자가 취소
+      }
+    }
+
+    // Web Share API 미지원 → 클립보드 복사
+    try {
+      await navigator.clipboard.writeText(url)
+      showToast('링크가 복사됐어요!')
+    } catch (e) {
+      showToast('링크: ' + url)
+    }
+  }
+
+  function showToast(msg) {
+    let toast = document.getElementById('share-toast')
+    if (!toast) {
+      toast = document.createElement('div')
+      toast.id = 'share-toast'
+      toast.className = 'share-toast'
+      document.body.appendChild(toast)
+    }
+    toast.textContent = msg
+    toast.classList.add('show')
+    setTimeout(() => toast.classList.remove('show'), 2200)
   }
 
   function copyContact(url) {
