@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>일괄 판매글 등록 | 리셋리스트</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* 게임 선택 */
+    .game-select-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .game-select-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: #fff;
+    }
+    .game-select-card:hover { border-color: #aaa; }
+    .game-select-card.selected { border-color: #111; background: #f8f8f8; }
+    .game-select-card .game-icon-wrap { width: 36px; height: 36px; flex-shrink: 0; }
+    .game-select-card .game-icon-wrap img { width: 36px; height: 36px; border-radius: 9px; object-fit: cover; }
+    .game-select-card .game-emoji { font-size: 24px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
+    .game-select-card .game-name { font-size: 14px; font-weight: 700; }
+
+    /* 계정 행 */
+    .account-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+    .account-row {
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fff;
+      position: relative;
+    }
+    .account-row-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .account-row-num {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .btn-remove-row {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 18px;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+    .btn-remove-row:hover { background: #fee2e2; color: #ef4444; }
+
+    .char-pick-btn {
+      width: 100%;
+      border: 1.5px dashed var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: #fafafa;
+      cursor: pointer;
+      text-align: left;
+      font-size: 13px;
+      color: var(--text-muted);
+      transition: all 0.15s;
+      margin-bottom: 10px;
+    }
+    .char-pick-btn:hover { border-color: #aaa; background: #f3f4f6; }
+    .char-pick-btn.has-chars {
+      border-style: solid;
+      border-color: var(--border);
+      background: #fff;
+      color: #111;
+    }
+    .char-tags-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      pointer-events: none;
+    }
+    .char-tag-mini {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      background: #111;
+      color: #fff;
+      border-radius: 999px;
+      padding: 2px 8px 2px 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .char-tag-mini img { width: 16px; height: 16px; border-radius: 50%; object-fit: cover; }
+
+    .row-inputs { display: flex; gap: 8px; margin-bottom: 8px; }
+    .price-input-wrap { position: relative; flex: 1; }
+    .price-input-wrap input { padding-right: 36px; }
+    .price-unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; }
+
+    .btn-add-row {
+      width: 100%;
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.15s;
+      margin-bottom: 20px;
+    }
+    .btn-add-row:hover { border-color: #aaa; color: #111; background: #f8f8f8; }
+
+    /* 모달 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-sheet {
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 560px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 20px 32px;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .modal-title { font-size: 16px; font-weight: 700; }
+    .modal-close {
+      background: none; border: none; cursor: pointer;
+      font-size: 22px; color: var(--text-muted); line-height: 1;
+    }
+    .modal-selected-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      min-height: 36px;
+      padding: 8px 10px;
+      border: 1.5px dashed var(--border);
+      border-radius: 10px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .char-grade-list {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .char-grade-list::-webkit-scrollbar { width: 4px; }
+    .char-grade-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .char-grade-section { margin-bottom: 14px; }
+    .char-grade-header {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 6px; font-size: 12px; font-weight: 700;
+    }
+    .char-grade-header .grade-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .char-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+
+    .char-item {
+      position: relative;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.15s;
+      aspect-ratio: 1/1;
+      background: #f3f4f6;
+    }
+    .char-item:hover { border-color: #aaa; }
+    .char-item.selected { border-color: #111 !important; box-shadow: 0 0 0 1px #111; }
+    .char-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .char-item .char-no-img { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #ccc; }
+    .char-item .char-name-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+      color: #fff; font-size: 9px; font-weight: 600;
+      padding: 12px 3px 4px; text-align: center; line-height: 1.2;
+    }
+    .char-item .check-overlay {
+      display: none; position: absolute; inset: 0;
+      background: rgba(0,0,0,0.5); align-items: center; justify-content: center;
+    }
+    .char-item.selected .check-overlay { display: flex; }
+    .check-overlay svg { width: 22px; height: 22px; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
+
+    .modal-confirm-btn {
+      margin-top: 14px;
+      width: 100%;
+      padding: 14px;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .modal-confirm-btn:hover { background: #333; }
+
+    /* 설정 섹션 */
+    .settings-section {
+      background: #f8f8f8;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .settings-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="navbar"></div>
+
+<div style="max-width:560px;margin:0 auto;padding:0 20px 80px;">
+  <div style="padding:20px 0 8px;">
+    <h2 style="font-size:20px;font-weight:800;margin:0 0 4px;">일괄 판매글 등록</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin:0;">여러 계정을 한 번에 등록할 수 있어요</p>
+  </div>
+
+  <!-- 게임/서버 선택 -->
+  <div class="settings-section">
+    <div class="settings-section-title">게임 · 서버 선택</div>
+    <div class="game-select-grid" id="game-select-grid">
+      <div style="color:var(--text-muted);font-size:13px;">불러오는 중...</div>
+    </div>
+    <div id="server-group" style="display:none;">
+      <select class="form-select" id="server-select">
+        <option value="">서버 선택</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 공통 카카오 링크 -->
+  <div class="settings-section">
+    <div class="settings-section-title">공통 설정</div>
+    <div class="form-group" style="margin-bottom:0;">
+      <label class="form-label">카카오 오픈채팅 링크 <span style="color:red">*</span></label>
+      <input type="url" class="form-input" id="kakao-input" placeholder="https://open.kakao.com/o/...">
+      <div style="font-size:12px;color:#888;margin-top:6px;">모든 계정에 동일하게 적용돼요</div>
+    </div>
+  </div>
+
+  <!-- 계정 목록 -->
+  <div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
+    <span>계정 목록</span>
+    <span id="account-count" style="color:var(--text-muted);font-weight:400;">0개</span>
+  </div>
+  <div class="account-list" id="account-list"></div>
+  <button class="btn-add-row" onclick="addRow()">+ 계정 추가</button>
+
+  <button class="btn btn-primary btn-full" onclick="submitAll()" id="submit-btn">전체 등록하기</button>
+</div>
+
+<!-- 캐릭터 선택 모달 -->
+<div class="modal-overlay" id="char-modal" onclick="handleModalOverlayClick(event)">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <span class="modal-title">캐릭터 선택</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-selected-bar" id="modal-selected-bar">
+      <span style="color:var(--text-muted);font-size:13px;" id="modal-placeholder">캐릭터를 선택하면 여기 표시돼요</span>
+    </div>
+    <div class="char-grade-list" id="modal-char-list">
+      <div class="loading">불러오는 중...</div>
+    </div>
+    <button class="modal-confirm-btn" onclick="confirmCharSelection()">선택 완료</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script>
+  document.getElementById('navbar').innerHTML = renderNavbar('sell')
+
+  let selectedGameId = null
+  let selectedGame = null
+  let selectedServerId = null
+  let allChars = []
+  let rows = []         // [{ id, chars, price, desc }]
+  let rowIdSeq = 0
+  let modalTargetRowId = null
+  let modalTempChars = []
+
+  const GRADE_ORDER_MAP = {
+    'nikke':            ['SSS','SS','S','A','B','C'],
+    'genshin':          ['5성','4성'],
+    'bluearchive':      ['UE','E','SR','R'],
+    'cookierunkingdom': ['위치','비스트','에인션트 각성','에인션트','레전더리','드래곤','슈퍼에픽','에픽','레어','커먼'],
+  }
+  const GRADE_DOT_COLOR = {
+    'SSS':'#c026d3','SS':'#ea580c','S':'#d97706','A':'#7c3aed','B':'#3b82f6','C':'#9ca3af',
+    '위치':'#7c3aed','비스트':'#334155','에인션트 각성':'#d97706','에인션트':'#b45309',
+    '레전더리':'#ea580c','드래곤':'#059669','슈퍼에픽':'#7c3aed','에픽':'#3b82f6','레어':'#22c55e','커먼':'#9ca3af',
+    '5성':'#ea580c','4성':'#7c3aed',
+    'UE':'#c026d3','E':'#ea580c','SR':'#7c3aed','R':'#3b82f6',
+  }
+
+  async function init() {
+    const { data: games } = await db.from('Game').select('id, nameKo, slug, emoji, imageUrl')
+      .eq('isActive', true).order('sortOrder', { nullsFirst: false }).order('nameKo')
+    const grid = document.getElementById('game-select-grid')
+    if (!games?.length) { grid.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">게임이 없어요</div>'; return }
+    grid.innerHTML = games.map(g => `
+      <div class="game-select-card" id="gcard-${g.id}" onclick="selectGame(${JSON.stringify(g).replace(/"/g, '&quot;')})">
+        <div class="game-icon-wrap">
+          ${g.imageUrl ? `<img src="${g.imageUrl}" alt="${g.nameKo}">` : `<div class="game-emoji">${g.emoji ?? ''}</div>`}
+        </div>
+        <span class="game-name">${g.nameKo}</span>
+      </div>
+    `).join('')
+
+    // 계정 1개 기본 추가
+    addRow()
+  }
+
+  async function selectGame(g) {
+    selectedGameId = g.id
+    selectedGame = g
+    allChars = []
+    // 기존 행 캐릭터 초기화
+    rows.forEach(r => { r.chars = [] })
+
+    document.querySelectorAll('.game-select-card').forEach(el => el.classList.remove('selected'))
+    document.getElementById('gcard-' + g.id)?.classList.add('selected')
+
+    // 서버 로드
+    const serverSel = document.getElementById('server-select')
+    serverSel.innerHTML = '<option value="">서버 선택</option>'
+    const { data: servers } = await db.from('Server').select('id, nameKo').eq('gameId', g.id)
+    servers?.forEach(s => {
+      const opt = document.createElement('option')
+      opt.value = s.id; opt.textContent = s.nameKo; serverSel.appendChild(opt)
+    })
+    serverSel.onchange = () => { selectedServerId = serverSel.value }
+    document.getElementById('server-group').style.display = 'block'
+
+    // 캐릭터 로드
+    const { data: chars } = await db.from('Character').select('id, nameKo, tier, imageUrl')
+      .eq('gameId', g.id).eq('isActive', true).order('sortOrder')
+    allChars = chars ?? []
+
+    // 행 버튼 텍스트 리셋
+    renderAllRows()
+  }
+
+  function addRow() {
+    const id = ++rowIdSeq
+    rows.push({ id, chars: [], price: '', desc: '' })
+    renderAllRows()
+  }
+
+  function removeRow(id) {
+    if (rows.length <= 1) { alert('최소 1개는 있어야 해요'); return }
+    rows = rows.filter(r => r.id !== id)
+    renderAllRows()
+  }
+
+  function renderAllRows() {
+    const container = document.getElementById('account-list')
+    document.getElementById('account-count').textContent = rows.length + '개'
+    container.innerHTML = rows.map((row, i) => renderRowHTML(row, i + 1)).join('')
+  }
+
+  function renderRowHTML(row, num) {
+    const charBtnContent = row.chars.length > 0
+      ? `<div class="char-tags-preview">${row.chars.map(c =>
+          `<span class="char-tag-mini">${c.imageUrl ? `<img src="${c.imageUrl}" alt="${c.nameKo}">` : ''}${c.nameKo}</span>`
+        ).join('')}</div>`
+      : '캐릭터 선택 →'
+    const hasChars = row.chars.length > 0
+
+    return `
+      <div class="account-row" id="row-${row.id}">
+        <div class="account-row-header">
+          <span class="account-row-num">계정 ${num}</span>
+          <button class="btn-remove-row" onclick="removeRow(${row.id})">×</button>
+        </div>
+        <button class="char-pick-btn${hasChars ? ' has-chars' : ''}" onclick="openModal(${row.id})">
+          ${charBtnContent}
+        </button>
+        <div class="row-inputs">
+          <div class="price-input-wrap">
+            <input type="number" class="form-input" placeholder="판매가격" min="0"
+              value="${row.price}"
+              oninput="updateRowField(${row.id}, 'price', this.value)"
+              style="font-size:14px;">
+            <span class="price-unit">원</span>
+          </div>
+        </div>
+        <textarea class="form-textarea" placeholder="계정 설명 (선택)" rows="2"
+          oninput="updateRowField(${row.id}, 'desc', this.value)"
+          style="font-size:13px;resize:none;">${row.desc}</textarea>
+      </div>
+    `
+  }
+
+  function updateRowField(id, field, value) {
+    const row = rows.find(r => r.id === id)
+    if (row) row[field] = value
+  }
+
+  // 모달
+  function openModal(rowId) {
+    if (!selectedGameId) { alert('게임을 먼저 선택해주세요'); return }
+    modalTargetRowId = rowId
+    const row = rows.find(r => r.id === rowId)
+    modalTempChars = [...(row?.chars ?? [])]
+
+    renderModalCharGrid()
+    renderModalSelectedBar()
+    document.getElementById('char-modal').classList.add('open')
+    document.body.style.overflow = 'hidden'
+  }
+
+  function closeModal() {
+    document.getElementById('char-modal').classList.remove('open')
+    document.body.style.overflow = ''
+    modalTargetRowId = null
+    modalTempChars = []
+  }
+
+  function handleModalOverlayClick(e) {
+    if (e.target === document.getElementById('char-modal')) closeModal()
+  }
+
+  function renderModalCharGrid() {
+    const container = document.getElementById('modal-char-list')
+    if (!allChars.length) {
+      container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);">캐릭터가 없어요</div>'
+      return
+    }
+    const groups = {}
+    allChars.forEach(c => {
+      const g = c.tier || '기타'
+      if (!groups[g]) groups[g] = []
+      groups[g].push(c)
+    })
+    const GRADE_ORDER = GRADE_ORDER_MAP[selectedGame?.slug] || []
+    const orderedGrades = [...GRADE_ORDER.filter(g => groups[g]), ...Object.keys(groups).filter(g => !GRADE_ORDER.includes(g))]
+
+    container.innerHTML = orderedGrades.map(grade => {
+      const chars = groups[grade]
+      const dot = GRADE_DOT_COLOR[grade] || '#9ca3af'
+      const cards = chars.map(c => {
+        const isSelected = modalTempChars.some(x => x.id === c.id)
+        return `
+          <div class="char-item${isSelected ? ' selected' : ''}" id="mchar-${c.id}"
+            onclick="toggleModalChar(${JSON.stringify(c).replace(/"/g, '&quot;')})">
+            ${c.imageUrl ? `<img src="${c.imageUrl}" alt="${c.nameKo}" loading="lazy">` : `<div class="char-no-img">?</div>`}
+            <div class="char-name-label">${c.nameKo}</div>
+            <div class="check-overlay">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>`
+      }).join('')
+      return `
+        <div class="char-grade-section">
+          <div class="char-grade-header">
+            <span class="grade-dot" style="background:${dot};"></span>
+            <span>${grade}</span>
+            <span style="color:var(--text-muted);font-weight:400;">${chars.length}개</span>
+          </div>
+          <div class="char-grid">${cards}</div>
+        </div>`
+    }).join('')
+  }
+
+  function toggleModalChar(c) {
+    const idx = modalTempChars.findIndex(x => x.id === c.id)
+    if (idx >= 0) modalTempChars.splice(idx, 1)
+    else modalTempChars.push(c)
+    const el = document.getElementById('mchar-' + c.id)
+    if (el) el.classList.toggle('selected', modalTempChars.some(x => x.id === c.id))
+    renderModalSelectedBar()
+  }
+
+  function renderModalSelectedBar() {
+    const bar = document.getElementById('modal-selected-bar')
+    if (modalTempChars.length === 0) {
+      bar.innerHTML = '<span style="color:var(--text-muted);font-size:13px;">캐릭터를 선택하면 여기 표시돼요</span>'
+      return
+    }
+    bar.innerHTML = modalTempChars.map(c => `
+      <span class="char-tag-mini" style="pointer-events:none;">
+        ${c.imageUrl ? `<img src="${c.imageUrl}" alt="${c.nameKo}">` : ''}
+        ${c.nameKo}
+      </span>
+    `).join('')
+  }
+
+  function confirmCharSelection() {
+    const row = rows.find(r => r.id === modalTargetRowId)
+    if (row) {
+      row.chars = [...modalTempChars]
+      renderAllRows()
+    }
+    closeModal()
+  }
+
+  async function submitAll() {
+    if (!selectedGameId) { alert('게임을 선택해주세요'); return }
+    if (!selectedServerId) { alert('서버를 선택해주세요'); return }
+    const kakao = document.getElementById('kakao-input').value.trim()
+    if (!kakao) { alert('카카오 오픈채팅 링크를 입력해주세요'); return }
+
+    // 유효성 검사
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i]
+      const price = Number(row.price)
+      if (!price || price <= 0) { alert(`계정 ${i + 1}: 판매가격을 입력해주세요`); return }
+    }
+
+    const btn = document.getElementById('submit-btn')
+    btn.disabled = true; btn.textContent = '등록 중...'
+
+    try {
+      const authUser = await requireAuth()
+      if (!authUser) { btn.disabled = false; btn.textContent = '전체 등록하기'; return }
+
+      let successCount = 0
+      for (const row of rows) {
+        const now = new Date().toISOString()
+        const listingId = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10)
+        const { data: listing, error } = await db.from('Listing').insert({
+          id: listingId,
+          userId: authUser.id,
+          gameId: selectedGameId,
+          serverId: selectedServerId,
+          price: Number(row.price),
+          description: row.desc || null,
+          kakaoOpenChatUrl: kakao,
+          status: 'active',
+          viewCount: 0,
+          createdAt: now,
+          updatedAt: now,
+        }).select().single()
+        if (error) throw error
+
+        if (row.chars.length > 0) {
+          await db.from('ListingCharacter').insert(
+            row.chars.map(c => ({ listingId: listing.id, characterId: c.id }))
+          )
+        }
+        successCount++
+        btn.textContent = `등록 중... (${successCount}/${rows.length})`
+      }
+
+      alert(`${successCount}개 판매글이 등록됐어요!`)
+      window.location.href = '/mypage/'
+    } catch (e) {
+      console.error(e)
+      alert('에러: ' + (e?.message ?? JSON.stringify(e)))
+      btn.disabled = false; btn.textContent = '전체 등록하기'
+    }
+  }
+
+  init()
+</script>
+<div id="footer"></div>
+</body>
+</html>
