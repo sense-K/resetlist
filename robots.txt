@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Allow: /genshin/
+Allow: /bluearchive/
+Allow: /nikke/
+Allow: /cookierunkingdom/
+Allow: /contact/
+
+Disallow: /admin/
+Disallow: /mypage/
+Disallow: /auth/
+Disallow: /trade/
+Disallow: /review/
+Disallow: /listing/
+Disallow: /user/
+
+Sitemap: https://resetlist.kr/sitemap.xml
