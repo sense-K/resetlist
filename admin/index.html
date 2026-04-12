@@ -483,7 +483,8 @@
     const nameKo = document.getElementById('new-server-name').value.trim()
     if (!gameId) { alert('게임을 선택하세요'); return }
     if (!nameKo) { alert('서버 이름을 입력하세요'); return }
-    const { error } = await db.from('Server').insert({ gameId, nameKo })
+    const id = 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
+    const { error } = await db.from('Server').insert({ id, gameId, nameKo, nameEn: nameKo })
     if (error) { alert('추가 실패: ' + error.message); return }
     document.getElementById('new-server-name').value = ''
     loadServers(selectedServerGameId)
