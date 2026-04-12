@@ -228,12 +228,31 @@ async function loadAndRenderGameUI(activeSlug) {
     `
   }
 
-  // 히어로 콜라주
+  // 히어로 캐러셀
   const heroCollage = document.getElementById('hero-collage')
   if (heroCollage) {
-    heroCollage.innerHTML = games.slice(0, 4).map(g =>
-      `<div class="collage-item" ${g.artImageUrl ? `style="background-image:url('${g.artImageUrl}')"` : ''}></div>`
-    ).join('')
+    const validGames = games.filter(g => g.artImageUrl)
+    if (validGames.length === 0) return
+    heroCollage.innerHTML =
+      validGames.map((g, i) =>
+        `<div class="collage-item${i === 0 ? ' active' : ''}" style="background-image:url('${g.artImageUrl}')"></div>`
+      ).join('') +
+      `<div class="collage-dots">${validGames.map((_, i) =>
+        `<div class="collage-dot${i === 0 ? ' active' : ''}"></div>`
+      ).join('')}</div>`
+
+    if (validGames.length > 1) {
+      let idx = 0
+      const items = heroCollage.querySelectorAll('.collage-item')
+      const dots = heroCollage.querySelectorAll('.collage-dot')
+      setInterval(() => {
+        items[idx].classList.remove('active')
+        dots[idx].classList.remove('active')
+        idx = (idx + 1) % items.length
+        items[idx].classList.add('active')
+        dots[idx].classList.add('active')
+      }, 3500)
+    }
   }
 
   // 게임 선택 카드
