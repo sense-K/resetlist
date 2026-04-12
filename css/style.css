@@ -858,6 +858,7 @@ a { text-decoration: none; color: inherit; }
   border-color: var(--black);
 }
 .form-textarea { resize: vertical; min-height: 100px; }
+.form-input::placeholder, .form-textarea::placeholder { color: #c0c0c0; }
 
 /* ===== 버튼 ===== */
 .btn {
