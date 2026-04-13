@@ -270,7 +270,7 @@
     <div class="form-group">
       <label class="form-label">판매가격 <span style="color:red">*</span></label>
       <div class="price-input-wrap">
-        <input type="number" class="form-input" id="price-input" placeholder="50000" min="0">
+        <input type="text" inputmode="numeric" class="form-input" id="price-input" placeholder="50,000" oninput="handlePriceInput(this)">
         <span class="price-unit">원</span>
       </div>
     </div>
@@ -364,7 +364,7 @@
       renderSelectedChars()
 
       // 가격/설명/연락처
-      document.getElementById('price-input').value = listing.price
+      document.getElementById('price-input').value = listing.price ? Number(listing.price).toLocaleString('ko-KR') : ''
       document.getElementById('desc-input').value = listing.description ?? ''
       document.getElementById('contact-input').value = listing.kakaoOpenChatUrl ?? ''
 
@@ -560,8 +560,13 @@
     `
   }
 
+  function handlePriceInput(input) {
+    const raw = input.value.replace(/[^0-9]/g, '')
+    input.value = raw ? Number(raw).toLocaleString('ko-KR') : ''
+  }
+
   async function submitListing() {
-    const price = Number(document.getElementById('price-input').value)
+    const price = Number(document.getElementById('price-input').value.replace(/,/g, ''))
     const contact = document.getElementById('contact-input').value.trim()
     if (!selectedServerId) { alert('서버를 선택해주세요'); goStep(1); return }
     if (!price || price <= 0) { alert('판매가격을 입력해주세요'); return }
