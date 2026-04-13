@@ -138,7 +138,7 @@
       return
     }
 
-    if (trade.status !== 'completed') {
+    if (trade.status !== 'completed' && trade.status !== 'seller_confirmed') {
       document.getElementById('review-content').innerHTML = '<div style="text-align:center;padding:60px;color:#888;">거래 완료 후 후기를 작성할 수 있어요.</div>'
       return
     }
@@ -189,7 +189,7 @@
           <textarea class="form-textarea" id="review-content-input" placeholder="거래 후기를 자유롭게 남겨주세요" rows="3"></textarea>
         </div>
 
-        <button class="btn btn-primary btn-full" id="submit-btn" onclick="submitReview('${trade.id}', '${trade.sellerId}', '${trade.listingId}')">후기 등록</button>
+        <button class="btn btn-primary btn-full" id="submit-btn" onclick="submitReview('${trade.id}', '${trade.sellerId}', '${trade.listingId}', '${trade.status}')">후기 작성 및 수령 확인하기</button>
       </div>
     `
   }
@@ -204,7 +204,7 @@
     document.getElementById('rating-label').textContent = ratingLabels[rating] ?? ''
   }
 
-  async function submitReview(tradeId, sellerId, listingId) {
+  async function submitReview(tradeId, sellerId, listingId, tradeStatus) {
     if (!selectedRating) { alert('별점을 선택해주세요'); return }
 
     const btn = document.getElementById('submit-btn')
@@ -215,6 +215,28 @@
       const reviewerId = session.user.id
       const content = document.getElementById('review-content-input').value.trim() || null
 
+      // seller_confirmed 상태면 수령확인(거래완료) 먼저 처리
+      if (tradeStatus === 'seller_confirmed') {
+        const now = new Date().toISOString()
+
+        // 동일 buyer-seller 쌍 이전 완료 거래 수 확인 (어뷰징 방지)
+        const { data: prevCompleted } = await db.from('Trade')
+          .select('id').eq('buyerId', reviewerId).eq('sellerId', sellerId).eq('status', 'completed')
+        const isFirstTime = !prevCompleted || prevCompleted.length === 0
+
+        const { error: tradeErr } = await db.from('Trade').update({ status: 'completed', completedAt: now }).eq('id', tradeId)
+        if (tradeErr) throw new Error('Trade 완료 처리: ' + tradeErr.message)
+
+        const { error: listingErr } = await db.from('Listing').update({ status: 'sold' }).eq('id', listingId)
+        if (listingErr) throw new Error('Listing 완료 처리: ' + listingErr.message)
+
+        if (isFirstTime) {
+          const { data: seller } = await db.from('User').select('tradeCount').eq('id', sellerId).single()
+          await db.from('User').update({ tradeCount: (seller?.tradeCount ?? 0) + 1 }).eq('id', sellerId)
+        }
+      }
+
+      // 후기 등록
       const reviewId = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10)
       const { error } = await db.from('Review').insert({
         id: reviewId,
@@ -232,23 +254,22 @@
       if (re) throw new Error('Review select: ' + re.message)
       if (reviews && reviews.length > 0) {
         const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
-        const { error: ue } = await db.from('User').update({ avgRating: Math.round(avg * 100) / 100 }).eq('id', sellerId)
-        if (ue) throw new Error('User avgRating update: ' + ue.message)
+        await db.from('User').update({ avgRating: Math.round(avg * 100) / 100 }).eq('id', sellerId)
       }
 
       // 완료 화면
       document.getElementById('review-content').innerHTML = `
         <div class="review-card review-success">
           <div class="success-icon">🎉</div>
-          <h2>리뷰가 등록됐어요!</h2>
-          <p>소중한 후기 감사해요.</p>
+          <h2>거래 완료 & 후기 등록!</h2>
+          <p>소중한 후기 감사해요.<br>거래가 정상적으로 완료됐어요.</p>
           <a href="/" class="btn btn-primary">홈으로 돌아가기</a>
         </div>
       `
     } catch (e) {
       console.error(e)
       alert('에러: ' + (e?.message ?? JSON.stringify(e)))
-      btn.disabled = false; btn.textContent = '리뷰 등록'
+      btn.disabled = false; btn.textContent = '후기 작성 및 수령 확인하기'
     }
   }
 </script>

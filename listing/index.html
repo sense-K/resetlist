@@ -375,8 +375,8 @@
     if (myTrade && myTrade.status === 'seller_confirmed') {
       return `
         <div class="confirm-box">
-          <p>판매자가 계정을 전달했어요.<br>계정을 확인한 후 <strong>수령 확인</strong>을 눌러주세요.</p>
-          <button class="confirm-btn" onclick="buyerConfirm('${myTrade.id}')">수령 확인 완료</button>
+          <p>판매자가 계정을 전달했어요.<br>계정을 확인하고 후기를 작성하면 거래가 완료돼요 😊</p>
+          <a class="confirm-btn" href="/review/?tradeId=${myTrade.id}" style="display:inline-block;text-decoration:none;">후기 작성 및 수령 확인하기</a>
         </div>
         <button class="cancel-trade-btn" onclick="cancelTrade('${myTrade.id}')">거래 취소</button>`
     }
