@@ -228,6 +228,7 @@
   document.getElementById('navbar').innerHTML = renderNavbar()
 
   let reviewedListingIds = new Set()
+  let staleSellerConfirmedIds = new Set()
 
   async function init() {
     try {
@@ -259,6 +260,24 @@
         .eq('userId', authUser.id)
         .order('createdAt', { ascending: false })
 
+      // seller_confirmed 판매글 중 실제 완료된 것 확인 (구매자가 수령확인 후 RLS로 Listing 업데이트 못한 경우)
+      const sellerConfirmedIds = (listings ?? []).filter(l => l.status === 'seller_confirmed').map(l => l.id)
+      staleSellerConfirmedIds = new Set()
+      if (sellerConfirmedIds.length > 0) {
+        const { data: stillActiveTrades } = await db.from('Trade')
+          .select('listingId')
+          .in('listingId', sellerConfirmedIds)
+          .in('status', ['active', 'seller_confirmed'])
+        const activeListingIdSet = new Set((stillActiveTrades ?? []).map(t => t.listingId))
+        sellerConfirmedIds.forEach(id => {
+          if (!activeListingIdSet.has(id)) {
+            staleSellerConfirmedIds.add(id)
+            // 백그라운드로 Listing 상태 업데이트
+            db.from('Listing').update({ status: 'sold' }).eq('id', id)
+          }
+        })
+      }
+
       // 내 구매 거래 조회
       const { data: myTrades } = await db
         .from('Trade')
@@ -288,8 +307,9 @@
     const gameEmoji = l.game?.emoji ?? ''
     const gameImg = l.game?.artImageUrl ?? ''
     const chars = (l.characters ?? []).map(lc => lc.character?.nameKo).filter(Boolean)
-    const statusClass = l.status === 'active' ? 'status-active' : l.status === 'trading' ? 'status-trading' : l.status === 'seller_confirmed' ? 'status-seller-confirmed' : 'status-sold'
-    const statusText = l.status === 'active' ? '판매중' : l.status === 'trading' ? '거래중' : l.status === 'seller_confirmed' ? '수령확인 대기중' : '판매완료'
+    const effectiveStatus = staleSellerConfirmedIds.has(l.id) ? 'sold' : l.status
+    const statusClass = effectiveStatus === 'active' ? 'status-active' : effectiveStatus === 'trading' ? 'status-trading' : effectiveStatus === 'seller_confirmed' ? 'status-seller-confirmed' : 'status-sold'
+    const statusText = effectiveStatus === 'active' ? '판매중' : effectiveStatus === 'trading' ? '거래중' : effectiveStatus === 'seller_confirmed' ? '수령확인 대기중' : '판매완료'
     return `
       <div class="my-listing-item" onclick="location.href='/listing/?id=${l.id}'">
         ${gameImg ? `<img class="my-listing-thumb" src="${gameImg}" alt="${gameName}">` : `<div class="my-listing-thumb-placeholder">${gameEmoji}</div>`}
@@ -351,8 +371,8 @@
   }
 
   function render(authUser, user, listings, myTrades) {
-    const activeListings = listings.filter(l => l.status !== 'sold')
-    const soldListings = listings.filter(l => l.status === 'sold')
+    const activeListings = listings.filter(l => l.status !== 'sold' && !staleSellerConfirmedIds.has(l.id))
+    const soldListings = listings.filter(l => l.status === 'sold' || staleSellerConfirmedIds.has(l.id))
     const activeTrades = myTrades.filter(t => t.status === 'active' || t.status === 'seller_confirmed')
     const doneTrades = myTrades.filter(t => t.status === 'completed')
     const cancelledTrades = myTrades.filter(t => t.status === 'cancelled')
