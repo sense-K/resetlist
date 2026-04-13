@@ -160,10 +160,13 @@ function gameIcon(game, size = 20) {
 
 // DB slug → 실제 URL 경로 매핑
 const SLUG_TO_PATH = {
-  'genshin': '/genshin/',
-  'blue-archive': '/bluearchive/',
-  'nikke': '/nikke/',
-  'cookie-run': '/cookierunkingdom/',
+  'genshin':        '/genshin/',
+  'bluearchive':    '/bluearchive/',
+  'nikke':          '/nikke/',
+  'cookie-run':     '/cookierunkingdom/',
+  'zzz':            '/zzz/',
+  'sevenknightsre': '/sevenknightsre/',
+  'leehwan':        '/leehwan/',
 }
 function gameSlugToPath(slug) {
   return SLUG_TO_PATH[slug] ?? `/${slug}/`
