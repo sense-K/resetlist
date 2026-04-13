@@ -179,6 +179,7 @@
     }
     .status-active { background: #dcfce7; color: #16a34a; }
     .status-trading { background: #fef3c7; color: #d97706; }
+    .status-seller-confirmed { background: #e0f2fe; color: #0369a1; }
     .status-sold { background: #f3f4f6; color: #888; }
     .my-listing-time { font-size: 11px; color: #aaa; }
 
@@ -287,8 +288,8 @@
     const gameEmoji = l.game?.emoji ?? ''
     const gameImg = l.game?.artImageUrl ?? ''
     const chars = (l.characters ?? []).map(lc => lc.character?.nameKo).filter(Boolean)
-    const statusClass = l.status === 'active' ? 'status-active' : l.status === 'trading' ? 'status-trading' : 'status-sold'
-    const statusText = l.status === 'active' ? '판매중' : l.status === 'trading' ? '거래중' : '판매완료'
+    const statusClass = l.status === 'active' ? 'status-active' : l.status === 'trading' ? 'status-trading' : l.status === 'seller_confirmed' ? 'status-seller-confirmed' : 'status-sold'
+    const statusText = l.status === 'active' ? '판매중' : l.status === 'trading' ? '거래중' : l.status === 'seller_confirmed' ? '수령확인 대기중' : '판매완료'
     return `
       <div class="my-listing-item" onclick="location.href='/listing/?id=${l.id}'">
         ${gameImg ? `<img class="my-listing-thumb" src="${gameImg}" alt="${gameName}">` : `<div class="my-listing-thumb-placeholder">${gameEmoji}</div>`}
@@ -315,8 +316,8 @@
     const gameEmoji = l.game?.emoji ?? ''
     const gameImg = l.game?.artImageUrl ?? ''
     const chars = (l.characters ?? []).map(lc => lc.character?.nameKo).filter(Boolean)
-    const tradeStatusClass = t.status === 'active' ? 'status-trading' : 'status-sold'
-    const tradeStatusText = t.status === 'active' ? '거래중' : t.status === 'completed' ? '거래완료' : '취소됨'
+    const tradeStatusClass = t.status === 'active' ? 'status-trading' : t.status === 'seller_confirmed' ? 'status-seller-confirmed' : 'status-sold'
+    const tradeStatusText = t.status === 'active' ? '거래중' : t.status === 'seller_confirmed' ? '수령확인 대기중' : t.status === 'completed' ? '거래완료' : '취소됨'
     const typeLabel = ''
     const alreadyReviewed = reviewedListingIds.has(l.id)
     const reviewBtn = t.status === 'completed' && !alreadyReviewed
@@ -352,7 +353,7 @@
   function render(authUser, user, listings, myTrades) {
     const activeListings = listings.filter(l => l.status !== 'sold')
     const soldListings = listings.filter(l => l.status === 'sold')
-    const activeTrades = myTrades.filter(t => t.status === 'active')
+    const activeTrades = myTrades.filter(t => t.status === 'active' || t.status === 'seller_confirmed')
     const doneTrades = myTrades.filter(t => t.status === 'completed')
     const cancelledTrades = myTrades.filter(t => t.status === 'cancelled')
 
