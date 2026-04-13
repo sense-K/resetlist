@@ -304,8 +304,17 @@
       if (l.status === 'sold') {
         return `<div class="status-info-box">판매 완료된 계정이에요.</div>`
       }
-      // seller_confirmed: anyActiveTrade 여부 무관하게 항상 표시 (RLS로 anyActiveTrade가 null일 수 있음)
+      // seller_confirmed: 진행중 거래 없거나 이미 후기가 작성됐으면 → 수령확인 완료된 것 → sold로 복구
       if (l.status === 'seller_confirmed') {
+        const { data: existingReview } = await db.from('Review').select('id').eq('listingId', listingId).maybeSingle()
+        if (!anyActiveTrade || existingReview) {
+          if (existingReview && anyActiveTrade) {
+            // Trade 업데이트가 RLS로 막혔던 케이스 → 판매자 권한으로 완료 처리
+            db.from('Trade').update({ status: 'completed' }).eq('listingId', listingId).eq('status', 'seller_confirmed')
+          }
+          db.from('Listing').update({ status: 'sold' }).eq('id', listingId)
+          return `<div class="status-info-box">판매 완료된 계정이에요.</div>`
+        }
         return `<div class="status-info-box" style="background:#e0f2fe;color:#0369a1;">구매자의 수령 확인을 기다리고 있어요.</div>`
       }
       // trading 상태이지만 실제 진행 거래 없으면 → 거래 취소 후 Listing 상태만 미반영된 케이스
