@@ -427,8 +427,11 @@
 
   async function deleteListing(id) {
     if (!confirm('이 판매글을 삭제할까요?')) return
+    // 완료되지 않은 거래 먼저 취소 처리 (FK 제약 해소)
+    await db.from('Trade').update({ status: 'cancelled' }).eq('listingId', id).not('status', 'eq', 'completed')
     await db.from('ListingCharacter').delete().eq('listingId', id)
-    await db.from('Listing').delete().eq('id', id)
+    const { error } = await db.from('Listing').delete().eq('id', id)
+    if (error) { alert('삭제 중 오류가 발생했어요: ' + error.message); return }
     init()
   }
 
