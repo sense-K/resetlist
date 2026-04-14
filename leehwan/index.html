@@ -134,14 +134,26 @@
     if (e.target === document.getElementById('cf-modal')) closeCharFilter()
   }
 
-  function renderCharFilterGrid() {
+  function filterCharsBySearch(term) {
+    const filtered = term.trim()
+      ? allFilterChars.filter(c => c.nameKo.includes(term.trim()))
+      : allFilterChars
+    renderCharFilterGrid(filtered)
+  }
+
+  function renderCharFilterGrid(chars) {
+    chars = chars ?? allFilterChars
     const container = document.getElementById('cf-char-list')
     if (!allFilterChars.length) {
       container.innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;">캐릭터 정보를 불러오는 중...</div>'
       return
     }
+    if (chars.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;">검색 결과가 없어요</div>'
+      return
+    }
     const groups = {}
-    allFilterChars.forEach(c => { const g = c.tier || '기타'; if (!groups[g]) groups[g] = []; groups[g].push(c) })
+    chars.forEach(c => { const g = c.tier || '기타'; if (!groups[g]) groups[g] = []; groups[g].push(c) })
     const ORDER = GRADE_ORDER_MAP[GAME_SLUG] || []
     const grades = [...ORDER.filter(g => groups[g]), ...Object.keys(groups).filter(g => !ORDER.includes(g))]
 
@@ -252,6 +264,9 @@
     <div class="cf-modal-header">
       <span class="cf-modal-title">캐릭터 선택</span>
       <button class="cf-modal-close" onclick="closeCharFilter()">×</button>
+    </div>
+    <div class="cf-modal-search">
+      <input type="text" id="cf-search-input" class="cf-search-input" placeholder="캐릭터 이름 검색..." oninput="filterCharsBySearch(this.value)">
     </div>
     <div class="cf-modal-selected-bar" id="cf-selected-bar">
       <span style="color:#aaa;font-size:13px;">캐릭터를 선택하면 여기 표시돼요</span>

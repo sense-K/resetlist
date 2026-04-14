@@ -1000,6 +1000,26 @@ a { text-decoration: none; color: inherit; }
   background: none; border: none;
   font-size: 20px; color: #888; cursor: pointer;
 }
+.cf-modal-search {
+  padding: 8px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  flex-shrink: 0;
+}
+.cf-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  background: #f9fafb;
+  transition: border-color 0.15s;
+}
+.cf-search-input:focus {
+  border-color: #111;
+  background: #fff;
+}
 .cf-modal-selected-bar {
   min-height: 44px;
   padding: 8px 16px;
