@@ -121,12 +121,12 @@
 
   function openCharFilter() {
     renderCharFilterGrid()
-    document.getElementById('cf-modal').classList.add('open')
+    document.getElementById('cf-modal').style.display = 'flex'
     document.body.style.overflow = 'hidden'
   }
 
   function closeCharFilter() {
-    document.getElementById('cf-modal').classList.remove('open')
+    document.getElementById('cf-modal').style.display = 'none'
     document.body.style.overflow = ''
   }
 
@@ -247,7 +247,7 @@
   loadAndRenderGameUI(GAME_SLUG); loadServers(); updateCount(); loadFilterChars(); loadPage(1)
 </script>
 
-<div class="cf-modal-overlay" id="cf-modal" onclick="handleCfModalOverlay(event)">
+<div class="cf-modal-overlay" id="cf-modal" style="display:none;" onclick="handleCfModalOverlay(event)">
   <div class="cf-modal-sheet">
     <div class="cf-modal-header">
       <span class="cf-modal-title">캐릭터 선택</span>
