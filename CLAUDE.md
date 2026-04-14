@@ -118,10 +118,18 @@ const GRADE_ORDER_MAP = {
 - register.html, bulk.html: onclick 인라인 JSON 제거 → gameStore/charStore 객체로 교체 (XSS 수정) ✅
 - RLS 정책 확인 완료 ✅
 
-## 검색·더보기·가격포맷팅 (2026-04-13 완료)
-- loadListings()에 `search`, `append`, `moreBtn` 파라미터 추가 (listings.js)
-- 홈·게임 페이지 상단에 검색창 추가 (캐릭터명 + 설명 통합 검색, 350ms 디바운스)
-- 홈·게임 페이지 더보기 버튼 추가 (12개씩 append 로드)
+## 캐릭터 필터 (2026-04-14 완료)
+- 기존 텍스트 검색 제거 → 각 게임 페이지 사이드바에 캐릭터 필터 기능으로 교체
+- 사이드바에 "캐릭터 선택 →" 버튼 → 모달 열림 (티어별 그룹, 이미지 7열 그리드)
+- 모달 내 실시간 텍스트 검색 (nameKo 기준, 결과 없으면 "검색 결과가 없어요")
+- 여러 캐릭터 AND 교집합 필터링 — listings.js의 `characterIds` 파라미터로 처리
+- 선택된 캐릭터는 selected bar + 사이드바 태그 목록으로 표시
+- 캐릭터 필터 섹션: 보라색 그라디언트 카드 형태로 시각적 강조 (`.char-filter-section`)
+- GRADE_ORDER_MAP / GRADE_DOT_COLOR 각 게임 페이지마다 정의
+
+## 더보기·가격포맷팅 (2026-04-13 완료)
+- loadListings()에 `append`, `moreBtn`, `characterIds` 파라미터 추가 (listings.js)
+- 게임 페이지 더보기 버튼 추가 (9개씩 append 로드)
 - 판매 등록 가격 입력 실시간 쉼표 포맷팅 (register.html, bulk.html)
 
 ## 마이페이지 (mypage/index.html)
@@ -136,6 +144,7 @@ const GRADE_ORDER_MAP = {
 - SEO + Google Search Console 등록 완료 (zzz, sevenknightsre, leehwan 포함)
 - 거래 전 플로우 (구매신청→전달완료→후기/수령확인→판매완료) 완성
 - 마이페이지: 판매완료 글에서 수정·삭제 버튼 제거, seller_confirmed 상태 auto-recovery
+- 캐릭터 필터 모달 완성 (실시간 검색 + 티어 그룹핑 + 보라색 사이드바 카드)
 - 시세 조회 기능 미구현 (2차 개발 예정)
 
 ## 남은 작업 목록
