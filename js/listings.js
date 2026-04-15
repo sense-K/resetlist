@@ -39,15 +39,19 @@ function renderListingCard(listing) {
     ? `<span class="card-discount">↓ ${formatPrice(listing.discountAmount)} 할인</span>`
     : ''
 
-  const hotBadge = listing.viewCount > 50 ? `<div class="badge-hot">🔥 HOT</div>` : ''
+  const isSold = listing.status === 'sold'
+  const hotBadge = !isSold && listing.viewCount > 50 ? `<div class="badge-hot">🔥 HOT</div>` : ''
   const tradingBadge = listing.status === 'trading' ? `<div class="badge-trading">거래중</div>` : ''
+  const soldOverlay = isSold ? `<div class="badge-sold-overlay"><span class="badge-sold-text">판매완료</span></div>` : ''
 
   return `
-    <a href="/listing/?id=${listing.id}" class="card">
+    <a href="/listing/?id=${listing.id}" class="card${isSold ? ' card-sold' : ''}">
       <div class="card-art ${artClass}" ${gameArtUrl ? `style="background-image:url('${gameArtUrl}');background-size:cover;background-position:center top;"` : ''}>
         ${gameArtUrl ? `<div style="position:absolute;inset:0;border-radius:16px 16px 0 0;background:linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.45) 100%);"></div>` : ''}
+        ${isSold ? `<div class="card-art-blur"></div>` : ''}
         ${hotBadge}
         ${tradingBadge}
+        ${soldOverlay}
         ${serverName ? `<span style="position:absolute;bottom:10px;left:12px;background:rgba(0,0,0,0.55);color:#fff;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;backdrop-filter:blur(4px);">${serverName}</span>` : ''}
       </div>
       <div class="card-body">
@@ -122,7 +126,7 @@ async function loadListings({ container, gameSlug, serverId, page = 1, limit = 9
           character:Character(nameKo, tier, imageUrl)
         )
       `)
-      .in('status', ['active', 'trading'])
+      .in('status', ['active', 'trading', 'sold'])
       .order(sort === 'price' ? 'price' : 'createdAt', { ascending: sort === 'price' })
       .range((page - 1) * limit, page * limit)  // limit+1
 

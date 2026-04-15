@@ -616,6 +616,44 @@ a { text-decoration: none; color: inherit; }
   backdrop-filter: blur(4px);
 }
 
+/* 판매완료 카드 */
+.card-sold {
+  opacity: 0.72;
+}
+.card-sold:hover {
+  transform: none;
+  box-shadow: var(--shadow-card);
+  cursor: default;
+}
+.card-art-blur {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  background: rgba(0,0,0,0.30);
+  border-radius: 16px 16px 0 0;
+  z-index: 1;
+}
+.badge-sold-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+.badge-sold-text {
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255,255,255,0.3);
+  backdrop-filter: blur(4px);
+}
+
 /* 카드 본문 */
 .card { display: flex; flex-direction: column; }
 .card-body { padding: 10px 12px 14px; display: flex; flex-direction: column; flex: 1; }
