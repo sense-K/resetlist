@@ -597,10 +597,29 @@
     const price = formatPrice(l.price)
     const pageUrl = window.location.origin + '/listing/?id=' + l.id
 
-    const charsHtml = chars.slice(0, 12).map(c =>
-      c.imageUrl
+    // 외부 이미지를 base64로 변환 (html2canvas CORS 우회)
+    async function toDataUrl(url) {
+      try {
+        const res = await fetch(url)
+        const blob = await res.blob()
+        return await new Promise(resolve => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result)
+          reader.readAsDataURL(blob)
+        })
+      } catch { return null }
+    }
+
+    const [artDataUrl, gameIconDataUrl, ...charDataUrls] = await Promise.all([
+      l.game?.artImageUrl ? toDataUrl(l.game.artImageUrl) : Promise.resolve(null),
+      l.game?.imageUrl    ? toDataUrl(l.game.imageUrl)    : Promise.resolve(null),
+      ...chars.slice(0, 12).map(c => c.imageUrl ? toDataUrl(c.imageUrl) : Promise.resolve(null))
+    ])
+
+    const charsHtml = chars.slice(0, 12).map((c, i) =>
+      charDataUrls[i]
         ? `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <img src="${c.imageUrl}" style="width:48px;height:48px;border-radius:8px;object-fit:cover;border:1.5px solid #e5e7eb;" crossorigin="anonymous">
+            <img src="${charDataUrls[i]}" style="width:48px;height:48px;border-radius:8px;object-fit:cover;border:1.5px solid #e5e7eb;">
             <span style="font-size:9px;color:#555;text-align:center;line-height:1.2;max-width:52px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${c.nameKo}</span>
            </div>`
         : `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
@@ -612,11 +631,11 @@
     const card = document.getElementById('listing-share-card')
     card.innerHTML = `
       <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;width:480px;box-shadow:0 4px 24px rgba(0,0,0,0.12);">
-        <div style="position:relative;padding:24px 24px 20px;min-height:100px;overflow:hidden;${l.game?.artImageUrl ? `background-image:url('${l.game.artImageUrl}');background-size:cover;background-position:center top;` : 'background:#111;'}">
+        <div style="position:relative;padding:24px 24px 20px;min-height:100px;overflow:hidden;${artDataUrl ? `background-image:url('${artDataUrl}');background-size:cover;background-position:center top;` : 'background:#111;'}">
           <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.35) 0%,rgba(0,0,0,0.65) 100%);"></div>
           <div style="position:relative;z-index:1;">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-              ${l.game?.imageUrl ? `<img src="${l.game.imageUrl}" crossorigin="anonymous" style="width:32px;height:32px;border-radius:7px;object-fit:cover;">` : `<span style="font-size:24px;">${l.game?.emoji ?? ''}</span>`}
+              ${gameIconDataUrl ? `<img src="${gameIconDataUrl}" style="width:32px;height:32px;border-radius:7px;object-fit:cover;">` : `<span style="font-size:24px;">${l.game?.emoji ?? ''}</span>`}
               <span style="color:#fff;font-size:15px;font-weight:700;">${gameName}</span>
               ${serverName ? `<span style="background:rgba(255,255,255,0.18);color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;backdrop-filter:blur(4px);">${serverName}</span>` : ''}
             </div>
