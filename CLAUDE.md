@@ -1,6 +1,6 @@
 # 리세리스트 (resetlist.kr)
 
-모바일 게임 리세계 계정 직거래 플랫폼. 원신, 블루아카이브, 니케, 쿠키런킹덤 지원 (게임 추가 예정).
+모바일 게임 리세계 계정 직거래 플랫폼. 원신, 블루아카이브, 니케, 쿠키런킹덤, 젠레스 존 제로, 세븐나이츠 리버스, 이환, 트릭컬 리바이브 지원.
 
 ## 기술 스택
 - 바닐라 HTML/CSS/JS (프레임워크 없음)
@@ -23,7 +23,8 @@ listup-site/
 ├── cookierunkingdom/       # 쿠키런킹덤 리세계
 ├── zzz/                    # 젠레스 존 제로 리세계
 ├── sevenknightsre/         # 세븐나이츠 리버스 리세계
-├── leehwan/                # 리환 리세계
+├── leehwan/                # 이환 리세계
+├── trickcal/               # 트릭컬 리바이브 리세계
 ├── listing/                # 판매계정 상세 (/listing/?id=xxx)
 ├── functions/
 │   └── listing/index.js    # Cloudflare Pages Function (동적 OG 태그)
@@ -68,6 +69,9 @@ listup-site/
 - 니케: `nikke`
 - 쿠키런킹덤: `cookie-run` (DB slug) ← URL 경로는 `/cookierunkingdom/`
   - GRADE_ORDER_MAP 키는 반드시 `'cookie-run'` 사용 (register.html, bulk.html)
+- 트릭컬 리바이브: `trickcal` (DB slug), URL 경로 `/trickcal/`
+  - 티어 없음 (tier = ''), GRADE_ORDER_MAP 키 없음 → 캐릭터 전체 '캐릭터' 그룹으로 표시
+  - 캐릭터 104개, 이미지 Supabase storage `characters/trickcal/trickcal_XXX.png`
 
 ## 거래 플로우
 `active` → (구매신청) → `trading` → (판매자 전달완료) → `seller_confirmed` → (구매자 후기작성 = 수령확인) → `completed` + Listing `sold`
@@ -122,10 +126,19 @@ const GRADE_ORDER_MAP = {
 - 기존 텍스트 검색 제거 → 각 게임 페이지 사이드바에 캐릭터 필터 기능으로 교체
 - 사이드바에 "캐릭터 선택 →" 버튼 → 모달 열림 (티어별 그룹, 이미지 7열 그리드)
 - 모달 내 실시간 텍스트 검색 (nameKo 기준, 결과 없으면 "검색 결과가 없어요")
-- 여러 캐릭터 AND 교집합 필터링 — listings.js의 `characterIds` 파라미터로 처리
+- 여러 캐릭터 AND 교집합 필터링 + 개수 필터링 — listings.js의 `characterFilter` 파라미터로 처리
 - 선택된 캐릭터는 selected bar + 사이드바 태그 목록으로 표시
 - 캐릭터 필터 섹션: 보라색 그라디언트 카드 형태로 시각적 강조 (`.char-filter-section`)
 - GRADE_ORDER_MAP / GRADE_DOT_COLOR 각 게임 페이지마다 정의
+
+## 캐릭터 다중 선택 + 개수 필터 (2026-04-15 완료)
+- ListingCharacter 테이블에 `count` 컬럼 추가 (SQL: `ALTER TABLE "ListingCharacter" ADD COLUMN count integer NOT NULL DEFAULT 1;`)
+- 판매 등록 시 같은 캐릭터를 여러 번 클릭하면 ×N 개수로 등록됨
+- 게임 페이지 필터에서 캐릭터를 여러 번 클릭 → ×N 이상 보유 계정만 필터링
+- `filterChars` 구조: `{ charId: { char, count } }` (배열 → 맵으로 변경)
+- `characterFilter` 파라미터 → listings.js에서 클라이언트 사이드 count 필터링
+  - PostgREST URL 파라미터에서 `count`는 예약어 → `.gte('count', N)` 안 됨 → 클라이언트에서 필터
+- 선택 시 항상 어두운 오버레이+체크 표시, count>1이면 숫자 뱃지 추가 표시
 
 ## 더보기·가격포맷팅 (2026-04-13 완료)
 - loadListings()에 `append`, `moreBtn`, `characterIds` 파라미터 추가 (listings.js)
@@ -138,19 +151,22 @@ const GRADE_ORDER_MAP = {
 - 구매 탭: 거래 진행중 + 거래 완료 + 취소된 거래 (있을 때만)
 - 섹션 바디 흰색 배경, 구매 탭 빈 화면 푸터 위치 수정
 
-## 현재 상태 (2026-04-14)
+## 현재 상태 (2026-04-15)
 - 핵심 기능 + 보안 + UX 개선 완료
 - resetlist.kr 도메인 연결 완료
-- SEO + Google Search Console 등록 완료 (zzz, sevenknightsre, leehwan 포함)
+- SEO + Google Search Console 등록 완료 (zzz, sevenknightsre, leehwan, trickcal 포함)
 - 거래 전 플로우 (구매신청→전달완료→후기/수령확인→판매완료) 완성
 - 마이페이지: 판매완료 글에서 수정·삭제 버튼 제거, seller_confirmed 상태 auto-recovery
 - 캐릭터 필터 모달 완성 (실시간 검색 + 티어 그룹핑 + 보라색 사이드바 카드)
+- 캐릭터 다중 선택 + 개수 기반 필터링 완성 (×N 표시, N개 이상 보유 계정 필터)
+- 트릭컬 리바이브 페이지 + 캐릭터 104개 등록 완료
 - 시세 조회 기능 미구현 (2차 개발 예정)
 
 ## 남은 작업 목록
 ### 중요도 높음
 - [ ] Cloudflare Web Analytics 연동 (방문자 분석 도구 없음)
-- [ ] 신규 게임(zzz, sevenknightsre, leehwan) SEO 키워드 보강 (게임 캐릭터 파악 후)
+- [ ] 신규 게임(zzz, sevenknightsre, leehwan, trickcal) SEO 키워드 보강 (게임 캐릭터 파악 후)
+- [ ] trickcal Google Search Console 색인 생성 요청
 - [ ] Supabase CASCADE FK 설정 (판매글 삭제 안정성):
   ```sql
   ALTER TABLE "Trade" DROP CONSTRAINT "Trade_listingId_fkey";
