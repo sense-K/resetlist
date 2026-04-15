@@ -164,6 +164,7 @@
 <script src="/js/config.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar()
+  loadAndRenderGameUI(null)
 
   // 이미 로그인된 경우 홈으로
   db.auth.getSession().then(({ data: { session } }) => {

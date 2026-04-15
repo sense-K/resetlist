@@ -147,6 +147,7 @@
 <script src="/js/config.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar()
+  loadAndRenderGameUI(null)
 
   const listingId = new URLSearchParams(location.search).get('id')
   let currentListing = null

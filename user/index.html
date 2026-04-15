@@ -95,6 +95,7 @@
 <script src="/js/listings.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar()
+  loadAndRenderGameUI(null)
 
   const userId = new URLSearchParams(location.search).get('id')
   if (!userId) {

@@ -107,6 +107,7 @@
 <script src="/js/config.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar()
+  loadAndRenderGameUI(null)
 
   document.getElementById('contact-form').addEventListener('submit', async function(e) {
     e.preventDefault()

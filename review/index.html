@@ -109,6 +109,7 @@
 <script src="/js/config.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar()
+  loadAndRenderGameUI(null)
 
   const params = new URLSearchParams(location.search)
   const tradeId = params.get('tradeId')
