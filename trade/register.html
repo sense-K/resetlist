@@ -483,7 +483,7 @@
           <div class="char-item${isSelected ? ' selected' : ''}${gc ? ' grade-border-' + gc : ''}" id="char-${c.id}" onclick="clickChar('${c.id}')">
             ${c.imageUrl ? `<img src="${c.imageUrl}" alt="${c.nameKo}" loading="lazy">` : `<div class="char-no-img">?</div>`}
             <div class="char-name-label">${c.nameKo}</div>
-            <div class="check-overlay" style="${isSelected && count === 1 ? 'display:flex;' : 'display:none;'}">
+            <div class="check-overlay" style="${isSelected ? 'display:flex;' : 'display:none;'}">
               <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
             <div class="char-count-badge" style="${count > 1 ? '' : 'display:none;'}">${count > 1 ? count : ''}</div>
@@ -532,12 +532,11 @@
       if (badge) badge.style.display = 'none'
     } else {
       el.classList.add('selected')
-      if (entry.count === 1) {
-        if (overlay) overlay.style.display = 'flex'
-        if (badge) badge.style.display = 'none'
-      } else {
-        if (overlay) overlay.style.display = 'none'
+      if (overlay) overlay.style.display = 'flex'
+      if (entry.count > 1) {
         if (badge) { badge.style.display = 'flex'; badge.textContent = entry.count }
+      } else {
+        if (badge) badge.style.display = 'none'
       }
     }
   }

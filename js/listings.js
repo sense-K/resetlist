@@ -111,8 +111,8 @@ async function loadListings({ container, gameSlug, serverId, page = 1, limit = 9
     if (filterMap && Object.keys(filterMap).length > 0) {
       let matchSet = null
       for (const [charId, requiredCount] of Object.entries(filterMap)) {
-        const { data: lcs } = await db.from('ListingCharacter').select('listingId, count').eq('characterId', charId).gte('count', requiredCount)
-        const ids = new Set((lcs ?? []).map(lc => lc.listingId))
+        const { data: lcs } = await db.from('ListingCharacter').select('listingId, count').eq('characterId', charId)
+        const ids = new Set((lcs ?? []).filter(lc => (lc.count ?? 1) >= requiredCount).map(lc => lc.listingId))
         matchSet = matchSet === null ? ids : new Set([...matchSet].filter(id => ids.has(id)))
       }
       filteredListingIds = matchSet ? [...matchSet] : []
