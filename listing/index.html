@@ -170,7 +170,8 @@
         game:Game(nameKo, slug, emoji, imageUrl, artImageUrl),
         server:Server(nameKo),
         user:User(nickname, tradeCount, avgRating),
-        characters:ListingCharacter(count, character:Character(nameKo, tier, imageUrl))
+        characters:ListingCharacter(count, character:Character(nameKo, tier, imageUrl)),
+        currencies:ListingCurrency(amount, currency:Currency(nameKo, imageUrl, sortOrder))
       `)
       .eq('id', listingId)
       .single()
@@ -218,6 +219,7 @@
     const tradeCount = l.user?.tradeCount ?? 0
     const avgRating = l.user?.avgRating ? Number(l.user.avgRating).toFixed(1) : null
     const chars = (l.characters ?? []).filter(lc => lc.character)
+    const currencies = (l.currencies ?? []).filter(lc => lc.currency).sort((a, b) => (a.currency.sortOrder ?? 0) - (b.currency.sortOrder ?? 0))
     const isMine = currentUser && currentUser.id === l.userId
 
     document.title = `${gameName} 리세계 판매계정 | 리세 리스트`
@@ -282,6 +284,21 @@
           <div class="detail-section-title">보유 캐릭터 (${chars.length}개)</div>
           <div class="detail-chars-grid">${charsHtml}</div>
         </div>
+
+        ${currencies.length > 0 ? `
+        <div class="detail-section">
+          <div class="detail-section-title">💎 보유 재화</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            ${currencies.map(lc => {
+              const c = lc.currency
+              return `<div style="display:inline-flex;align-items:center;gap:7px;background:#f8f8f8;border:1.5px solid #e5e7eb;border-radius:10px;padding:7px 12px;">
+                ${c.imageUrl ? `<img src="${c.imageUrl}" alt="${c.nameKo}" style="width:24px;height:24px;border-radius:6px;object-fit:cover;">` : '<span style="font-size:18px;line-height:1;">💎</span>'}
+                <span style="font-size:13px;font-weight:600;color:#333;">${c.nameKo}</span>
+                <span style="font-size:14px;font-weight:700;color:#111;">${lc.amount.toLocaleString()}</span>
+              </div>`
+            }).join('')}
+          </div>
+        </div>` : ''}
 
         ${l.description ? `
         <div class="detail-section">

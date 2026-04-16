@@ -193,6 +193,7 @@
       <button class="admin-nav-item active" onclick="showSection('games')">🎮 게임 관리</button>
       <button class="admin-nav-item" onclick="showSection('servers')">🗺 서버 관리</button>
       <button class="admin-nav-item" onclick="showSection('characters')">⭐ 캐릭터 관리</button>
+      <button class="admin-nav-item" onclick="showSection('currencies')">💎 재화 관리</button>
       <div class="admin-nav-label">거래</div>
       <button class="admin-nav-item" onclick="showSection('listings')">📋 판매글 관리</button>
     </nav>
@@ -294,6 +295,35 @@
       </div>
     </div>
 
+    <!-- 재화 관리 -->
+    <div class="admin-section" id="section-currencies">
+      <div class="section-title">재화 관리</div>
+      <div class="admin-card">
+        <div class="admin-card-title">새 재화 추가</div>
+        <div class="inline-form" style="margin-bottom:8px;">
+          <select id="currency-game-select" style="width:160px;" onchange="loadCurrenciesForGame()">
+            <option value="">게임 선택</option>
+          </select>
+          <input type="text" id="new-currency-name" placeholder="재화 이름 (예: 크리스탈)" style="width:160px;">
+          <input type="number" id="new-currency-sort" placeholder="순서 (숫자)" style="width:90px;" value="0">
+          <input type="text" id="new-currency-image" placeholder="이미지 URL (선택)" style="width:260px;">
+          <button class="btn-sm btn-black" onclick="addCurrency()">+ 추가</button>
+        </div>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-title">재화 목록</div>
+        <div class="game-selector" id="currency-game-filter"></div>
+        <table class="admin-table">
+          <thead>
+            <tr><th>이미지</th><th>재화명</th><th>순서</th><th>게임</th><th>관리</th></tr>
+          </thead>
+          <tbody id="currencies-table-body">
+            <tr class="empty-row"><td colspan="5">게임을 선택하세요</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- 판매글 관리 -->
     <div class="admin-section" id="section-listings">
       <div class="section-title">판매글 관리</div>
@@ -318,6 +348,7 @@
   let allGames = []
   let selectedServerGameId = null
   let selectedCharGameId = null
+  let selectedCurrencyGameId = null
 
   // ===== 섹션 전환 =====
   function showSection(name) {
@@ -328,6 +359,7 @@
     if (name === 'games') loadGames()
     if (name === 'servers') { loadGamesForSelects(); loadServers() }
     if (name === 'characters') { loadGamesForSelects(); }
+    if (name === 'currencies') { loadGamesForSelects(); }
     if (name === 'listings') loadAdminListings()
   }
 
@@ -450,6 +482,25 @@
     if (games && games.length > 0) {
       selectedCharGameId = games[0].id
       loadCharsForGame()
+    }
+
+    // 재화 select
+    const currencySel = document.getElementById('currency-game-select')
+    if (currencySel) {
+      currencySel.innerHTML = '<option value="">게임 선택</option>' +
+        (games ?? []).map(g => `<option value="${g.id}">${g.nameKo}</option>`).join('')
+    }
+
+    // 재화 필터 버튼
+    const currencyFilter = document.getElementById('currency-game-filter')
+    if (currencyFilter) {
+      currencyFilter.innerHTML = (games ?? []).map((g, i) =>
+        `<button class="game-selector-btn ${i === 0 ? 'active' : ''}" onclick="filterCurrencies('${g.id}', this)" style="display:inline-flex;align-items:center;gap:6px;">${adminGameIcon(g, 18)} ${g.nameKo}</button>`
+      ).join('')
+      if (games && games.length > 0) {
+        selectedCurrencyGameId = games[0].id
+        loadCurrenciesForGame()
+      }
     }
   }
 
@@ -591,6 +642,90 @@
     document.querySelectorAll('#char-game-filter .game-selector-btn').forEach(b => b.classList.remove('active'))
     btn.classList.add('active')
     loadCharsForGame()
+  }
+
+  // ===== 재화 =====
+  async function loadCurrenciesForGame() {
+    const selVal = document.getElementById('currency-game-select').value
+    if (selVal) selectedCurrencyGameId = selVal
+    if (!selectedCurrencyGameId) return
+
+    const { data: currencies } = await db
+      .from('Currency')
+      .select('id, nameKo, imageUrl, sortOrder, isActive, game:Game(nameKo, emoji, imageUrl)')
+      .eq('gameId', selectedCurrencyGameId)
+      .order('sortOrder')
+      .order('nameKo')
+
+    const tbody = document.getElementById('currencies-table-body')
+    if (!currencies || currencies.length === 0) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="5">등록된 재화가 없어요</td></tr>'
+      return
+    }
+    tbody.innerHTML = currencies.map(c => `
+      <tr>
+        <td>${c.imageUrl
+          ? `<img src="${c.imageUrl}" style="width:32px;height:32px;border-radius:8px;object-fit:cover;" alt="${c.nameKo}">`
+          : '<div style="width:32px;height:32px;border-radius:8px;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:18px;">💎</div>'
+        }</td>
+        <td><strong>${c.nameKo}</strong></td>
+        <td><span style="font-size:13px;color:#888;">${c.sortOrder}</span></td>
+        <td style="display:flex;align-items:center;gap:8px;">${adminGameIcon(c.game ?? {}, 22)} ${c.game?.nameKo ?? ''}</td>
+        <td style="display:flex;gap:6px;">
+          <button class="btn-sm btn-gray" onclick="editCurrency('${c.id}', '${c.nameKo}', ${c.sortOrder}, '${c.imageUrl ?? ''}')">수정</button>
+          <button class="btn-sm btn-red" onclick="deleteCurrency('${c.id}', '${c.nameKo}')">삭제</button>
+        </td>
+      </tr>
+    `).join('')
+  }
+
+  async function addCurrency() {
+    const gameId = document.getElementById('currency-game-select').value
+    const nameKo = document.getElementById('new-currency-name').value.trim()
+    const sortOrder = parseInt(document.getElementById('new-currency-sort').value) || 0
+    const imageUrl = document.getElementById('new-currency-image').value.trim()
+    if (!gameId) { alert('게임을 선택하세요'); return }
+    if (!nameKo) { alert('재화 이름을 입력하세요'); return }
+    const { error } = await db.from('Currency').insert({
+      gameId, nameKo, sortOrder,
+      imageUrl: imageUrl || null,
+      isActive: true
+    })
+    if (error) { alert('추가 실패: ' + error.message); return }
+    document.getElementById('new-currency-name').value = ''
+    document.getElementById('new-currency-sort').value = '0'
+    document.getElementById('new-currency-image').value = ''
+    loadCurrenciesForGame()
+  }
+
+  async function editCurrency(id, nameKo, sortOrder, imageUrl) {
+    const newName = prompt('재화 이름:', nameKo)
+    if (newName === null || !newName.trim()) return
+    const newSort = prompt('순서 (숫자):', sortOrder)
+    if (newSort === null) return
+    const newImage = prompt('이미지 URL:', imageUrl)
+    if (newImage === null) return
+    const { error } = await db.from('Currency').update({
+      nameKo: newName.trim(),
+      sortOrder: parseInt(newSort) || 0,
+      imageUrl: newImage.trim() || null
+    }).eq('id', id)
+    if (error) { alert('수정 실패: ' + error.message); return }
+    loadCurrenciesForGame()
+  }
+
+  async function deleteCurrency(id, name) {
+    if (!confirm(`"${name}" 재화를 삭제할까요?\n이 재화가 포함된 판매글의 재화 정보도 삭제됩니다.`)) return
+    await db.from('Currency').delete().eq('id', id)
+    loadCurrenciesForGame()
+  }
+
+  function filterCurrencies(gameId, btn) {
+    selectedCurrencyGameId = gameId
+    document.getElementById('currency-game-select').value = gameId
+    document.querySelectorAll('#currency-game-filter .game-selector-btn').forEach(b => b.classList.remove('active'))
+    btn.classList.add('active')
+    loadCurrenciesForGame()
   }
 
   // ===== 판매글 관리 =====
