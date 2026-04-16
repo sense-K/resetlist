@@ -99,6 +99,27 @@
     }
     .btn-google:hover { background: #f8f8f8; border-color: #ccc; }
     .btn-google img { width: 20px; height: 20px; }
+    .forgot-link {
+      text-align: right;
+      margin-top: 8px;
+    }
+    .forgot-link a {
+      font-size: 13px;
+      color: #888;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .forgot-link a:hover { color: #111; }
+    .back-link {
+      text-align: center;
+      margin-top: 16px;
+    }
+    .back-link a {
+      font-size: 13px;
+      color: #888;
+      cursor: pointer;
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -108,7 +129,7 @@
   <div class="auth-logo">리세 리스트</div>
 
   <div class="auth-card">
-    <div class="auth-tabs">
+    <div class="auth-tabs" id="auth-tabs">
       <div class="auth-tab active" onclick="switchTab('login')">로그인</div>
       <div class="auth-tab" onclick="switchTab('signup')">회원가입</div>
     </div>
@@ -133,6 +154,7 @@
         <input type="password" class="form-input" id="login-pw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')login()">
       </div>
       <button class="btn btn-primary btn-full" onclick="login()" id="login-btn">로그인</button>
+      <div class="forgot-link"><a onclick="switchTab('forgot')">비밀번호를 잊으셨나요?</a></div>
     </div>
 
     <!-- 회원가입 -->
@@ -157,6 +179,37 @@
       </div>
       <button class="btn btn-primary btn-full" onclick="signup()" id="signup-btn">회원가입</button>
     </div>
+
+    <!-- 비밀번호 재설정 링크 발송 -->
+    <div class="auth-panel" id="panel-forgot">
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px;">비밀번호 재설정</div>
+      <div style="font-size:13px;color:#888;margin-bottom:20px;">가입한 이메일로 재설정 링크를 보내드려요</div>
+      <div class="auth-error" id="forgot-error"></div>
+      <div class="auth-success" id="forgot-success"></div>
+      <div class="form-group">
+        <label class="form-label">이메일</label>
+        <input type="email" class="form-input" id="forgot-email" placeholder="가입한 이메일 주소" onkeydown="if(event.key==='Enter')sendResetEmail()">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="sendResetEmail()" id="forgot-btn">재설정 링크 보내기</button>
+      <div class="back-link"><a onclick="switchTab('login')">← 로그인으로 돌아가기</a></div>
+    </div>
+
+    <!-- 새 비밀번호 입력 (재설정 링크 클릭 후) -->
+    <div class="auth-panel" id="panel-reset">
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px;">새 비밀번호 설정</div>
+      <div style="font-size:13px;color:#888;margin-bottom:20px;">사용할 새 비밀번호를 입력해주세요</div>
+      <div class="auth-error" id="reset-error"></div>
+      <div class="auth-success" id="reset-success"></div>
+      <div class="form-group">
+        <label class="form-label">새 비밀번호</label>
+        <input type="password" class="form-input" id="reset-pw" placeholder="6자 이상">
+      </div>
+      <div class="form-group">
+        <label class="form-label">비밀번호 확인</label>
+        <input type="password" class="form-input" id="reset-pw-confirm" placeholder="비밀번호 재입력" onkeydown="if(event.key==='Enter')updatePassword()">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="updatePassword()" id="reset-btn">비밀번호 변경</button>
+    </div>
   </div>
 </div>
 
@@ -166,15 +219,34 @@
   document.getElementById('navbar').innerHTML = renderNavbar()
   loadAndRenderGameUI(null)
 
-  // 이미 로그인된 경우 홈으로
+  // 비밀번호 재설정 링크로 돌아온 경우 감지
+  db.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      switchTab('reset')
+    }
+  })
+
+  // 이미 로그인된 경우 홈으로 (재설정 모드 제외)
   db.auth.getSession().then(({ data: { session } }) => {
-    if (session) window.location.href = (new URLSearchParams(location.search).get('next') || '/')
+    if (session && event !== 'PASSWORD_RECOVERY') {
+      const hash = location.hash
+      if (!hash.includes('type=recovery')) {
+        window.location.href = (new URLSearchParams(location.search).get('next') || '/')
+      }
+    }
   })
 
   function switchTab(tab) {
-    document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (i === 0) === (tab === 'login')))
-    document.getElementById('panel-login').classList.toggle('active', tab === 'login')
-    document.getElementById('panel-signup').classList.toggle('active', tab === 'signup')
+    const isForgotOrReset = tab === 'forgot' || tab === 'reset'
+    // 탭 UI: forgot/reset일 땐 숨김
+    document.getElementById('auth-tabs').style.display = isForgotOrReset ? 'none' : ''
+    // 구글 로그인 버튼과 구분선도 forgot/reset일 땐 숨김
+    document.querySelector('.btn-google').style.display = isForgotOrReset ? 'none' : ''
+    document.querySelector('.auth-divider').style.display = isForgotOrReset ? 'none' : ''
+    // 패널 전환
+    ;['login','signup','forgot','reset'].forEach(p => {
+      document.getElementById('panel-' + p).classList.toggle('active', p === tab)
+    })
   }
 
   async function login() {
@@ -254,6 +326,49 @@
       options: { redirectTo: location.origin + next }
     })
     if (error) alert('구글 로그인 실패: ' + error.message)
+  }
+
+  async function sendResetEmail() {
+    const email = document.getElementById('forgot-email').value.trim()
+    const errEl = document.getElementById('forgot-error')
+    const sucEl = document.getElementById('forgot-success')
+    const btn = document.getElementById('forgot-btn')
+    if (!email) { showErr(errEl, '이메일을 입력해주세요'); return }
+    btn.disabled = true; btn.textContent = '발송 중...'
+    errEl.style.display = 'none'; sucEl.style.display = 'none'
+    const { error } = await db.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://resetlist.kr/auth/'
+    })
+    if (error) {
+      showErr(errEl, '발송에 실패했어요. 이메일을 확인해주세요')
+      btn.disabled = false; btn.textContent = '재설정 링크 보내기'
+    } else {
+      sucEl.textContent = '이메일을 보냈어요! 받은 편지함을 확인해주세요'
+      sucEl.style.display = 'block'
+      btn.disabled = false; btn.textContent = '재설정 링크 보내기'
+    }
+  }
+
+  async function updatePassword() {
+    const pw = document.getElementById('reset-pw').value
+    const pwConfirm = document.getElementById('reset-pw-confirm').value
+    const errEl = document.getElementById('reset-error')
+    const sucEl = document.getElementById('reset-success')
+    const btn = document.getElementById('reset-btn')
+    errEl.style.display = 'none'; sucEl.style.display = 'none'
+    if (pw.length < 6) { showErr(errEl, '비밀번호는 6자 이상이어야 해요'); return }
+    if (pw !== pwConfirm) { showErr(errEl, '비밀번호가 일치하지 않아요'); return }
+    btn.disabled = true; btn.textContent = '변경 중...'
+    const { error } = await db.auth.updateUser({ password: pw })
+    if (error) {
+      showErr(errEl, '변경에 실패했어요. 링크가 만료됐을 수 있어요')
+      btn.disabled = false; btn.textContent = '비밀번호 변경'
+    } else {
+      sucEl.textContent = '비밀번호가 변경됐어요! 잠시 후 홈으로 이동해요'
+      sucEl.style.display = 'block'
+      btn.disabled = true
+      setTimeout(() => window.location.href = '/', 2000)
+    }
   }
 
   function showErr(el, msg) {
