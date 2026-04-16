@@ -151,29 +151,7 @@ const GRADE_ORDER_MAP = {
 - 구매 탭: 거래 진행중 + 거래 완료 + 취소된 거래 (있을 때만)
 - 섹션 바디 흰색 배경, 구매 탭 빈 화면 푸터 위치 수정
 
-## 이메일 알림 시스템 (2026-04-16 완료)
-- Resend API + Supabase Edge Function `trade-notify` 로 거래 단계별 이메일 발송
-- **Edge Function 슬러그 주의**: 대시보드에서 만들면 슬러그가 표시명과 다를 수 있음
-  - 현재 실제 슬러그: `quick-responder` (표시명: trade-notify)
-  - DB 웹훅 URL: `https://ltcibadxwkupwjikqzik.supabase.co/functions/v1/quick-responder`
-  - Verify JWT: OFF (웹훅은 JWT 없이 호출)
-- DB 웹훅: `Database → Webhooks → trade-notify` (Trade 테이블 INSERT+UPDATE)
-- 발송 시나리오:
-  - Trade INSERT (status=active) → 판매자에게 "새 구매 신청이 들어왔어요"
-  - active → seller_confirmed → 구매자에게 "판매자가 계정을 전달했어요"
-  - seller_confirmed → completed → 판매자에게 "거래가 완료됐어요 🎉"
-  - any → cancelled → 판매자에게 "거래가 취소됐어요"
-  - nudge 액션 → 구매자에게 "판매자가 연락을 기다리고 있어요"
-- FROM: `리세리스트 <onboarding@resend.dev>` (Resend 무료 도메인, 검증 불필요)
-- Resend API 키: Supabase Edge Function 환경변수 `RESEND_API_KEY` 에 저장
-
-## 판매자 → 구매자 연락 요청 (2026-04-16 완료)
-- 마이페이지 판매 탭 거래중 상태 판매글에 **연락 요청** 버튼(보라색) 표시
-- 버튼 클릭 → Edge Function에 `{ action: 'nudge', tradeId }` POST (JWT 포함)
-- Edge Function이 발신자가 실제 판매자인지 검증 후 구매자 이메일 발송
-- 전송 후 30초간 버튼 비활성화 (스팸 방지)
-
-## 현재 상태 (2026-04-16)
+## 현재 상태 (2026-04-15)
 - 핵심 기능 + 보안 + UX 개선 완료
 - resetlist.kr 도메인 연결 완료
 - SEO + Google Search Console 등록 완료 (zzz, sevenknightsre, leehwan, trickcal 포함)
@@ -182,11 +160,12 @@ const GRADE_ORDER_MAP = {
 - 캐릭터 필터 모달 완성 (실시간 검색 + 티어 그룹핑 + 보라색 사이드바 카드)
 - 캐릭터 다중 선택 + 개수 기반 필터링 완성 (×N 표시, N개 이상 보유 계정 필터)
 - 트릭컬 리바이브 페이지 + 캐릭터 104개 등록 완료
-- 이메일 알림 시스템 완성 (거래 단계별 + 연락 요청)
 - 시세 조회 기능 미구현 (2차 개발 예정)
 
 ## 남은 작업 목록
 ### 중요도 높음
+- [ ] Cloudflare Web Analytics 연동 (방문자 분석 도구 없음)
+- [ ] 신규 게임(zzz, sevenknightsre, leehwan, trickcal) SEO 키워드 보강 (게임 캐릭터 파악 후)
 - [ ] trickcal Google Search Console 색인 생성 요청
 - [ ] Supabase CASCADE FK 설정 (판매글 삭제 안정성):
   ```sql
@@ -200,10 +179,9 @@ const GRADE_ORDER_MAP = {
 
 ### 중요도 중간
 - [ ] 찜하기 기능 (관심 목록)
-- [ ] 필터 강화 (가격 범위)
-- [ ] 이환 SEO 키워드 보강 (게임 오픈 후)
+- [ ] 필터 강화 (가격 범위, 캐릭터 포함 여부)
+- [ ] 모바일 반응형 개선 (히어로 캐러셀 모바일 표시, 게임카드 2열)
 
 ### 중요도 낮음
 - [ ] 시세 조회 기능 (게임-서버-캐릭터별 평균가)
 - [ ] 거래 분쟁 처리 메커니즘
-- [ ] 판매자 프로필 페이지 완성 (/user/)
