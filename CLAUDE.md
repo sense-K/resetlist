@@ -25,6 +25,20 @@ listup-site/
 ├── sevenknightsre/         # 세븐나이츠 리버스 리세계
 ├── leehwan/                # 이환 리세계
 ├── trickcal/               # 트릭컬 리바이브 리세계
+├── limbus/                 # 림버스 컴퍼니 리세계
+├── stardive/               # 몬길 스타다이브 리세계
+├── price/                  # 시세 조회 섹션
+│   ├── index.html          # 시세 인덱스 (게임별 시세 카드 목록)
+│   ├── genshin/            # 원신 시세 (실제 데이터 있음)
+│   ├── nikke/              # 니케 시세 (실제 데이터 있음)
+│   ├── cookierunkingdom/   # 쿠킹덤 시세 (실제 데이터 있음)
+│   ├── bluearchive/        # 블루아카이브 시세 (준비중)
+│   ├── zzz/                # 젠레스 시세 (준비중)
+│   ├── sevenknightsre/     # 세나리 시세 (준비중)
+│   ├── leehwan/            # 이환 시세 (준비중)
+│   ├── trickcal/           # 트릭컬 시세 (준비중)
+│   ├── limbus/             # 림버스 시세 (준비중)
+│   └── stardive/           # 몬길 시세 (준비중)
 ├── listing/                # 판매계정 상세 (/listing/?id=xxx)
 ├── functions/
 │   └── listing/index.js    # Cloudflare Pages Function (동적 OG 태그)
@@ -95,7 +109,7 @@ const GRADE_ORDER_MAP = {
 - 애니메이션: `hero-scroll-right` 48s, `hero-scroll-left` 40s (linear infinite)
 - 카드 배경: `artImageUrl` 이미지
 
-## SEO 현황 (2026-04-12 완료)
+## SEO 현황 (2026-04-16 업데이트)
 - 전 페이지 title / description / keywords / canonical / og / twitter card 적용
 - JSON-LD: 메인(WebSite+SearchAction), 게임 페이지(CollectionPage+BreadcrumbList)
 - Google Search Console 등록 완료, 색인 생성 요청 완료
@@ -105,6 +119,9 @@ const GRADE_ORDER_MAP = {
   - 블루아카이브: 호시노, 와카모, 시로코, 스나코, 아코
   - 니케: 크라운, 세이렌, 라피, 레드후드, 나유타, 목단
   - 쿠키런킹덤: 어둠마녀, 미스틱플라워, 버닝스파이스, 사일런트솔트, 쉐도우밀크, 이터널슈가
+- **판매 페이지**: "xx 시세" 키워드 제거 (시세 페이지와 중복 방지)
+- **시세 페이지**: "xx 리세계 시세"를 첫 번째 키워드로 설정
+- 시세 페이지들 sitemap.xml 추가 완료 (lastmod: 2026-04-16)
 
 ## 공유 기능 (listing/index.html + functions/listing/index.js)
 - 판매계정 상세 우측 상단에 `🔗 공유하기` 버튼 → 클립보드 복사 + 토스트 방식
@@ -151,7 +168,39 @@ const GRADE_ORDER_MAP = {
 - 구매 탭: 거래 진행중 + 거래 완료 + 취소된 거래 (있을 때만)
 - 섹션 바디 흰색 배경, 구매 탭 빈 화면 푸터 위치 수정
 
-## 현재 상태 (2026-04-15)
+## 이메일 알림 시스템 (2026-04-16 완료)
+- Resend API + Supabase Edge Function `trade-notify` 로 거래 단계별 이메일 발송
+- **Edge Function 슬러그 주의**: 대시보드에서 만들면 슬러그가 표시명과 다를 수 있음
+  - 현재 실제 슬러그: `quick-responder` (표시명: trade-notify)
+  - DB 웹훅 URL: `https://ltcibadxwkupwjikqzik.supabase.co/functions/v1/quick-responder`
+  - Verify JWT: OFF (웹훅은 JWT 없이 호출)
+- DB 웹훅: `Database → Webhooks → trade-notify` (Trade 테이블 INSERT+UPDATE)
+- 발송 시나리오:
+  - Trade INSERT (status=active) → 판매자에게 "새 구매 신청이 들어왔어요"
+  - active → seller_confirmed → 구매자에게 "판매자가 계정을 전달했어요"
+  - seller_confirmed → completed → 판매자에게 "거래가 완료됐어요 🎉"
+  - any → cancelled → 판매자에게 "거래가 취소됐어요"
+  - nudge 액션 → 구매자에게 "판매자가 연락을 기다리고 있어요"
+- FROM: `리세리스트 <onboarding@resend.dev>` (Resend 무료 도메인, 검증 불필요)
+- Resend API 키: Supabase Edge Function 환경변수 `RESEND_API_KEY` 에 저장
+
+## 판매자 → 구매자 연락 요청 (2026-04-16 완료)
+- 마이페이지 판매 탭 거래중 상태 판매글에 **연락 요청** 버튼(보라색) 표시
+- 버튼 클릭 → Edge Function에 `{ action: 'nudge', tradeId }` POST (JWT 포함)
+- Edge Function이 발신자가 실제 판매자인지 검증 후 구매자 이메일 발송
+- 전송 후 30초간 버튼 비활성화 (스팸 방지)
+
+## 시세 페이지 (2026-04-16 완료)
+- `price/` 디렉토리 전체 신규 생성
+- 네비바에 "계정 시세" 메뉴 추가 → `/price/`
+- `price_data` Supabase 테이블 설계: `game_slug, account_type, price_min, price_max, description, sort_order, updated_at`
+  - RLS: public read 정책 필요
+  - 쿠킹덤 DB slug는 `cookie-run` (URL은 `/cookierunkingdom/`) → PRICE_PATH_MAP으로 처리
+- 실제 시세 데이터: 원신, 니케, 쿠킹덤 (헝그리앱 분석 완료, **Supabase INSERT 아직 미실행**)
+- 나머지 7개 게임 시세 페이지: "준비 중" 상태 (renderComingSoon() 패턴)
+- CTA 문구: "수수료 없는 직거래 계정 보러가기" / 버튼: "판매계정 보러가기 →"
+
+## 현재 상태 (2026-04-16)
 - 핵심 기능 + 보안 + UX 개선 완료
 - resetlist.kr 도메인 연결 완료
 - SEO + Google Search Console 등록 완료 (zzz, sevenknightsre, leehwan, trickcal 포함)
@@ -160,13 +209,17 @@ const GRADE_ORDER_MAP = {
 - 캐릭터 필터 모달 완성 (실시간 검색 + 티어 그룹핑 + 보라색 사이드바 카드)
 - 캐릭터 다중 선택 + 개수 기반 필터링 완성 (×N 표시, N개 이상 보유 계정 필터)
 - 트릭컬 리바이브 페이지 + 캐릭터 104개 등록 완료
-- 시세 조회 기능 미구현 (2차 개발 예정)
+- 이메일 알림 시스템 완성 (거래 단계별 + 연락 요청)
+- 시세 페이지 11개 생성 완료 (원신/니케/쿠킹덤 데이터 준비됨, 나머지 준비중)
 
 ## 남은 작업 목록
 ### 중요도 높음
-- [ ] Cloudflare Web Analytics 연동 (방문자 분석 도구 없음)
-- [ ] 신규 게임(zzz, sevenknightsre, leehwan, trickcal) SEO 키워드 보강 (게임 캐릭터 파악 후)
-- [ ] trickcal Google Search Console 색인 생성 요청
+- [ ] **시세 데이터 Supabase INSERT** — 원신/니케/쿠킹덤 SQL 준비됨, 실행만 하면 됨
+  - Supabase → SQL Editor에서 실행
+  - price_data 테이블 + RLS public read 정책 먼저 생성 필요
+- [ ] **비밀번호 재설정 이메일 Resend로 교체** — 현재 Supabase 기본 발송(시간당 4건 제한), 유저 생기기 전에 교체해야 함
+  - Supabase → Authentication → SMTP Settings에서 Resend SMTP 연결
+- [ ] **서치콘솔 색인 요청** — 시세 페이지 우선순위: `/price/`, `/price/genshin/`, `/price/nikke/`, `/price/cookierunkingdom/`
 - [ ] Supabase CASCADE FK 설정 (판매글 삭제 안정성):
   ```sql
   ALTER TABLE "Trade" DROP CONSTRAINT "Trade_listingId_fkey";
@@ -178,10 +231,12 @@ const GRADE_ORDER_MAP = {
   ```
 
 ### 중요도 중간
-- [ ] 찜하기 기능 (관심 목록)
-- [ ] 필터 강화 (가격 범위, 캐릭터 포함 여부)
-- [ ] 모바일 반응형 개선 (히어로 캐러셀 모바일 표시, 게임카드 2열)
+- [ ] 가격 범위 필터 (구매자 입장에서 예산 필터 거의 필수)
+- [ ] 찜하기 기능 (관심 목록, 재방문 유도)
+- [ ] 신고 기능 (Report 테이블 이미 존재, RLS는 현재 차단 상태 → 기능 구현 시 RLS 정책 추가 필요)
+- [ ] 이환 SEO 키워드 보강 (게임 오픈 후)
 
 ### 중요도 낮음
-- [ ] 시세 조회 기능 (게임-서버-캐릭터별 평균가)
+- [ ] 준비중 시세 페이지 데이터 채우기 (블루아카이브, 젠레스, 림버스 등)
 - [ ] 거래 분쟁 처리 메커니즘
+- [ ] 판매자 프로필 페이지 완성 (/user/)
