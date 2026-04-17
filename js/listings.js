@@ -45,19 +45,22 @@ function renderListingCard(listing) {
     : ''
 
   const isSold = listing.status === 'sold'
-  const hotBadge = !isSold && listing.viewCount > 50 ? `<div class="badge-hot">🔥 HOT</div>` : ''
-  const tradingBadge = listing.status === 'trading' ? `<div class="badge-trading">거래중</div>` : ''
+  const isTrading = listing.status === 'trading'
+  const hotBadge = !isSold && !isTrading && listing.viewCount > 50 ? `<div class="badge-hot">🔥 HOT</div>` : ''
+  const tradingOverlay = isTrading ? `<div class="badge-trading-overlay"><span class="badge-trading-text">거래중</span></div>` : ''
   const soldOverlay = isSold ? `<div class="badge-sold-overlay"><span class="badge-sold-text">판매완료</span></div>` : ''
+  const gameName = listing.game?.nameKo ?? ''
+  const artInfo = gameName + (serverName ? ` / ${serverName}` : '')
 
   return `
     <a href="/listing/?id=${listing.id}" class="card${isSold ? ' card-sold' : ''}">
-      <div class="card-art ${artClass}">
-        ${gameImageUrl ? `<img class="card-art-icon" src="${gameImageUrl}" alt="${listing.game?.nameKo ?? ''}">` : `<span style="font-size:36px;">${gameEmoji}</span>`}
+      <div class="card-art ${artClass}" ${gameArtUrl ? `style="background-image:url('${gameArtUrl}')"` : ''}>
+        <div class="card-art-overlay"></div>
         ${isSold ? `<div class="card-art-blur"></div>` : ''}
         ${hotBadge}
-        ${tradingBadge}
+        ${tradingOverlay}
         ${soldOverlay}
-        ${serverName ? `<span class="card-art-server">${serverName}</span>` : ''}
+        <span class="card-art-info">${artInfo}</span>
       </div>
       <div class="card-body">
         <div class="card-chars">${charBadges}${extraBadge}</div>

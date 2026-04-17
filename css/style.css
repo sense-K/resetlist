@@ -597,6 +597,8 @@ a { text-decoration: none; color: inherit; }
   position: relative;
   overflow: hidden;
   border-radius: 16px 0 0 16px;
+  background-size: cover;
+  background-position: center;
 }
 .card-art .game-emoji { font-size: 32px; }
 .card-art .game-server {
@@ -604,32 +606,31 @@ a { text-decoration: none; color: inherit; }
   color: rgba(255,255,255,0.5);
 }
 
-/* 카드 아트 - 게임 아이콘 */
-.card-art-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 14px;
-  object-fit: cover;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.45);
-  position: relative;
+/* 카드 아트 - 그라디언트 오버레이 */
+.card-art-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.65) 100%);
+  border-radius: 16px 0 0 16px;
   z-index: 1;
 }
 
-/* 카드 아트 - 서버 뱃지 */
-.card-art-server {
+/* 카드 아트 - 하단 게임명/서버명 */
+.card-art-info {
   position: absolute;
   bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.6);
+  left: 0;
+  right: 0;
+  text-align: center;
   color: #fff;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 999px;
+  padding: 0 8px;
+  z-index: 3;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
   white-space: nowrap;
-  backdrop-filter: blur(4px);
-  z-index: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-art.genshin        { background: linear-gradient(160deg, #1a1a2e 0%, #16213e 100%); }
@@ -656,17 +657,24 @@ a { text-decoration: none; color: inherit; }
   border-radius: 4px;
 }
 
-/* 거래중 배지 */
-.badge-trading {
+/* 거래중 오버레이 */
+.badge-trading-overlay {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  background: rgba(217, 119, 6, 0.9);
-  color: white;
-  font-size: 10px;
-  font-weight: 900;
-  padding: 3px 8px;
-  border-radius: 4px;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+.badge-trading-text {
+  background: rgba(180, 83, 9, 0.88);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255,255,255,0.3);
   backdrop-filter: blur(4px);
 }
 
@@ -685,8 +693,8 @@ a { text-decoration: none; color: inherit; }
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   background: rgba(0,0,0,0.30);
-  border-radius: 16px 16px 0 0;
-  z-index: 1;
+  border-radius: 16px 0 0 16px;
+  z-index: 2;
 }
 .badge-sold-overlay {
   position: absolute;
