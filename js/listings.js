@@ -35,7 +35,7 @@ function renderListingCard(listing) {
   function renderCharIcon(c, count) {
     if (!c) return ''
     const gc = typeof gradeClass === 'function' ? gradeClass(c.tier) : ''
-    const countBadge = (count > 1) ? `<span style="position:absolute;bottom:-4px;right:-4px;background:#111;color:#fff;border-radius:999px;font-size:9px;font-weight:700;min-width:14px;height:14px;display:flex;align-items:center;justify-content:center;padding:0 2px;line-height:1;">×${count}</span>` : ''
+    const countBadge = (count > 1) ? `<span style="position:absolute;bottom:2px;right:2px;background:#111;color:#fff;border-radius:999px;font-size:13px;font-weight:700;min-width:21px;height:21px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1;">×${count}</span>` : ''
     if (c.imageUrl) return `<span style="position:relative;display:inline-block;"><img class="char-img-badge${gc ? ' grade-' + gc : ''}" src="${c.imageUrl}" alt="${c.nameKo}" title="${c.nameKo + (count > 1 ? ' ×' + count : '')}">${countBadge}</span>`
     return `<span class="char-badge${gc ? ' grade-' + gc : ''}">${c.nameKo}${count > 1 ? ` ×${count}` : ''}</span>`
   }
