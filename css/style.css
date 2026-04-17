@@ -811,6 +811,24 @@ a { text-decoration: none; color: inherit; }
   border: 2px solid #e5e7eb;
   flex-shrink: 0;
 }
+.char-count-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background: #111;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 21px;
+  height: 21px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  line-height: 1;
+}
+
 .char-img-more {
   width: 54px;
   height: 54px;
@@ -1486,6 +1504,7 @@ a { text-decoration: none; color: inherit; }
   .card-body { padding: 10px 12px; }
   .char-img-badge { width: 40px; height: 40px; border-radius: 8px; }
   .char-img-more { width: 40px; height: 40px; border-radius: 8px; font-size: 11px; }
+  .char-count-badge { font-size: 10px; min-width: 15px; height: 15px; }
   .card-chars { max-height: 86px; } /* 40px × 2줄 + 6px 간격 */
   .fab { bottom: 16px; right: 16px; padding: 12px 18px; font-size: 13px; }
 }
