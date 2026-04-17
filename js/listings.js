@@ -52,8 +52,13 @@ function renderListingCard(listing) {
   const gameName = listing.game?.nameKo ?? ''
   const artInfo = gameName + (serverName ? ` / ${serverName}` : '')
 
-  return `
-    <a href="/listing/?id=${listing.id}" class="card${isSold ? ' card-sold' : ''}">
+  const isBlocked = isSold || isTrading
+  const wrapOpen = isBlocked
+    ? `<div class="card${isSold ? ' card-sold' : ' card-trading'}">`
+    : `<a href="/listing/?id=${listing.id}" class="card">`
+  const wrapClose = isBlocked ? `</div>` : `</a>`
+
+  return wrapOpen + `
       <div class="card-art ${artClass}">
         ${gameArtUrl ? `<img class="card-art-img" src="${gameArtUrl}" alt="${gameName}">` : ''}
         <div class="card-art-overlay"></div>
@@ -82,8 +87,7 @@ function renderListingCard(listing) {
           ${serverName ? `<span class="card-server-chip">${serverName}</span>` : ''}
         </div>
       </div>
-    </a>
-  `
+  ` + wrapClose
 }
 
 // ===== 매물 목록 로드 =====

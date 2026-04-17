@@ -686,7 +686,7 @@ a { text-decoration: none; color: inherit; }
 .card-sold {
   opacity: 0.72;
 }
-.card-sold:hover {
+.card-sold:hover, .card-trading:hover {
   transform: none;
   box-shadow: var(--shadow-card);
   cursor: default;
