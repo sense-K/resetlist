@@ -21,7 +21,7 @@ function renderListingCard(listing) {
 
   const chars = listing.characters ?? []
   const currencies = (listing.currencies ?? []).filter(lc => lc.currency && lc.amount > 0)
-  const TOTAL_SLOTS = 9
+  const TOTAL_SLOTS = 10
 
   let charBadges, extraBadge
   if (chars.length <= TOTAL_SLOTS) {
@@ -64,7 +64,6 @@ function renderListingCard(listing) {
         <span class="card-art-info">${artInfo}</span>
       </div>
       <div class="card-body">
-        <div class="card-chars">${charBadges}${extraBadge}</div>
         ${currencies.length > 0 ? `
         <div class="card-currencies">${currencies.map(lc => {
           const c = lc.currency
@@ -73,6 +72,7 @@ function renderListingCard(listing) {
             ${lc.amount.toLocaleString()}
           </span>`
         }).join('')}</div>` : ''}
+        <div class="card-chars">${charBadges}${extraBadge}</div>
         ${listing.description ? `<div class="card-desc">${listing.description}</div>` : ''}
         <div class="card-footer">
           <div>
