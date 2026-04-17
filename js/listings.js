@@ -52,10 +52,10 @@ function renderListingCard(listing) {
   const gameName = listing.game?.nameKo ?? ''
   const artInfo = gameName + (serverName ? ` / ${serverName}` : '')
 
-  const isBlocked = isSold || isTrading
+  const isBlocked = (isSold || isTrading) && !window.isAdmin
   const wrapOpen = isBlocked
     ? `<div class="card${isSold ? ' card-sold' : ' card-trading'}">`
-    : `<a href="/listing/?id=${listing.id}" class="card">`
+    : `<a href="/listing/?id=${listing.id}" class="card${isSold ? ' card-sold' : ''}">`
   const wrapClose = isBlocked ? `</div>` : `</a>`
 
   return wrapOpen + `
@@ -99,6 +99,8 @@ async function loadListings({ container, gameSlug, serverId, page = 1, limit = 9
 
   if (!append) el.innerHTML = '<div class="loading">불러오는 중...</div>'
   if (moreBtnEl) moreBtnEl.style.display = 'none'
+
+  if (window._adminReady) await window._adminReady
 
   try {
     let gameId = null

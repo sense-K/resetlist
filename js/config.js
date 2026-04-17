@@ -5,6 +5,13 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const { createClient } = supabase
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+// ===== 관리자 체크 =====
+const ADMIN_EMAIL = 'zzabhm@gmail.com'
+window.isAdmin = false
+window._adminReady = db.auth.getUser().then(({ data: { user } }) => {
+  if (user?.email === ADMIN_EMAIL) window.isAdmin = true
+})
+
 // ===== 게임 목록 =====
 const GAMES = [
   { slug: 'genshin',          nameKo: '원신',        emoji: '🌙', artClass: 'genshin',       path: '/genshin/' },
