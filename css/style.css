@@ -730,8 +730,9 @@ a { text-decoration: none; color: inherit; }
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 8px;
-  flex: 1;
   align-content: flex-start;
+  max-height: 114px; /* 54px × 2줄 + 6px 간격 = 2줄 하드 컷 */
+  overflow: hidden;
 }
 
 /* 재화 칩 (카드) */

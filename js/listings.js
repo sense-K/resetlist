@@ -21,15 +21,13 @@ function renderListingCard(listing) {
 
   const chars = listing.characters ?? []
   const currencies = (listing.currencies ?? []).filter(lc => lc.currency && lc.amount > 0)
-  const TOTAL_SLOTS = 12
+  const TOTAL_SLOTS = window.innerWidth < 768 ? 9 : 16
 
   let charBadges, extraBadge
   if (chars.length <= TOTAL_SLOTS) {
-    // 8개 이하: 전부 표시, +X 없음
     charBadges = chars.map(lc => renderCharIcon(lc.character, lc.count)).join('')
     extraBadge = ''
   } else {
-    // 8개 초과: 앞 7개 + 마지막 슬롯에 +X
     charBadges = chars.slice(0, TOTAL_SLOTS - 1).map(lc => renderCharIcon(lc.character, lc.count)).join('')
     extraBadge = `<span class="char-img-more">+${chars.length - (TOTAL_SLOTS - 1)}</span>`
   }
