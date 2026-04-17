@@ -647,26 +647,49 @@
       } catch { return null }
     }
 
-    const [artDataUrl, gameIconDataUrl, ...charDataUrls] = await Promise.all([
+    const currencies = (l.currencies ?? []).filter(lc => lc.currency && lc.amount > 0)
+
+    const [artDataUrl, gameIconDataUrl, ...restDataUrls] = await Promise.all([
       l.game?.artImageUrl ? toDataUrl(l.game.artImageUrl) : Promise.resolve(null),
       l.game?.imageUrl    ? toDataUrl(l.game.imageUrl)    : Promise.resolve(null),
-      ...chars.slice(0, 12).map(lc => lc.character.imageUrl ? toDataUrl(lc.character.imageUrl) : Promise.resolve(null))
+      ...chars.slice(0, 12).map(lc => lc.character.imageUrl ? toDataUrl(lc.character.imageUrl) : Promise.resolve(null)),
+      ...currencies.map(lc => lc.currency.imageUrl ? toDataUrl(lc.currency.imageUrl) : Promise.resolve(null))
     ])
+    const charDataUrls = restDataUrls.slice(0, chars.slice(0, 12).length)
+    const currDataUrls = restDataUrls.slice(chars.slice(0, 12).length)
 
     const charsHtml = chars.slice(0, 12).map((lc, i) => {
       const c = lc.character
       const count = lc.count ?? 1
-      const countLabel = count > 1 ? ` ×${count}` : ''
+      const countBadge = count > 1
+        ? `<span style="position:absolute;bottom:2px;right:2px;background:rgba(0,0,0,0.72);color:#fff;font-size:9px;font-weight:700;padding:1px 4px;border-radius:4px;">×${count}</span>`
+        : ''
       return charDataUrls[i]
         ? `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <img src="${charDataUrls[i]}" style="width:48px;height:48px;border-radius:8px;object-fit:cover;border:1.5px solid #e5e7eb;">
-            <span style="font-size:9px;color:#555;text-align:center;line-height:1.2;max-width:52px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${c.nameKo}${countLabel}</span>
+            <div style="position:relative;display:inline-block;">
+              <img src="${charDataUrls[i]}" style="width:48px;height:48px;border-radius:8px;object-fit:cover;border:1.5px solid #e5e7eb;display:block;">
+              ${countBadge}
+            </div>
+            <span style="font-size:9px;color:#555;text-align:center;line-height:1.2;max-width:52px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${c.nameKo}</span>
            </div>`
         : `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <div style="width:48px;height:48px;border-radius:8px;background:#f3f4f6;border:1.5px solid #e5e7eb;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa;">${c.nameKo.slice(0,3)}</div>
-            <span style="font-size:9px;color:#555;">${c.nameKo}${countLabel}</span>
+            <div style="position:relative;width:48px;height:48px;border-radius:8px;background:#f3f4f6;border:1.5px solid #e5e7eb;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa;">${c.nameKo.slice(0,3)}${countBadge}</div>
+            <span style="font-size:9px;color:#555;">${c.nameKo}</span>
            </div>`
     }).join('')
+
+    const currenciesHtml = currencies.length > 0
+      ? currencies.map((lc, i) => {
+          const c = lc.currency
+          const iconHtml = currDataUrls[i]
+            ? `<img src="${currDataUrls[i]}" style="width:18px;height:18px;object-fit:contain;">`
+            : `<span style="font-size:14px;">💎</span>`
+          return `<span style="display:inline-flex;align-items:center;gap:4px;background:#f3f4f6;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;color:#222;">
+            ${iconHtml}
+            ${lc.amount.toLocaleString()}
+          </span>`
+        }).join('')
+      : ''
 
     const card = document.getElementById('listing-share-card')
     card.innerHTML = `
@@ -682,6 +705,10 @@
             <div style="color:#fff;font-size:30px;font-weight:900;text-shadow:0 1px 8px rgba(0,0,0,0.5);">${price}</div>
           </div>
         </div>
+        ${currenciesHtml ? `
+        <div style="padding:14px 20px 0;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">${currenciesHtml}</div>
+        </div>` : ''}
         ${chars.length > 0 ? `
         <div style="padding:16px 20px;">
           <div style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;">보유 캐릭터 ${chars.length}개</div>
