@@ -61,17 +61,19 @@ function renderListingCard(listing) {
         ${hotBadge}
         ${tradingOverlay}
         ${soldOverlay}
-        <span class="card-art-info">${artInfo}</span>
       </div>
       <div class="card-body">
-        ${currencies.length > 0 ? `
-        <div class="card-currencies">${currencies.map(lc => {
-          const c = lc.currency
-          return `<span class="card-currency-chip">
-            ${c.imageUrl ? `<img src="${c.imageUrl}" alt="${c.nameKo}">` : '💎'}
-            ${lc.amount.toLocaleString()}
-          </span>`
-        }).join('')}</div>` : ''}
+        ${currencies.length > 0 || serverName ? `
+        <div class="card-currencies">
+          ${serverName ? `<span class="card-server-chip">${serverName}</span>` : ''}
+          ${currencies.map(lc => {
+            const c = lc.currency
+            return `<span class="card-currency-chip">
+              ${c.imageUrl ? `<img src="${c.imageUrl}" alt="${c.nameKo}">` : '💎'}
+              ${lc.amount.toLocaleString()}
+            </span>`
+          }).join('')}
+        </div>` : ''}
         <div class="card-chars">${charBadges}${extraBadge}</div>
         ${listing.description ? `<div class="card-desc">${listing.description}</div>` : ''}
         <div class="card-footer">
