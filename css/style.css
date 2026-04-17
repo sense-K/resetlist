@@ -1461,6 +1461,8 @@ a { text-decoration: none; color: inherit; }
   .main-game-grid { grid-template-columns: 1fr 1fr; }
   .card-art { width: 120px; min-height: 120px; }
   .card-body { padding: 10px 12px; }
+  .char-img-badge { width: 36px; height: 36px; border-radius: 7px; }
+  .char-img-more { width: 36px; height: 36px; border-radius: 7px; font-size: 10px; }
   .fab { bottom: 16px; right: 16px; padding: 12px 18px; font-size: 13px; }
 }
 
