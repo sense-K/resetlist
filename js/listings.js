@@ -1,7 +1,12 @@
 // ===== 매물 카드 렌더링 =====
 
 function getArtClass(gameSlug) {
-  const map = { genshin: 'genshin', bluearchive: 'bluearchive', nikke: 'nikke', cookierunkingdom: 'cookierunkingdom', stardive: 'stardive' }
+  const map = {
+    genshin: 'genshin', bluearchive: 'bluearchive', nikke: 'nikke',
+    'cookie-run': 'cookierunkingdom', cookierunkingdom: 'cookierunkingdom',
+    stardive: 'stardive', zzz: 'zzz', sevenknightsre: 'sevenknightsre',
+    leehwan: 'leehwan', trickcal: 'trickcal', limbus: 'limbus'
+  }
   return map[gameSlug] || 'genshin'
 }
 
@@ -48,13 +53,13 @@ function renderListingCard(listing) {
 
   return `
     <a href="/listing/?id=${listing.id}" class="card${isSold ? ' card-sold' : ''}">
-      <div class="card-art ${artClass}" ${gameArtUrl ? `style="background-image:url('${gameArtUrl}');background-size:cover;background-position:center top;"` : ''}>
-        ${gameArtUrl ? `<div style="position:absolute;inset:0;border-radius:16px 16px 0 0;background:linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.45) 100%);"></div>` : ''}
+      <div class="card-art ${artClass}">
+        ${gameImageUrl ? `<img class="card-art-icon" src="${gameImageUrl}" alt="${listing.game?.nameKo ?? ''}">` : `<span style="font-size:36px;">${gameEmoji}</span>`}
         ${isSold ? `<div class="card-art-blur"></div>` : ''}
         ${hotBadge}
         ${tradingBadge}
         ${soldOverlay}
-        ${serverName ? `<span style="position:absolute;bottom:10px;left:12px;background:rgba(0,0,0,0.55);color:#fff;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;backdrop-filter:blur(4px);">${serverName}</span>` : ''}
+        ${serverName ? `<span class="card-art-server">${serverName}</span>` : ''}
       </div>
       <div class="card-body">
         <div class="card-price-row">
@@ -67,7 +72,7 @@ function renderListingCard(listing) {
           const c = lc.currency
           return `<span class="card-currency-chip">
             ${c.imageUrl ? `<img src="${c.imageUrl}" alt="${c.nameKo}">` : '💎'}
-            ${c.nameKo} ${lc.amount.toLocaleString()}
+            ${lc.amount.toLocaleString()}
           </span>`
         }).join('')}</div>` : ''}
         ${listing.description ? `<div class="card-desc">${listing.description}</div>` : ''}
@@ -75,10 +80,6 @@ function renderListingCard(listing) {
           <div class="card-seller">
             <span>👤 ${nickname}</span>
           </div>
-          <span class="card-game-badge">
-            ${gameImageUrl ? `<img src="${gameImageUrl}" alt="${listing.game?.nameKo ?? ''}" style="width:13px;height:13px;border-radius:3px;object-fit:cover;vertical-align:middle;">` : gameEmoji}
-            ${listing.game?.nameKo ?? ''}
-          </span>
         </div>
       </div>
     </a>
