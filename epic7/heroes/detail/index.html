@@ -95,16 +95,12 @@
     .hd-stat-row.valid .hd-stat-name { color: #3b82f6; }
     .hd-stat-row:not(.valid) .hd-stat-name { color: var(--text-sub, #64748b); }
     .hd-stat-bar-wrap { flex: 1; height: 8px; border-radius: 999px; background: #e5e7eb; position: relative; overflow: hidden; }
-    .hd-stat-bar { position: absolute; top: 0; height: 100%; border-radius: 999px; transition: left 0.5s, width 0.5s; }
+    .hd-stat-bar { position: absolute; top: 0; width: 8%; height: 100%; border-radius: 999px; transition: left 0.5s ease; }
     .hd-stat-range {
-      font-size: 11px; font-weight: 600; width: 80px; text-align: right; flex-shrink: 0;
+      font-size: 11px; font-weight: 600; width: 90px; text-align: right; flex-shrink: 0;
     }
     .hd-stat-row.valid .hd-stat-range { color: #3b82f6; }
     .hd-stat-row:not(.valid) .hd-stat-range { color: var(--text-sub, #64748b); }
-    .hd-recommend-badge {
-      font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 999px;
-      background: rgba(59,130,246,0.12); color: #3b82f6; flex-shrink: 0;
-    }
 
     /* 장비 세트 */
     .hd-gear-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
@@ -265,17 +261,18 @@
       return { start: parseInt(parts[0]), end: parseInt(parts[1]) };
     }
 
-    // 세그먼트 위치 계산 → {left%, width%}
+    // 세그먼트 위치 계산 → left% (폭은 CSS에서 고정 8%)
     function getBarSegment(buckets, key) {
       const peakIdx = buckets.reduce((best, b, i) => b.count > buckets[best].count ? i : best, 0);
       const label = (STAT_BUCKETS[key] || [])[peakIdx];
       const r = STAT_DISPLAY_RANGE[key];
-      if (!label || !r) return { left: 0, width: 100 };
+      if (!label || !r) return { left: 0 };
       const { start, end } = parseBucketRange(label, key);
       const span = r.max - r.min;
-      const left  = Math.max(0, Math.min(100, (start - r.min) / span * 100));
-      const right = Math.max(0, Math.min(100, (end   - r.min) / span * 100));
-      return { left, width: Math.max(2, right - left) };
+      const mid = (start + end) / 2;
+      // 세그먼트 폭(8%)의 절반(4%)을 빼서 중앙 정렬, 0~92% 클램프
+      const left = Math.max(0, Math.min(92, (mid - r.min) / span * 100 - 4));
+      return { left };
     }
 
     // ── API ──────────────────────────────────────
@@ -369,14 +366,13 @@
       const stats = STAT_KEYS.map(key => {
         const raw = analysis?.abillity?.[key] || '';
         const buckets = parseBuckets(raw, key);
-        const seg = raw ? getBarSegment(buckets, key) : { left: 0, width: 0 };
+        const seg = raw ? getBarSegment(buckets, key) : { left: 0 };
         return {
           key, label: STAT_LABELS[key],
           buckets,
           isValid: raw ? isValidStat(buckets) : false,
           range: raw ? getPeakLabel(buckets) : '-',
           barLeft: seg.left,
-          barWidth: seg.width,
         };
       });
       const validCount = stats.filter(s => s.isValid).length;
@@ -442,10 +438,9 @@
                     <img src="${STAT_ICON[s.key]}" alt="${s.label}" />
                     <span class="hd-stat-name">${s.label}</span>
                     <div class="hd-stat-bar-wrap">
-                      <div class="hd-stat-bar" style="left:${s.barLeft}%;width:${s.barWidth}%;background:${s.isValid ? '#3b82f6' : '#cbd5e1'};"></div>
+                      <div class="hd-stat-bar" style="left:${s.barLeft}%;background:${s.isValid ? '#3b82f6' : '#cbd5e1'};"></div>
                     </div>
                     <span class="hd-stat-range">${s.range}</span>
-                    ${s.isValid ? '<span class="hd-recommend-badge">추천</span>' : ''}
                   </div>
                 `).join('')}
               </div>
