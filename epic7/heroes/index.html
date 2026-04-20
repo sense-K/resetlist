@@ -181,14 +181,21 @@
     // ── 초기화 ───────────────────────────────────
     async function init() {
       try {
-        const heroJson = await loadHeroJson();
+        const [heroJson, seasons] = await Promise.all([loadHeroJson(), e7fetch('getSeasonList', { lang: 'ko' })]);
+        const seasonCode = (seasons.find(s => s.is_now_season === 1) || seasons[0])?.season_code || '';
+        const popular = await e7fetch('getPopularHero', { season_code: seasonCode, grade_code: 'champion', lang: 'ko' });
+        const popMap = new Map(popular.map(h => [h.hero_code, h]));
+
         allHeroes = heroJson.map(h => ({
           code: h.code,
           name: h.name,
           element: ATTR_MAP[h.attribute_cd] || 'fire',
           heroClass: JOB_MAP[h.job_cd] || 'warrior',
           stars: parseInt(h.grade) || 5,
+          pickRate: popMap.get(h.code)?.pick_rate ?? null,
         }));
+        allHeroes.sort((a, b) => (b.pickRate ?? -1) - (a.pickRate ?? -1));
+
         buildChips();
         renderGrid();
       } catch(e) {
