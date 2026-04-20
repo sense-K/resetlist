@@ -62,10 +62,15 @@
     }
     .mh-filter-icon.active { transform: scale(1.1); }
     .mh-search {
-      padding: 7px 12px; border-radius: 10px; border: 1px solid #e2e8f0;
-      font-size: 13px; outline: none; width: 160px;
+      padding: 7px 12px; border-radius: 10px 0 0 10px; border: 1px solid #e2e8f0;
+      border-right: none; font-size: 13px; outline: none; width: 130px;
     }
     .mh-search:focus { border-color: #3b82f6; }
+    .mh-search-btn {
+      padding: 7px 12px; border-radius: 0 10px 10px 0; border: 1px solid #e2e8f0;
+      background: #f8fafc; font-size: 13px; cursor: pointer; color: #475569;
+    }
+    .mh-search-btn:hover { background: #e2e8f0; }
 
     .mh-grid {
       display: grid;
@@ -221,7 +226,8 @@
             }).join('')}
           </div>
           <div class="mh-filter-row" style="display:flex;align-items:center;gap:6px;width:100%;margin-top:2px">
-            <input class="mh-search" type="text" placeholder="영웅 이름 검색..." value="${searchQuery}" oninput="onSearch(this.value)" />
+            <input id="mh-search-input" class="mh-search" type="text" placeholder="영웅 이름 검색..." value="${searchQuery}" onkeydown="if(event.key==='Enter')onSearch()" />
+            <button class="mh-search-btn" onclick="onSearch()">검색</button>
             <button class="mh-select-all-btn" onclick="toggleSelectAll()">
               ${visibleSelected === filtered.length && filtered.length > 0 ? '전체 해제' : '전체 선택'}
             </button>
@@ -287,7 +293,11 @@
     function clearFilters() { filterElements.clear(); filterClasses.clear(); render(); }
     function toggleEl(el) { filterElements.has(el) ? filterElements.delete(el) : filterElements.add(el); render(); }
     function toggleCls(cls) { filterClasses.has(cls) ? filterClasses.delete(cls) : filterClasses.add(cls); render(); }
-    function onSearch(val) { searchQuery = val.trim(); render(); }
+    function onSearch() {
+      const input = document.getElementById('mh-search-input');
+      searchQuery = input ? input.value.trim() : '';
+      render();
+    }
 
     async function init() {
       // 로그인 체크
