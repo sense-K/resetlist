@@ -161,19 +161,25 @@
     .e7-filter-icon {
       width: 30px; height: 30px;
       border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
+      position: relative;
       cursor: pointer;
       border: 2px solid var(--e7-border);
       background: transparent;
       transition: all 0.15s;
-      padding: 0; line-height: 1; flex-shrink: 0;
+      padding: 0; flex-shrink: 0;
       box-sizing: border-box;
     }
-    .e7-filter-icon img { width: 16px; height: 16px; display: block; object-fit: contain; flex-shrink: 0; }
+    .e7-filter-icon img {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 16px; height: 16px;
+      display: block; object-fit: contain;
+    }
     .e7-filter-icon.active { transform: scale(1.1); }
 
-    /* 영웅 그리드 */
-    .e7-grid-wrap { background: var(--e7-card); border: 1px solid var(--e7-border); border-radius: 14px; padding: 10px; max-height: 300px; overflow-y: auto; }
+    /* 영웅 그리드 — 2줄만 노출 */
+    .e7-grid-wrap { background: var(--e7-card); border: 1px solid var(--e7-border); border-radius: 14px; padding: 10px; max-height: 205px; overflow-y: auto; }
     .e7-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
 
     /* 영웅 카드 */
