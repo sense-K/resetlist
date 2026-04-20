@@ -231,6 +231,26 @@
       .pick-card { height: 72px; }
       .e7-rec-row { grid-template-columns: 1fr; }
       .e7-pick-order { display: none; }
+
+      /* 1. 설정바 — 초기화 버튼 같은 줄 유지 */
+      .e7-settings { flex-wrap: wrap; row-gap: 6px; }
+      .e7-btn-reset { margin-left: 0; }
+
+      /* 2. 추천 섹션 — 이름·별 숨김, 카드 높이 줄임 */
+      .e7-rec-grid .hero-card-name { display: none; }
+      .e7-rec-grid .hero-card-stars { display: none; }
+      .e7-rec-grid .hero-card { border-radius: 10px; }
+      .e7-rec-grid .hero-card-circle { width: 48px; height: 48px; }
+      .e7-rec-grid .hero-card-portrait { padding: 5px 5px 5px; }
+
+      /* 3. 영웅 선택 그리드 — 카드 작게, 이름·별 숨김 */
+      .e7-grid { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 5px; }
+      .e7-grid .hero-card-name { display: none; }
+      .e7-grid .hero-card-stars { display: none; }
+      .e7-grid .hero-card-circle { width: 44px; height: 44px; }
+      .e7-grid .hero-card-portrait { padding: 4px 4px 4px; }
+      .e7-grid .hero-card .icon-tl,
+      .e7-grid .hero-card .icon-tr { width: 14px; height: 14px; }
     }
   </style>
 </head>
