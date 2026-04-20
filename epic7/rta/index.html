@@ -78,6 +78,20 @@
       color: var(--e7-sub);
       cursor: pointer;
     }
+    .e7-btn-register {
+      padding: 6px 12px;
+      border-radius: 10px;
+      background: transparent;
+      border: 1px solid #7c3aed;
+      font-size: 12px;
+      font-weight: 700;
+      color: #7c3aed;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .e7-btn-register:hover { background: rgba(124,58,237,0.08); }
+    .e7-myhero-toggle button.active { background: #7c3aed; }
     .e7-select {
       padding: 6px 10px;
       border-radius: 10px;
@@ -325,6 +339,10 @@
     let filterElements = new Set();
     let filterClasses = new Set();
 
+    let useMyHeroes = false;
+    let myHeroCodes = new Set();
+    let currentUser = null;
+
     // ── API ───────────────────────────────────────────
     async function e7fetch(endpoint, params = {}) {
       const qs = new URLSearchParams(params).toString();
@@ -363,6 +381,13 @@
     // ── 초기 로드 ─────────────────────────────────────
     async function init() {
       try {
+        const { data: { session } } = await db.auth.getSession();
+        if (session) {
+          currentUser = session.user;
+          const { data: rows } = await db.from('UserHero').select('hero_code').eq('user_id', currentUser.id);
+          if (rows) rows.forEach(r => myHeroCodes.add(r.hero_code));
+        }
+
         const [heroJson, seasons] = await Promise.all([loadHeroJson(), e7fetch('getSeasonList', { lang: 'ko' })]);
         seasonCode = (seasons.find(s => s.is_now_season === 1) || seasons[0])?.season_code || '';
         const champion = await fetchPopularHeroes(seasonCode, 'champion');
@@ -422,7 +447,9 @@
       });
       return Array.from(scoreMap.entries())
         .sort((a,b) => b[1]-a[1]).slice(0,20)
-        .filter(([code]) => !usedCodes.has(code)).slice(0,3)
+        .filter(([code]) => !usedCodes.has(code))
+        .filter(([code]) => !useMyHeroes || myHeroCodes.has(code))
+        .slice(0,3)
         .map(([code]) => allHeroes.find(h => h.code === code)).filter(Boolean);
     }
 
@@ -430,6 +457,7 @@
       const withCount = new Map();
       popularData.forEach(h => h.with_heroes.forEach(code => withCount.set(code, (withCount.get(code)||0)+1)));
       return allHeroes.filter(h => (withCount.get(h.code)||0) > 0)
+        .filter(h => !useMyHeroes || myHeroCodes.has(h.code))
         .sort((a,b) => (withCount.get(b.code)||0)-(withCount.get(a.code)||0))
         .slice(0,20).filter(h => !usedCodes.has(h.code)).slice(0,3);
     }
@@ -445,6 +473,7 @@
     function getFilteredHeroes() {
       return allHeroes.filter(h => {
         if (usedCodes.has(h.code)) return false;
+        if (useMyHeroes && !myHeroCodes.has(h.code)) return false;
         if (filterElements.size > 0 && !filterElements.has(h.element)) return false;
         if (filterClasses.size > 0 && !filterClasses.has(h.heroClass)) return false;
         return true;
@@ -703,6 +732,11 @@
           <select class="e7-select" onchange="changeGrade(this.value)" ${gradeLoading?'disabled':''}>
             ${GRADE_OPTIONS.map(g => `<option value="${g.code}" ${grade===g.code?'selected':''}>${g.label}${gradeLoading&&grade===g.code?' ⟳':''}</option>`).join('')}
           </select>
+          <div class="e7-toggle-group e7-myhero-toggle">
+            <button class="${!useMyHeroes?'active':''}" onclick="setMyHeroMode(false)">전체 영웅</button>
+            <button class="${useMyHeroes?'active':''}" onclick="setMyHeroMode(true)">내 영웅</button>
+          </div>
+          <a href="/epic7/my-heroes/" class="e7-btn-register">내 영웅 등록</a>
           <button class="e7-btn-reset" onclick="reset()">초기화</button>
         </div>
 
@@ -754,6 +788,14 @@
     function clearFilters() { filterElements.clear(); filterClasses.clear(); render(); }
     function toggleElement(el) { filterElements.has(el) ? filterElements.delete(el) : filterElements.add(el); render(); }
     function toggleClass(cls)   { filterClasses.has(cls) ? filterClasses.delete(cls) : filterClasses.add(cls); render(); }
+    function setMyHeroMode(val) {
+      if (val && !currentUser) {
+        location.href = '/auth/?redirect=' + encodeURIComponent(location.pathname + location.search);
+        return;
+      }
+      useMyHeroes = val;
+      render();
+    }
 
     init();
   </script>
