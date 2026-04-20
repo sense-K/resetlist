@@ -36,38 +36,63 @@
 
     .af-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
     }
     .af-card {
-      background: #fff; border: 1px solid var(--border,#e5e7eb);
-      border-radius: 14px; padding: 14px;
-      display: flex; gap: 12px; align-items: flex-start;
-      text-decoration: none; transition: transform 0.15s, box-shadow 0.15s;
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      aspect-ratio: 3/4;
       cursor: pointer;
+      background: #1e293b;
+      transition: transform 0.15s, box-shadow 0.15s;
     }
-    .af-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-    .af-card-icon {
-      width: 52px; height: 52px; flex-shrink: 0;
-      border-radius: 12px; overflow: hidden; background: #f1f5f9;
+    .af-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.18); }
+    .af-card-img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s;
     }
-    .af-card-icon img { width: 100%; height: 100%; object-fit: contain; }
-    .af-card-body { flex: 1; min-width: 0; }
-    .af-card-top { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-    .af-card-name { font-size: 13px; font-weight: 700; color: #1e293b; }
-    .af-card-grade {
-      font-size: 10px; font-weight: 700; padding: 2px 6px;
-      border-radius: 999px; flex-shrink: 0;
+    .af-card:hover .af-card-img { transform: scale(1.04); }
+    .af-card-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 45%, rgba(0,0,0,0.75) 100%);
+      pointer-events: none;
     }
-    .grade-5 { background: rgba(234,179,8,0.15); color: #b45309; }
-    .grade-4 { background: rgba(168,85,247,0.12); color: #7c3aed; }
-    .grade-3 { background: rgba(148,163,184,0.15); color: #475569; }
-    .af-card-job {
-      font-size: 10px; font-weight: 600; padding: 2px 6px;
-      border-radius: 999px; background: rgba(59,130,246,0.1); color: #3b82f6;
-      flex-shrink: 0;
+    .af-card-top-row {
+      position: absolute; top: 8px; left: 8px; right: 8px;
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .af-card-desc { font-size: 11px; color: var(--text-sub,#64748b); line-height: 1.5; }
+    .af-card-job-badge {
+      font-size: 10px; font-weight: 700; padding: 2px 7px;
+      border-radius: 999px; background: rgba(0,0,0,0.45);
+      color: #fff; backdrop-filter: blur(4px);
+    }
+    .af-card-stars {
+      display: flex; gap: 1px;
+    }
+    .af-card-stars span {
+      font-size: 11px; line-height: 1;
+    }
+    .grade-5 .af-card-stars span { color: #fbbf24; }
+    .grade-4 .af-card-stars span { color: #c084fc; }
+    .grade-3 .af-card-stars span { color: #94a3b8; }
+    .af-card-bottom {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 10px 10px 10px;
+    }
+    .af-card-name {
+      font-size: 12px; font-weight: 700; color: #fff;
+      line-height: 1.35;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    }
+    .af-card-no-img {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 40px; background: #1e293b;
+    }
 
     .af-empty { text-align: center; padding: 60px 0; color: var(--text-sub,#64748b); font-size: 14px; }
 
@@ -110,8 +135,8 @@
     }
     .af-modal-close:hover { background: #f8fafc; }
 
-    @media (max-width: 600px) {
-      .af-grid { grid-template-columns: 1fr; }
+    @media (max-width: 480px) {
+      .af-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
     }
   </style>
 </head>
@@ -216,18 +241,20 @@
         return;
       }
       empty.style.display = 'none';
+      const STARS = { 5: '★★★★★', 4: '★★★★', 3: '★★★' };
       grid.innerHTML = list.map(a => `
-        <div class="af-card" onclick="openModal(allArtifacts.find(x=>x.code==='${a.code}'))">
-          <div class="af-card-icon">
-            <img src="${ARTIFACT_IMG(a.code, a.slug)}" alt="${a.name}" onerror="this.style.display='none'" />
+        <div class="af-card grade-${a.grade}" onclick="openModal(allArtifacts.find(x=>x.code==='${a.code}'))">
+          ${a.slug
+            ? `<img class="af-card-img" src="${ARTIFACT_IMG(a.code, a.slug)}" alt="${a.name}" loading="lazy" />`
+            : `<div class="af-card-no-img">💎</div>`
+          }
+          <div class="af-card-overlay"></div>
+          <div class="af-card-top-row">
+            ${a.job_code !== 'NN' ? `<span class="af-card-job-badge">${JOB_LABEL[a.job_code] || a.job_code}</span>` : '<span></span>'}
+            <div class="af-card-stars"><span>${STARS[a.grade] || ''}</span></div>
           </div>
-          <div class="af-card-body">
-            <div class="af-card-top">
-              <span class="af-card-name">${a.name}</span>
-              <span class="af-card-grade grade-${a.grade}">${GRADE_LABEL[a.grade] || ''}</span>
-              ${a.job_code !== 'NN' ? `<span class="af-card-job">${JOB_LABEL[a.job_code] || a.job_code}</span>` : ''}
-            </div>
-            <div class="af-card-desc">${a.info_text}</div>
+          <div class="af-card-bottom">
+            <div class="af-card-name">${a.name}</div>
           </div>
         </div>
       `).join('');
