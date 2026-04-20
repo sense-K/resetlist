@@ -460,6 +460,42 @@
             ` : ''}
           </div>
         </div>
+
+        <!-- 하단: 시너지 + 카운터 2열 -->
+        ${(synergy.length > 0 || counter.length > 0) ? `
+        <div class="hd-layout">
+          ${synergy.length > 0 ? `
+          <div class="hd-section" style="border-color:rgba(59,130,246,0.25);margin-bottom:0;">
+            <h2 style="color:#3b82f6;">⚡ 함께 쓰면 좋은 영웅</h2>
+            ${synergy.map((s, i) => `
+              <a href="/epic7/heroes/detail/?code=${s.code}" class="hd-hero-row">
+                <span class="hd-hero-rank">${i+1}</span>
+                <div class="hd-hero-thumb" style="background:rgba(59,130,246,0.1);">
+                  <img src="${HERO_IMG(s.code)}" alt="${s.name}" onerror="this.style.display='none'" />
+                </div>
+                <span class="hd-hero-name">${s.name}</span>
+                <span class="hd-hero-rate" style="color:#3b82f6;">${s.rate}%</span>
+              </a>
+            `).join('')}
+          </div>
+          ` : '<div></div>'}
+          ${counter.length > 0 ? `
+          <div class="hd-section" style="border-color:rgba(239,68,68,0.25);margin-bottom:0;">
+            <h2 style="color:#ef4444;">🛡️ 상대하기 어려운 영웅</h2>
+            ${counter.map((c, i) => `
+              <a href="/epic7/heroes/detail/?code=${c.code}" class="hd-hero-row">
+                <span class="hd-hero-rank">${i+1}</span>
+                <div class="hd-hero-thumb" style="background:rgba(239,68,68,0.1);">
+                  <img src="${HERO_IMG(c.code)}" alt="${c.name}" onerror="this.style.display='none'" />
+                </div>
+                <span class="hd-hero-name">${c.name}</span>
+                <span class="hd-hero-rate" style="color:#ef4444;">${c.winRate}%</span>
+              </a>
+            `).join('')}
+          </div>
+          ` : '<div></div>'}
+        </div>
+        ` : ''}
       `;
 
       document.getElementById('hdApp').innerHTML = html;
