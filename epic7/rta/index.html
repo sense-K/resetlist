@@ -145,6 +145,7 @@
 
     /* 필터 */
     .e7-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; background: var(--e7-card); border: 1px solid var(--e7-border); border-radius: 14px; padding: 8px 12px; }
+    .e7-filter-row { display: contents; }
     .e7-filter-all {
       padding: 4px 12px;
       border-radius: 999px;
@@ -157,6 +158,7 @@
       transition: all 0.15s;
     }
     .e7-filter-all.active { background: var(--e7-my); color: #fff; border-color: var(--e7-my); }
+    .e7-all-short { display: none; }
     .e7-filter-divider { width: 1px; height: 20px; background: var(--e7-border); }
     .e7-filter-icon {
       width: 30px; height: 30px;
@@ -256,12 +258,12 @@
       .e7-rec-grid .icon-tl,
       .e7-rec-grid .icon-tr { display: none; }
 
-      /* 3. 필터 — 가로 스크롤, 아이콘 삐뚤어짐 방지 */
-      .e7-filter {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-      }
+      /* 3. 필터 — 속성 윗줄 / 직업 아랫줄 2행 레이아웃 */
+      .e7-filter { flex-direction: column; align-items: flex-start; flex-wrap: nowrap; gap: 6px; }
+      .e7-filter-row { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; }
+      .e7-filter-divider { display: none; }
+      .e7-all-full { display: none; }
+      .e7-all-short { display: inline; }
 
       /* 4. 영웅 선택 그리드 — 카드 작게, 이름·별 숨김 */
       .e7-grid { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 5px; }
@@ -594,17 +596,21 @@
 
       const filterHTML = `
         <div class="e7-filter">
-          <button class="e7-filter-all ${isAllFilter?'active':''}" onclick="clearFilters()">전체</button>
-          <div class="e7-filter-divider"></div>
-          ${ELEMENTS.map(el => {
-            const active = filterElements.has(el);
-            return `<button class="e7-filter-icon ${active?'active':''}" onclick="toggleElement('${el}')" style="border-color:${active?ELEMENT_COLOR[el]:'#dde5f0'};background:${active?ELEMENT_COLOR[el]+'25':'transparent'}" title="${ELEMENT_LABEL[el]}"><img src="${ELEMENT_IMG[el]}" width="16" height="16"></button>`;
-          }).join('')}
-          <div class="e7-filter-divider"></div>
-          ${CLASSES.map(cls => {
-            const active = filterClasses.has(cls);
-            return `<button class="e7-filter-icon ${active?'active':''}" onclick="toggleClass('${cls}')" style="border-color:${active?'#1e293b':'#dde5f0'};background:${active?'#1e293b':'transparent'}" title="${cls}"><img src="${CLASS_IMG[cls]}" width="16" height="16" style="filter:${active?'brightness(0) invert(1)':'brightness(0.6)'}"></button>`;
-          }).join('')}
+          <div class="e7-filter-row">
+            <button class="e7-filter-all ${isAllFilter?'active':''}" onclick="clearFilters()"><span class="e7-all-full">전체</span><span class="e7-all-short">A</span></button>
+            <div class="e7-filter-divider"></div>
+            ${ELEMENTS.map(el => {
+              const active = filterElements.has(el);
+              return `<button class="e7-filter-icon ${active?'active':''}" onclick="toggleElement('${el}')" style="border-color:${active?ELEMENT_COLOR[el]:'#dde5f0'};background:${active?ELEMENT_COLOR[el]+'25':'transparent'}" title="${ELEMENT_LABEL[el]}"><img src="${ELEMENT_IMG[el]}" width="16" height="16"></button>`;
+            }).join('')}
+          </div>
+          <div class="e7-filter-row">
+            <div class="e7-filter-divider"></div>
+            ${CLASSES.map(cls => {
+              const active = filterClasses.has(cls);
+              return `<button class="e7-filter-icon ${active?'active':''}" onclick="toggleClass('${cls}')" style="border-color:${active?'#1e293b':'#dde5f0'};background:${active?'#1e293b':'transparent'}" title="${cls}"><img src="${CLASS_IMG[cls]}" width="16" height="16" style="filter:${active?'brightness(0) invert(1)':'brightness(0.6)'}"></button>`;
+            }).join('')}
+          </div>
         </div>`;
 
       // 영웅 그리드
