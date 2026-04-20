@@ -166,8 +166,10 @@
       border: 2px solid var(--e7-border);
       background: transparent;
       transition: all 0.15s;
+      padding: 0; line-height: 1; flex-shrink: 0;
+      box-sizing: border-box;
     }
-    .e7-filter-icon img { width: 16px; height: 16px; }
+    .e7-filter-icon img { width: 16px; height: 16px; display: block; object-fit: contain; flex-shrink: 0; }
     .e7-filter-icon.active { transform: scale(1.1); }
 
     /* 영웅 그리드 */
