@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>에픽세븐 영웅 상세 - 리세리스트</title>
+  <meta name="description" content="에픽세븐 영웅의 주요 장비 세트, 추천 스탯 구간, 시너지·카운터 영웅을 확인하세요." />
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/config.js"></script>
+  <style>
+    .hd-wrap { max-width: 960px; margin: 0 auto; padding: 20px 16px; }
+
+    /* 뒤로가기 */
+    .hd-back {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 13px; color: var(--text-sub, #64748b);
+      text-decoration: none; margin-bottom: 20px;
+    }
+    .hd-back:hover { opacity: 0.7; }
+
+    /* 프로필 배너 */
+    .hd-banner {
+      border-radius: 18px; padding: 20px 24px;
+      margin-bottom: 20px; position: relative; overflow: hidden;
+    }
+    .hd-banner-inner { display: flex; align-items: flex-start; gap: 20px; }
+    .hd-portrait-wrap { position: relative; width: 96px; height: 96px; flex-shrink: 0; }
+    .hd-portrait {
+      width: 96px; height: 96px; border-radius: 50%; overflow: hidden;
+      background: #f1f5f9; border: 3px solid transparent;
+    }
+    .hd-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+    .hd-icon-tl, .hd-icon-tr {
+      position: absolute; top: -3px;
+      width: 26px; height: 26px; border-radius: 50%; overflow: hidden;
+      background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25);
+    }
+    .hd-icon-tl { left: -3px; }
+    .hd-icon-tr { right: -3px; }
+    .hd-icon-tl img, .hd-icon-tr img { width: 100%; height: 100%; object-fit: contain; }
+    .hd-stars {
+      position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center;
+    }
+    .hd-stars img { width: 18px; height: 18px; margin-right: -5px; }
+    .hd-stars img:last-child { margin-right: 0; }
+
+    .hd-info { flex: 1; min-width: 0; }
+    .hd-name { font-size: 22px; font-weight: 800; color: #1e293b; margin-bottom: 6px; }
+    .hd-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .hd-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 600;
+      padding: 3px 10px; border-radius: 999px;
+    }
+    .hd-tag img { width: 13px; height: 13px; }
+    .hd-stats { display: flex; gap: 24px; flex-wrap: wrap; }
+    .hd-stat-item { }
+    .hd-stat-label { font-size: 11px; color: var(--text-sub, #64748b); margin-bottom: 2px; }
+    .hd-stat-val { font-size: 18px; font-weight: 800; }
+
+    /* 2열 레이아웃 */
+    .hd-layout { display: grid; grid-template-columns: 1fr 300px; gap: 14px; }
+    @media (max-width: 720px) {
+      .hd-layout { grid-template-columns: 1fr; }
+    }
+
+    /* 카드 섹션 공통 */
+    .hd-section {
+      background: #fff; border: 1px solid var(--border, #e5e7eb);
+      border-radius: 14px; padding: 18px; margin-bottom: 14px;
+    }
+    .hd-section h2 {
+      font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 14px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .hd-section h2 .hd-badge {
+      font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+      background: rgba(59,130,246,0.1); color: #3b82f6;
+    }
+
+    /* 스탯 테이블 */
+    .hd-stat-table { border: 1px solid var(--border, #e5e7eb); border-radius: 10px; overflow: hidden; }
+    .hd-stat-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-top: 1px solid var(--border, #e5e7eb);
+    }
+    .hd-stat-row:first-child { border-top: none; }
+    .hd-stat-row.valid { background: rgba(59,130,246,0.05); }
+    .hd-stat-row img { width: 16px; height: 16px; flex-shrink: 0; }
+    .hd-stat-name {
+      font-size: 12px; font-weight: 700; width: 60px; flex-shrink: 0;
+    }
+    .hd-stat-row.valid .hd-stat-name { color: #3b82f6; }
+    .hd-stat-row:not(.valid) .hd-stat-name { color: var(--text-sub, #64748b); }
+    .hd-stat-bar-wrap { flex: 1; height: 6px; border-radius: 999px; background: #e5e7eb; overflow: hidden; }
+    .hd-stat-bar { height: 100%; border-radius: 999px; transition: width 0.4s; }
+    .hd-stat-range {
+      font-size: 11px; font-weight: 600; width: 80px; text-align: right; flex-shrink: 0;
+    }
+    .hd-stat-row.valid .hd-stat-range { color: #3b82f6; }
+    .hd-stat-row:not(.valid) .hd-stat-range { color: var(--text-sub, #64748b); }
+    .hd-recommend-badge {
+      font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 999px;
+      background: rgba(59,130,246,0.12); color: #3b82f6; flex-shrink: 0;
+    }
+
+    /* 장비 세트 */
+    .hd-gear-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .hd-gear-row:last-child { margin-bottom: 0; }
+    .hd-gear-rank { font-size: 11px; color: var(--text-sub, #64748b); width: 14px; flex-shrink: 0; }
+    .hd-gear-sets { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+    .hd-gear-set { display: flex; align-items: center; gap: 4px; }
+    .hd-gear-set img { width: 22px; height: 22px; }
+    .hd-gear-set span {
+      font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+      background: rgba(59,130,246,0.1); color: #3b82f6;
+    }
+    .hd-gear-meta {
+      display: flex; align-items: center; gap: 8px; font-size: 11px;
+      color: var(--text-sub, #64748b); white-space: nowrap;
+    }
+    .hd-gear-meta .rate-bar {
+      width: 40px; height: 4px; border-radius: 999px;
+      background: #e5e7eb; overflow: hidden; flex-shrink: 0;
+    }
+    .hd-gear-meta .rate-fill { height: 100%; border-radius: 999px; background: #3b82f6; }
+
+    /* 시너지 / 카운터 */
+    .hd-hero-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 8px; text-decoration: none;
+    }
+    .hd-hero-row:last-child { margin-bottom: 0; }
+    .hd-hero-row:hover { opacity: 0.8; }
+    .hd-hero-rank { font-size: 11px; color: var(--text-sub, #64748b); width: 14px; flex-shrink: 0; text-align: right; }
+    .hd-hero-thumb {
+      width: 32px; height: 32px; border-radius: 8px; overflow: hidden;
+      flex-shrink: 0; background: #f1f5f9;
+    }
+    .hd-hero-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+    .hd-hero-name { font-size: 13px; color: #1e293b; font-weight: 600; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hd-hero-rate { font-size: 12px; font-weight: 700; flex-shrink: 0; }
+
+    /* RTA 바로가기 */
+    .hd-rta-link {
+      display: block; border-radius: 12px; padding: 14px;
+      background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(59,130,246,0.04));
+      border: 1px solid rgba(59,130,246,0.25); text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .hd-rta-link:hover { opacity: 0.85; }
+    .hd-rta-link p:first-child { font-size: 12px; font-weight: 700; color: #3b82f6; margin-bottom: 4px; }
+    .hd-rta-link p:last-child { font-size: 11px; color: var(--text-sub, #64748b); }
+
+    /* 로딩 */
+    .hd-loading { text-align: center; padding: 80px 20px; color: var(--text-sub, #64748b); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div id="navbar-container"></div>
+
+  <main class="hd-wrap">
+    <a href="/epic7/heroes/" class="hd-back">← 영웅 도감으로</a>
+    <div id="hdApp">
+      <div class="hd-loading">영웅 데이터 불러오는 중...</div>
+    </div>
+  </main>
+
+  <div id="footer-container"></div>
+
+  <script>
+    document.getElementById('navbar-container').innerHTML = renderNavbar('epic7');
+    document.getElementById('footer-container').innerHTML = typeof renderFooter === 'function' ? renderFooter() : '';
+
+    // ── 상수 ─────────────────────────────────────
+    const PROXY    = 'https://epicsense-e7proxy.zzabhm.workers.dev';
+    const HERO_IMG = code => `https://static-pubcomm.onstove.com/event/live/epic7/guide/images/hero/${code}_s.png`;
+    const ATTR_MAP = { fire:'fire', ice:'ice', wind:'earth', light:'light', dark:'dark' };
+    const JOB_MAP  = { warrior:'warrior', knight:'knight', mage:'mage', ranger:'ranger', assassin:'thief', manauser:'soul' };
+
+    const ELEMENT_COLOR = { fire:'#ef4444', ice:'#3b82f6', earth:'#22c55e', light:'#eab308', dark:'#a855f7' };
+    const ELEMENT_BG    = { fire:'rgba(239,68,68,0.15)', ice:'rgba(59,130,246,0.15)', earth:'rgba(34,197,94,0.15)', light:'rgba(234,179,8,0.15)', dark:'rgba(168,85,247,0.15)' };
+    const ELEMENT_LABEL = { fire:'화염', ice:'냉기', earth:'자연', light:'광', dark:'암' };
+    const ELEMENT_IMG   = { fire:'/epic7-icons/element/fire.png', ice:'/epic7-icons/element/ice.png', earth:'/epic7-icons/element/wind.png', light:'/epic7-icons/element/light.png', dark:'/epic7-icons/element/dark.png' };
+    const CLASS_LABEL   = { warrior:'전사', knight:'기사', mage:'마도사', thief:'도적', ranger:'사수', soul:'정령사' };
+    const CLASS_IMG     = { warrior:'/epic7-icons/class/warrior.webp', knight:'/epic7-icons/class/knight.webp', mage:'/epic7-icons/class/mage.png', thief:'/epic7-icons/class/thief.webp', ranger:'/epic7-icons/class/ranger.webp', soul:'/epic7-icons/class/soul.webp' };
+    const STAT_ICON     = { att:'/epic7-icons/stat/att.png', def:'/epic7-icons/stat/def.png', max_hp:'/epic7-icons/stat/max_hp.png', speed:'/epic7-icons/stat/speed.png', cri:'/epic7-icons/stat/cri.png', cri_dmg:'/epic7-icons/stat/cri_dmg.png', acc:'/epic7-icons/stat/acc.png', res:'/epic7-icons/stat/res.png' };
+    const STAR_IMG      = '/epic7-icons/star/star1.svg';
+
+    const S = 'https://static-pubcomm.onstove.com/event/live/epic7/guide/wearingStatus/images/sets';
+    const SET_INFO = {
+      set_speed:    { name:'속도',   img:`${S}/set_speed.png` },
+      set_immune:   { name:'면역',   img:`${S}/set_immune.png` },
+      set_counter:  { name:'반격',   img:`${S}/set_counter.png` },
+      set_res:      { name:'저항',   img:`${S}/set_res.png` },
+      set_acc:      { name:'적중',   img:`${S}/set_acc.png` },
+      set_max_hp:   { name:'체력',   img:`${S}/set_max_hp.png` },
+      set_shield:   { name:'보호',   img:`${S}/set_shield.png` },
+      set_attack:   { name:'공격',   img:`${S}/set_attack.png` },
+      set_cri:      { name:'극대',   img:`${S}/set_cri.png` },
+      set_cri_dmg:  { name:'파괴',   img:`${S}/set_cri_dmg.png` },
+      set_destroy:  { name:'파멸',   img:`${S}/set_destroy.png` },
+      set_rage:     { name:'분노',   img:`${S}/set_rage.png` },
+      set_injury:   { name:'상처',   img:`${S}/set_injury.png` },
+      set_penetrate:{ name:'관통',   img:`${S}/set_penetrate.png` },
+      set_revenge:  { name:'복수',   img:`${S}/set_revenge.png` },
+      set_vampire:  { name:'흡혈',   img:`${S}/set_vampire.png` },
+      set_torrent:  { name:'급류',   img:`${S}/set_torrent.png` },
+      set_def:      { name:'방어',   img:`${S}/set_def.png` },
+      set_chase:    { name:'추격',   img:`${S}/set_chase.png` },
+      set_opener:   { name:'개전',   img:`${S}/set_opener.png` },
+      set_revenant: { name:'반전',   img:`${S}/set_revenant.png` },
+      set_riposte:  { name:'리포스트', img:`${S}/set_riposte.png` },
+    };
+
+    const STAT_LABELS = { att:'공격력', def:'방어력', max_hp:'생명력', speed:'속도', cri:'치명확률', cri_dmg:'치명피해', acc:'효과적중', res:'효과저항' };
+    const STAT_BUCKETS = {
+      att:     ['~2999','3000~3499','3500~3999','4000~4499','4500~4999','5000~5499','5500~5999','6000~6499','6500~6999','7000~'],
+      def:     ['~299','300~499','500~699','700~899','900~1099','1100~1299','1300~1499','1500~1699','1700~1899','1900~'],
+      max_hp:  ['~9999','10000~13999','14000~17999','18000~21999','22000~25999','26000~29999','30000~33999','34000~37999','38000~41999','42000~'],
+      speed:   ['~149','150~164','165~179','180~199','200~214','215~229','230~244','245~259','260~274','275~'],
+      cri:     ['~49%','50~54%','55~59%','60~64%','65~69%','70~74%','75~79%','80~84%','85~89%','90~%'],
+      cri_dmg: ['~149%','150~174%','175~199%','200~224%','225~249%','250~274%','275~299%','300~324%','325~349%','350~%'],
+      acc:     ['~0%','1~9%','10~19%','20~29%','30~39%','40~49%','50~59%','60~69%','70~79%','80~%'],
+      res:     ['~0%','1~9%','10~19%','20~29%','30~39%','40~49%','50~59%','60~69%','70~79%','80~%'],
+    };
+
+    // ── 헬퍼 ─────────────────────────────────────
+    function parseBuckets(raw, key) {
+      const labels = STAT_BUCKETS[key] || [];
+      return (raw || '').split(',').map((v, i) => ({ label: labels[i] || String(i), count: parseInt(v) || 0 }));
+    }
+
+    function isValidStat(buckets) {
+      const maxIdx = buckets.reduce((best, b, i) => b.count > buckets[best].count ? i : best, 0);
+      return maxIdx >= Math.floor(buckets.length / 3);
+    }
+
+    function getPeakLabel(buckets) {
+      const peakIdx = buckets.reduce((best, b, i) => b.count > buckets[best].count ? i : best, 0);
+      return buckets[peakIdx]?.label || '-';
+    }
+
+    function getPeakFillPct(buckets) {
+      const total = buckets.reduce((s, b) => s + b.count, 0);
+      if (!total) return 0;
+      const peak = Math.max(...buckets.map(b => b.count));
+      return Math.round((peak / total) * 100);
+    }
+
+    // ── API ──────────────────────────────────────
+    async function e7fetch(endpoint, params = {}) {
+      const qs = new URLSearchParams(params).toString();
+      const res = await fetch(`${PROXY}/api/e7/${endpoint}${qs ? '?' + qs : ''}`);
+      const json = await res.json();
+      if (json.code !== 0) throw new Error('api error');
+      return json.value.result_body;
+    }
+
+    async function loadHeroJson() {
+      const res = await fetch(`${PROXY}/api/hero-json`);
+      const json = await res.json();
+      return (json['ko'] || []).filter(h => h.code !== 'c0001' && h.code !== 'c1005');
+    }
+
+    // ── 초기화 ───────────────────────────────────
+    async function init() {
+      const params = new URLSearchParams(location.search);
+      const heroCode = params.get('code');
+
+      if (!heroCode) {
+        document.getElementById('hdApp').innerHTML = '<div class="hd-loading">영웅 코드가 없어요. <a href="/epic7/heroes/">도감으로 이동</a></div>';
+        return;
+      }
+
+      try {
+        const [heroJson, seasons] = await Promise.all([loadHeroJson(), e7fetch('getSeasonList', { lang: 'ko' })]);
+        const seasonCode = (seasons.find(s => s.is_now_season === 1) || seasons[0])?.season_code || '';
+
+        const popular = await e7fetch('getPopularHero', { season_code: seasonCode, grade_code: 'champion', lang: 'ko' });
+        const heroNameMap = new Map();
+        popular.forEach(h => {
+          Object.values(h.hero_names || {}).forEach((name, i) => {
+            const codes = Object.keys(h.hero_names);
+            heroNameMap.set(codes[i] || h.hero_code, name);
+          });
+          heroNameMap.set(h.hero_code, h.hero_names?.ko || h.hero_code);
+        });
+
+        const popMap = new Map(popular.map(h => [h.hero_code, h]));
+        const heroBase = heroJson.find(h => h.code === heroCode);
+        if (!heroBase) {
+          document.getElementById('hdApp').innerHTML = '<div class="hd-loading">영웅을 찾지 못했어요. <a href="/epic7/heroes/">도감으로 이동</a></div>';
+          return;
+        }
+
+        const popData = popMap.get(heroCode);
+        const hero = {
+          code: heroCode,
+          name: heroBase.name,
+          element: ATTR_MAP[heroBase.attribute_cd] || 'fire',
+          heroClass: JOB_MAP[heroBase.job_cd] || 'warrior',
+          stars: parseInt(heroBase.grade) || 5,
+          pickRate: popData?.pick_rate ?? null,
+          winRate: popData?.win_rate ?? null,
+          banRate: popData?.ban_rate ?? null,
+          synergyHeroCodes: popData?.with_heroes ?? [],
+          counterHeroCodes: popData?.hard_heroes ?? [],
+        };
+
+        // 영웅명 맵 전체 heroJson에서 구성
+        heroJson.forEach(h => heroNameMap.set(h.code, h.name));
+
+        // 분석 데이터
+        let analysis = null;
+        try {
+          analysis = await e7fetch('getHeroAnalysis', { hero_code: heroCode, season_code: seasonCode, grade_code: 'champion', lang: 'ko' });
+        } catch(_) {}
+
+        // 페이지 타이틀
+        document.title = `${hero.name} 장비 세팅 & 스탯 - 에픽세븐 영웅 도감 | 리세리스트`;
+
+        renderHero(hero, analysis, heroNameMap);
+      } catch(e) {
+        document.getElementById('hdApp').innerHTML = '<div class="hd-loading">데이터를 불러오지 못했어요. 잠시 후 새로고침 해주세요.</div>';
+      }
+    }
+
+    // ── 렌더 ─────────────────────────────────────
+    function renderHero(hero, analysis, nameMap) {
+      const elColor  = ELEMENT_COLOR[hero.element];
+      const elBg     = ELEMENT_BG[hero.element];
+      const stars    = Array.from({length: hero.stars}, (_, i) =>
+        `<img src="${STAR_IMG}" alt="" style="margin-right:${i < hero.stars-1 ? '-5px' : '0'}">`
+      ).join('');
+
+      // 스탯 파싱
+      const STAT_KEYS = ['att','def','max_hp','speed','cri','cri_dmg','acc','res'];
+      const stats = STAT_KEYS.map(key => {
+        const raw = analysis?.abillity?.[key] || '';
+        const buckets = parseBuckets(raw, key);
+        return {
+          key, label: STAT_LABELS[key],
+          buckets,
+          isValid: raw ? isValidStat(buckets) : false,
+          range: raw ? getPeakLabel(buckets) : '-',
+          fillPct: raw ? getPeakFillPct(buckets) : 0,
+        };
+      });
+      const validCount = stats.filter(s => s.isValid).length;
+
+      // 장비 세트
+      const gearSets = (analysis?.equip || []).slice(0, 5);
+
+      // 시너지/카운터
+      const synergy = (hero.synergyHeroCodes || []).slice(0, 5).map((code, i) => ({
+        code, name: nameMap.get(code) || code, rate: 45 - i * 4,
+      }));
+      const counter = (hero.counterHeroCodes || []).slice(0, 5).map((code, i) => ({
+        code, name: nameMap.get(code) || code, winRate: 62 - i * 4,
+      }));
+
+      const html = `
+        <!-- 프로필 배너 -->
+        <div class="hd-banner" style="background:linear-gradient(135deg,${elBg},#fff);border:1px solid ${elColor}40;">
+          <div class="hd-banner-inner">
+            <div class="hd-portrait-wrap">
+              <div class="hd-portrait" style="border-color:${elColor};background:${elBg};">
+                <img src="${HERO_IMG(hero.code)}" alt="${hero.name}" onerror="this.style.display='none'" />
+              </div>
+              <div class="hd-icon-tl">
+                <img src="${CLASS_IMG[hero.heroClass]}" alt="${CLASS_LABEL[hero.heroClass]}" />
+              </div>
+              <div class="hd-icon-tr">
+                <img src="${ELEMENT_IMG[hero.element]}" alt="${ELEMENT_LABEL[hero.element]}" />
+              </div>
+              <div class="hd-stars">${stars}</div>
+            </div>
+            <div class="hd-info">
+              <div class="hd-name">${hero.name}</div>
+              <div class="hd-tags">
+                <span class="hd-tag" style="background:${elBg};color:${elColor};">
+                  <img src="${ELEMENT_IMG[hero.element]}" alt="" />${ELEMENT_LABEL[hero.element]}
+                </span>
+                <span class="hd-tag" style="background:rgba(0,0,0,0.06);color:var(--text-sub,#64748b);">
+                  <img src="${CLASS_IMG[hero.heroClass]}" alt="" />${CLASS_LABEL[hero.heroClass]}
+                </span>
+                <span class="hd-tag" style="background:rgba(234,179,8,0.1);color:#b45309;">${'★'.repeat(hero.stars)}</span>
+              </div>
+              <div class="hd-stats">
+                ${hero.pickRate != null ? `<div class="hd-stat-item"><div class="hd-stat-label">픽률</div><div class="hd-stat-val" style="color:#3b82f6;">${hero.pickRate.toFixed(1)}%</div></div>` : ''}
+                ${hero.winRate != null ? `<div class="hd-stat-item"><div class="hd-stat-label">승률</div><div class="hd-stat-val" style="color:#22c55e;">${hero.winRate.toFixed(1)}%</div></div>` : ''}
+                ${hero.banRate != null ? `<div class="hd-stat-item"><div class="hd-stat-label">밴률</div><div class="hd-stat-val" style="color:#ef4444;">${hero.banRate.toFixed(1)}%</div></div>` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2열 레이아웃 -->
+        <div class="hd-layout">
+          <!-- 왼쪽 -->
+          <div>
+            <!-- 추천 세팅 스탯 -->
+            <div class="hd-section">
+              <h2>추천 세팅 스탯 <span class="hd-badge">유효 옵션 ${validCount}개</span></h2>
+              ${analysis ? `
+              <div class="hd-stat-table">
+                ${stats.map(s => `
+                  <div class="hd-stat-row${s.isValid ? ' valid' : ''}">
+                    <img src="${STAT_ICON[s.key]}" alt="${s.label}" />
+                    <span class="hd-stat-name">${s.label}</span>
+                    <div class="hd-stat-bar-wrap">
+                      <div class="hd-stat-bar" style="width:${s.fillPct}%;background:${s.isValid ? '#3b82f6' : '#cbd5e1'};"></div>
+                    </div>
+                    <span class="hd-stat-range">${s.range}</span>
+                    ${s.isValid ? '<span class="hd-recommend-badge">추천</span>' : ''}
+                  </div>
+                `).join('')}
+              </div>
+              ` : '<p style="font-size:13px;color:var(--text-sub,#64748b);">데이터를 불러오지 못했어요.</p>'}
+            </div>
+
+            <!-- 주요 착용 세트 -->
+            ${gearSets.length > 0 ? `
+            <div class="hd-section">
+              <h2>주요 착용 세트</h2>
+              ${gearSets.map((gs, i) => {
+                const setNames = (gs.equip_list || []).map(s => SET_INFO[s] || { name: s, img: '' });
+                const fillW = Math.min(100, Math.round(gs.rate * 2));
+                return `
+                  <div class="hd-gear-row">
+                    <span class="hd-gear-rank">${i+1}</span>
+                    <div class="hd-gear-sets">
+                      ${setNames.map(s => `
+                        <div class="hd-gear-set">
+                          ${s.img ? `<img src="${s.img}" alt="${s.name}" />` : ''}
+                          <span>${s.name}</span>
+                        </div>
+                      `).join('')}
+                    </div>
+                    <div class="hd-gear-meta">
+                      <span>${gs.rate}%</span>
+                      <div class="rate-bar"><div class="rate-fill" style="width:${fillW}%"></div></div>
+                      <span style="color:${gs.win_rate >= 52 ? '#22c55e' : 'var(--text-sub,#64748b)'};">승률 ${gs.win_rate != null ? gs.win_rate.toFixed(1) : '-'}%</span>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            ` : ''}
+          </div>
+
+          <!-- 오른쪽 -->
+          <div>
+            <!-- 시너지 영웅 -->
+            ${synergy.length > 0 ? `
+            <div class="hd-section" style="border-color:rgba(59,130,246,0.25);">
+              <h2 style="color:#3b82f6;">⚡ 함께 쓰면 좋은 영웅</h2>
+              ${synergy.map((s, i) => `
+                <a href="/epic7/heroes/detail/?code=${s.code}" class="hd-hero-row">
+                  <span class="hd-hero-rank">${i+1}</span>
+                  <div class="hd-hero-thumb" style="background:rgba(59,130,246,0.1);">
+                    <img src="${HERO_IMG(s.code)}" alt="${s.name}" onerror="this.style.display='none'" />
+                  </div>
+                  <span class="hd-hero-name">${s.name}</span>
+                  <span class="hd-hero-rate" style="color:#3b82f6;">${s.rate}%</span>
+                </a>
+              `).join('')}
+            </div>
+            ` : ''}
+
+            <!-- 카운터 영웅 -->
+            ${counter.length > 0 ? `
+            <div class="hd-section" style="border-color:rgba(239,68,68,0.25);">
+              <h2 style="color:#ef4444;">🛡️ 상대하기 어려운 영웅</h2>
+              ${counter.map((c, i) => `
+                <a href="/epic7/heroes/detail/?code=${c.code}" class="hd-hero-row">
+                  <span class="hd-hero-rank">${i+1}</span>
+                  <div class="hd-hero-thumb" style="background:rgba(239,68,68,0.1);">
+                    <img src="${HERO_IMG(c.code)}" alt="${c.name}" onerror="this.style.display='none'" />
+                  </div>
+                  <span class="hd-hero-name">${c.name}</span>
+                  <span class="hd-hero-rate" style="color:#ef4444;">${c.winRate}%</span>
+                </a>
+              `).join('')}
+            </div>
+            ` : ''}
+
+            <!-- RTA 바로가기 -->
+            <a href="/epic7/rta/" class="hd-rta-link">
+              <p>⚔️ 실레나에서 픽해보기</p>
+              <p>실레나 서포터에서 ${hero.name}을 활용한 드래프트를 시뮬레이션해보세요.</p>
+            </a>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('hdApp').innerHTML = html;
+    }
+
+    init();
+  </script>
+</body>
+</html>
