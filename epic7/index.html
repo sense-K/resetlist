@@ -147,14 +147,14 @@
           <div class="tool-card-title">아티팩트 도감</div>
           <div class="tool-card-desc">전체 아티팩트 목록과 직업별·등급별 필터, 어떤 영웅이 주로 쓰는지 확인해보세요.</div>
         </a>
-        <a href="/epic7/gear-recommend/" class="tool-card">
+        <div class="tool-card coming-soon" id="gear-recommend-card">
           <div class="tool-card-top">
             <div class="tool-card-icon" style="background:rgba(168,85,247,0.1)">🔍</div>
-            <span class="tool-card-badge badge-live">서비스 중</span>
+            <span class="tool-card-badge badge-soon">준비 중</span>
           </div>
           <div class="tool-card-title">장비 주인 찾기</div>
           <div class="tool-card-desc">보유한 장비 스탯을 입력하면 어떤 영웅에게 맞는 장비인지 추천해드려요.</div>
-        </a>
+        </div>
       </div>
     </div>
 
@@ -181,6 +181,22 @@
   <script>
     document.getElementById('navbar-container').innerHTML = renderNavbar('epic7');
     document.getElementById('footer-container').innerHTML = typeof renderFooter === 'function' ? renderFooter() : '';
+
+    // 관리자만 장비 주인 찾기 진입 가능
+    window._adminReady.then(() => {
+      if (window.isAdmin) {
+        const card = document.getElementById('gear-recommend-card')
+        card.outerHTML = `
+          <a href="/epic7/gear-recommend/" class="tool-card">
+            <div class="tool-card-top">
+              <div class="tool-card-icon" style="background:rgba(168,85,247,0.1)">🔍</div>
+              <span class="tool-card-badge" style="background:rgba(168,85,247,0.12);color:#7c3aed;">관리자</span>
+            </div>
+            <div class="tool-card-title">장비 주인 찾기</div>
+            <div class="tool-card-desc">보유한 장비 스탯을 입력하면 어떤 영웅에게 맞는 장비인지 추천해드려요.</div>
+          </a>`
+      }
+    })
   </script>
 </body>
 </html>
