@@ -44,14 +44,17 @@
 
     /* 부위 / 스탯 / 주옵션 버튼 */
     .gr-stat-btn {
-      padding: 8px 18px; border-radius: 10px;
+      padding: 7px 14px; border-radius: 10px;
       font-size: 13px; font-weight: 600;
       border: 1.5px solid var(--border, #e5e7eb);
       background: #f8fafc; color: #64748b;
       cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; gap: 6px;
     }
+    .gr-stat-btn img { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; }
     .gr-stat-btn:hover { border-color: #7c3aed; color: #7c3aed; }
     .gr-stat-btn.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+    .gr-stat-btn.active img { filter: brightness(0) invert(1); }
     .gr-stat-btn.disabled-max { opacity: 0.4; cursor: not-allowed; }
     .gr-stat-btn.disabled-max:hover { border-color: var(--border, #e5e7eb); color: #64748b; }
     .gr-stat-btn.slot-disabled {
@@ -305,14 +308,14 @@ const PROXY = 'https://epicsense-e7proxy.zzabhm.workers.dev'
 const SET_IMG_BASE = 'https://static-pubcomm.onstove.com/event/live/epic7/guide/wearingStatus/images/sets'
 
 const STATS = [
-  { key: 'att',     label: '공격력%'  },
-  { key: 'def',     label: '방어력%'  },
-  { key: 'max_hp',  label: '생명력%'  },
-  { key: 'speed',   label: '속도'     },
-  { key: 'cri',     label: '치명확률%'},
-  { key: 'cri_dmg', label: '치명피해' },
-  { key: 'acc',     label: '효과적중%'},
-  { key: 'res',     label: '효과저항%'},
+  { key: 'att',     label: '공격력%',   icon: '/epic7-icons/stat/att.png'     },
+  { key: 'def',     label: '방어력%',   icon: '/epic7-icons/stat/def.png'     },
+  { key: 'max_hp',  label: '생명력%',   icon: '/epic7-icons/stat/max_hp.png'  },
+  { key: 'speed',   label: '속도',      icon: '/epic7-icons/stat/speed.png'   },
+  { key: 'cri',     label: '치명확률%', icon: '/epic7-icons/stat/cri.png'     },
+  { key: 'cri_dmg', label: '치명피해',  icon: '/epic7-icons/stat/cri_dmg.png' },
+  { key: 'acc',     label: '효과적중%', icon: '/epic7-icons/stat/acc.png'     },
+  { key: 'res',     label: '효과저항%', icon: '/epic7-icons/stat/res.png'     },
 ]
 
 // 부위별 규칙: disabledSubs = 보조옵션 비활성, disableMain = 주옵션 패널 전체 비활성
@@ -437,7 +440,9 @@ function applySlotRules() {
 // ─── 주옵션 버튼 ─────────────────────────────────
 function renderMainStatBtns() {
   document.getElementById('main-stat-btns').innerHTML = STATS.map(s => `
-    <button class="gr-stat-btn" id="msb-${s.key}" onclick="toggleMain('${s.key}')">${s.label}</button>
+    <button class="gr-stat-btn" id="msb-${s.key}" onclick="toggleMain('${s.key}')">
+      <img src="${s.icon}" alt="">${s.label}
+    </button>
   `).join('')
 }
 
@@ -458,7 +463,9 @@ function syncMainStatBtns() {
 // ─── 보조옵션 버튼 ───────────────────────────────
 function renderSubStatBtns() {
   document.getElementById('stat-btns').innerHTML = STATS.map(s => `
-    <button class="gr-stat-btn" id="sb-${s.key}" onclick="toggleStat('${s.key}')">${s.label}</button>
+    <button class="gr-stat-btn" id="sb-${s.key}" onclick="toggleStat('${s.key}')">
+      <img src="${s.icon}" alt="">${s.label}
+    </button>
   `).join('')
 }
 
