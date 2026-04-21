@@ -284,14 +284,14 @@ const PROXY = 'https://epicsense-e7proxy.zzabhm.workers.dev'
 const SET_IMG_BASE = 'https://static-pubcomm.onstove.com/event/live/epic7/guide/wearingStatus/images/sets'
 
 const STATS = [
-  { key: 'att',     label: '공격력'  },
-  { key: 'def',     label: '방어력'  },
-  { key: 'max_hp',  label: '생명력'  },
-  { key: 'speed',   label: '속도'    },
-  { key: 'cri',     label: '치명확률'},
-  { key: 'cri_dmg', label: '치명피해'},
-  { key: 'acc',     label: '효과적중'},
-  { key: 'res',     label: '효과저항'},
+  { key: 'att',     label: '공격력%'  },
+  { key: 'def',     label: '방어력%'  },
+  { key: 'max_hp',  label: '생명력%'  },
+  { key: 'speed',   label: '속도'     },
+  { key: 'cri',     label: '치명확률%'},
+  { key: 'cri_dmg', label: '치명피해' },
+  { key: 'acc',     label: '효과적중%'},
+  { key: 'res',     label: '효과저항%'},
 ]
 
 const SETS = [
@@ -323,7 +323,7 @@ const ATTR_COLOR = { fire:'#ef4444', ice:'#3b82f6', wind:'#22c55e', light:'#eab3
 const ATTR_BG    = { fire:'rgba(239,68,68,.15)', ice:'rgba(59,130,246,.15)', wind:'rgba(34,197,94,.15)', light:'rgba(234,179,8,.15)', dark:'rgba(168,85,247,.15)' }
 const EL_ICON    = { fire:'/epic7-icons/element/fire.png', ice:'/epic7-icons/element/ice.png', wind:'/epic7-icons/element/wind.png', light:'/epic7-icons/element/light.png', dark:'/epic7-icons/element/dark.png' }
 const CLS_ICON   = { warrior:'/epic7-icons/class/warrior.webp', knight:'/epic7-icons/class/knight.webp', mage:'/epic7-icons/class/mage.png', ranger:'/epic7-icons/class/ranger.webp', assassin:'/epic7-icons/class/thief.webp', manauser:'/epic7-icons/class/soul.webp' }
-const STAT_LABEL_MAP = { att:'공격력', def:'방어력', max_hp:'생명력', speed:'속도', cri:'치명확률', cri_dmg:'치명피해', acc:'효과적중', res:'효과저항' }
+const STAT_LABEL_MAP = { att:'공격력%', def:'방어력%', max_hp:'생명력%', speed:'속도', cri:'치명확률%', cri_dmg:'치명피해', acc:'효과적중%', res:'효과저항%' }
 
 function heroImg(code) { return `https://static-pubcomm.onstove.com/event/live/epic7/guide/images/hero/${code}_s.png` }
 
