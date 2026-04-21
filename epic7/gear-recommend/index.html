@@ -122,12 +122,12 @@
     .gr-search-btn:hover { background: #6d28d9; }
     .gr-search-btn:disabled { background: #e5e7eb; color: #94a3b8; cursor: not-allowed; }
     .gr-reset-btn {
-      padding: 9px 16px; border-radius: 10px;
-      font-size: 13px; font-weight: 600; color: #94a3b8;
-      background: #f8fafc; border: 1.5px solid #e5e7eb; cursor: pointer;
+      padding: 9px 20px; border-radius: 10px;
+      font-size: 13px; font-weight: 700; color: #64748b;
+      background: #f1f5f9; border: 1.5px solid #cbd5e1; cursor: pointer;
       transition: all 0.15s; white-space: nowrap;
     }
-    .gr-reset-btn:hover { border-color: #94a3b8; color: #64748b; }
+    .gr-reset-btn:hover { background: #e2e8f0; border-color: #94a3b8; color: #334155; }
 
     /* 로딩 */
     .gr-loading {
@@ -274,10 +274,10 @@
         <div class="gr-toggle-sep"></div>
         <button class="gr-toggle-btn active" id="toggle-usable" onclick="setMode('usable')">사용가능</button>
       </div>
-      <button class="gr-reset-btn" onclick="resetAll()">초기화</button>
       <button class="gr-search-btn" id="search-btn" onclick="doSearch()" disabled>
         🔍 찾기
       </button>
+      <button class="gr-reset-btn" onclick="resetAll()">↺ 초기화</button>
     </div>
   </div>
 
