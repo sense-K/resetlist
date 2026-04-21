@@ -101,6 +101,13 @@
     .gr-search-btn:disabled {
       background: #e5e7eb; color: #94a3b8; cursor: not-allowed;
     }
+    .gr-reset-btn {
+      padding: 9px 16px; border-radius: 10px;
+      font-size: 13px; font-weight: 600; color: #94a3b8;
+      background: #f8fafc; border: 1.5px solid #e5e7eb; cursor: pointer;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .gr-reset-btn:hover { border-color: #94a3b8; color: #64748b; }
 
     /* 로딩 */
     .gr-loading {
@@ -236,6 +243,7 @@
         <div class="gr-toggle-sep"></div>
         <button class="gr-toggle-btn active" id="toggle-usable" onclick="setMode('usable')">사용가능</button>
       </div>
+      <button class="gr-reset-btn" onclick="resetAll()">초기화</button>
       <button class="gr-search-btn" id="search-btn" onclick="doSearch()" disabled>
         🔍 찾기
       </button>
@@ -274,7 +282,7 @@ const STATS = [
 
 const ATTR_COLOR = { fire:'#ef4444', ice:'#3b82f6', wind:'#22c55e', light:'#eab308', dark:'#a855f7' }
 const ATTR_BG    = { fire:'rgba(239,68,68,.15)', ice:'rgba(59,130,246,.15)', wind:'rgba(34,197,94,.15)', light:'rgba(234,179,8,.15)', dark:'rgba(168,85,247,.15)' }
-const EL_ICON    = { fire:'/icons/element/fire.png', ice:'/icons/element/ice.png', wind:'/icons/element/wind.png', light:'/icons/element/light.png', dark:'/icons/element/dark.png' }
+const EL_ICON    = { fire:'/epic7-icons/element/fire.png', ice:'/epic7-icons/element/ice.png', wind:'/epic7-icons/element/wind.png', light:'/epic7-icons/element/light.png', dark:'/epic7-icons/element/dark.png' }
 const CLS_ICON   = { warrior:'/epic7-icons/class/warrior.webp', knight:'/epic7-icons/class/knight.webp', mage:'/epic7-icons/class/mage.png', ranger:'/epic7-icons/class/ranger.webp', assassin:'/epic7-icons/class/thief.webp', manauser:'/epic7-icons/class/soul.webp' }
 const STAT_LABEL_MAP = { att:'공격력', def:'방어력', max_hp:'생명력', speed:'속도', cri:'치명확률', cri_dmg:'치명피해', acc:'효과적중', res:'효과저항' }
 
@@ -345,6 +353,26 @@ function syncStatBtns() {
 }
 
 function removeSlot(key) { toggleStat(key) }
+
+function resetAll() {
+  selectedStats = []
+  filterAttr = null
+  filterJob  = null
+  showAll    = false
+  lastResults = []
+  syncStatBtns()
+  renderSlots()
+  document.getElementById('search-btn').disabled = true
+  const label = document.getElementById('slot-count-label')
+  label.textContent = '(0/4 선택)'
+  label.style.color = ''
+  document.getElementById('result-area').innerHTML = `
+    <div class="gr-empty">
+      <div class="gr-empty-icon">⚔️</div>
+      <div class="gr-empty-title">보조 옵션 4개를 선택 후 검색하세요</div>
+      <div class="gr-empty-desc">처음 검색 시 영웅 분석 데이터를 불러와요 (약 10~20초)</div>
+    </div>`
+}
 
 // ─── 슬롯 렌더 ───────────────────────────────────
 function renderSlots() {
