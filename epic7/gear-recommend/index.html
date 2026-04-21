@@ -320,12 +320,12 @@ const STATS = [
 
 // 부위별 규칙: disabledSubs = 보조옵션 비활성, disableMain = 주옵션 패널 전체 비활성
 const SLOTS = [
-  { key: 'weapon', name: '무기',   disabledSubs: ['def'],  disableMain: true  },
-  { key: 'helmet', name: '투구',   disabledSubs: [],       disableMain: true  },
-  { key: 'armor',  name: '갑옷',   disabledSubs: ['att'],  disableMain: true  },
-  { key: 'neck',   name: '목걸이', disabledSubs: [],       disableMain: false },
-  { key: 'ring',   name: '반지',   disabledSubs: [],       disableMain: false },
-  { key: 'boots',  name: '신발',   disabledSubs: [],       disableMain: false },
+  { key: 'weapon', name: '무기',   icon: '/epic7-icons/icon_eq_weapon_bone006.png', disabledSubs: ['def'],  disableMain: true  },
+  { key: 'helmet', name: '투구',   icon: '/epic7-icons/icon_eq_helm_bone006.png',   disabledSubs: [],       disableMain: true  },
+  { key: 'armor',  name: '갑옷',   icon: '/epic7-icons/icon_eq_armor_bone006.png',  disabledSubs: ['att'],  disableMain: true  },
+  { key: 'neck',   name: '목걸이', icon: '/epic7-icons/icon_eq_neck_bone006.png',   disabledSubs: [],       disableMain: false },
+  { key: 'ring',   name: '반지',   icon: '/epic7-icons/icon_eq_ring_bone106.png',   disabledSubs: [],       disableMain: false },
+  { key: 'boots',  name: '신발',   icon: '/epic7-icons/icon_eq_boot_bone006.png',   disabledSubs: [],       disableMain: false },
 ]
 
 const SETS = [
@@ -400,7 +400,9 @@ async function init() {
 // ─── 부위 버튼 ───────────────────────────────────
 function renderSlotBtns() {
   document.getElementById('slot-btns').innerHTML = SLOTS.map(s => `
-    <button class="gr-stat-btn" id="slotbtn-${s.key}" onclick="toggleSlot('${s.key}')">${s.name}</button>
+    <button class="gr-stat-btn" id="slotbtn-${s.key}" onclick="toggleSlot('${s.key}')">
+      <img src="${s.icon}" alt="">${s.name}
+    </button>
   `).join('')
 }
 
