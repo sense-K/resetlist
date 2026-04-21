@@ -187,8 +187,9 @@
   <div id="footer-container"></div>
 
   <script>
-    const ENKA   = 'https://enka.network'
-    const YATTA  = 'https://gi.yatta.moe/api/v2/KR/avatar'
+    const ENKA        = 'https://enka.network'
+    const ENKA_PROXY  = '/api/enka'
+    const YATTA       = 'https://gi.yatta.moe/api/v2/KR/avatar'
 
     // 캐시
     let charMap = null  // avatarId → { name, icon, element }
@@ -271,7 +272,7 @@
       try {
         const [cmap, res] = await Promise.all([
           loadCharMap(),
-          fetch(`${ENKA}/api/uid/${uid}`, { headers: { 'User-Agent': 'resetlist.kr/1.0' } }),
+          fetch(`${ENKA_PROXY}/${uid}`),
         ])
         if (!res.ok) {
           const code = res.status
