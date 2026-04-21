@@ -12,13 +12,6 @@ window._adminReady = db.auth.getUser().then(({ data: { user } }) => {
   if (user?.email === ADMIN_EMAIL) window.isAdmin = true
 })
 
-// ===== 게임 목록 =====
-const GAMES = [
-  { slug: 'genshin',          nameKo: '원신',        emoji: '🌙', artClass: 'genshin',       path: '/genshin/' },
-  { slug: 'bluearchive',      nameKo: '블루아카이브', emoji: '📘', artClass: 'bluearchive',   path: '/bluearchive/' },
-  { slug: 'nikke',            nameKo: '니케',         emoji: '⚡', artClass: 'nikke',         path: '/nikke/' },
-  { slug: 'cookierunkingdom', nameKo: '쿠키런킹덤',  emoji: '🍪', artClass: 'cookierunkingdom', path: '/cookierunkingdom/' },
-]
 
 // ===== 공용 유틸 =====
 function formatPrice(price) {
@@ -181,6 +174,8 @@ const SLUG_TO_PATH = {
   'leehwan':        '/leehwan/',
   'stardive':       '/stardive/',
   'epicseven':      '/epicseven/',
+  'trickcal':       '/trickcal/',
+  'limbus':         '/limbus/',
 }
 function gameSlugToPath(slug) {
   return SLUG_TO_PATH[slug] ?? `/${slug}/`
