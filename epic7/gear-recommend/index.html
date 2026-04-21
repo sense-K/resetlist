@@ -309,7 +309,7 @@ const SETS = [
   { key: 'set_def',      name: '방어'  },
   { key: 'set_shield',   name: '수호'  },
   { key: 'set_revenge',  name: '복수'  },
-  { key: 'set_injury',   name: '상처'  },
+  { key: 'set_scar',     name: '상처'  },
   { key: 'set_opener',   name: '개전'  },
   { key: 'set_penetrate',name: '관통'  },
   { key: 'set_revenant', name: '역습'  },
@@ -482,8 +482,9 @@ function computeValidOptions(abillity) {
 }
 
 function extractSets(equip) {
+  // 도감 표시와 동일하게 상위 5개 세트 조합만 참조
   const all = new Set()
-  ;(equip || []).forEach(e => (e.equip_list || []).forEach(s => all.add(s)))
+  ;(equip || []).slice(0, 5).forEach(e => (e.equip_list || []).forEach(s => all.add(s)))
   return [...all]
 }
 
@@ -519,7 +520,7 @@ async function doSearch() {
 }
 
 async function fetchHeroData() {
-  const cacheKey = `e7-hero-data-v2-${currentSeason}`
+  const cacheKey = `e7-hero-data-v3-${currentSeason}`
   try {
     const cached = sessionStorage.getItem(cacheKey)
     if (cached) {
@@ -540,7 +541,7 @@ async function fetchHeroData() {
   for (let i = 0; i < total; i += BATCH) {
     const batch = allHeroes.slice(i, i + BATCH)
     const responses = await Promise.allSettled(
-      batch.map(h => fetch(`${PROXY}/api/e7/getHeroAnalysis?hero_code=${h.code}&season_code=${currentSeason}&grade_code=master&lang=ko`)
+      batch.map(h => fetch(`${PROXY}/api/e7/getHeroAnalysis?hero_code=${h.code}&season_code=${currentSeason}&grade_code=champion&lang=ko`)
         .then(r => r.json()).then(j => ({ code: h.code, data: j?.value?.result_body })))
     )
     responses.forEach(r => {
