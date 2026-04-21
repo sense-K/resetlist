@@ -644,7 +644,7 @@ async function doSearch() {
 }
 
 async function fetchHeroData() {
-  const cacheKey = `e7-hero-data-v3-${currentSeason}`
+  const cacheKey = `e7-hero-data-v4-${currentSeason}`
   try {
     const cached = sessionStorage.getItem(cacheKey)
     if (cached) {
@@ -665,7 +665,7 @@ async function fetchHeroData() {
   for (let i = 0; i < total; i += BATCH) {
     const batch = allHeroes.slice(i, i + BATCH)
     const responses = await Promise.allSettled(
-      batch.map(h => fetch(`${PROXY}/api/e7/getHeroAnalysis?hero_code=${h.code}&season_code=${currentSeason}&grade_code=champion&lang=ko`)
+      batch.map(h => fetch(`${PROXY}/api/e7/getHeroAnalysis?hero_code=${h.code}&season_code=${currentSeason}&grade_code=emperor&lang=ko`)
         .then(r => r.json()).then(j => ({ code: h.code, data: j?.value?.result_body })))
     )
     responses.forEach(r => {

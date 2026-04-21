@@ -351,7 +351,7 @@
         const [heroJson, seasons] = await Promise.all([loadHeroJson(), e7fetch('getSeasonList', { lang: 'ko' })]);
         const seasonCode = (seasons.find(s => s.is_now_season === 1) || seasons[0])?.season_code || '';
 
-        const popular = await e7fetch('getPopularHero', { season_code: seasonCode, grade_code: 'champion', lang: 'ko' });
+        const popular = await e7fetch('getPopularHero', { season_code: seasonCode, grade_code: 'emperor', lang: 'ko' });
         const heroNameMap = new Map();
         popular.forEach(h => {
           Object.values(h.hero_names || {}).forEach((name, i) => {
@@ -389,7 +389,7 @@
         let analysis = null, artifacts = [], artifactSlugMap = new Map();
         try {
           const [analysisRes, artifactsRes, artifactJsonRes] = await Promise.all([
-            e7fetch('getHeroAnalysis', { hero_code: heroCode, season_code: seasonCode, grade_code: 'champion', lang: 'ko' }).catch(() => null),
+            e7fetch('getHeroAnalysis', { hero_code: heroCode, season_code: seasonCode, grade_code: 'emperor', lang: 'ko' }).catch(() => null),
             fetch(`${PROXY}/api/e7/rankingHeroPickArtifact?world_code=world_kor&lang_code=ko&hero_code=${heroCode}&current_page=1`)
               .then(r => r.json()).then(d => (d.value?.guide_list || []).slice(0, 5)).catch(() => []),
             fetch('/epic7/epic7_artifacts.json').then(r => r.json()).catch(() => []),
