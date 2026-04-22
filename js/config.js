@@ -56,8 +56,6 @@ function renderNavbar(activePage = '') {
         </div>
         <div class="navbar-actions" id="navbar-actions">
           <a href="/auth/" class="login-btn">로그인</a>
-          <a href="/trade/register.html" class="navbar-sell-btn">판매하기 ↗</a>
-          <a href="/trade/bulk.html" class="navbar-sell-btn" style="background:#f3f4f6;color:#111;border:1.5px solid var(--border);">일괄등록</a>
         </div>
         <button class="navbar-hamburger" id="navbar-hamburger" onclick="toggleMobileMenu()" aria-label="메뉴">
           <span></span><span></span><span></span>
@@ -79,7 +77,6 @@ function renderNavbar(activePage = '') {
         <div class="mobile-menu-divider"></div>
         <div class="mobile-menu-actions" id="mobile-menu-actions">
           <a href="/auth/" class="btn btn-primary" style="text-align:center;">로그인</a>
-          <a href="/trade/register.html" class="btn btn-outline" style="text-align:center;">판매하기 ↗</a>
         </div>
       </div>
     </div>
@@ -157,12 +154,10 @@ async function initNavbarAuth() {
     el.innerHTML = `
       <a href="/mypage/" style="font-size:13px;color:#888;font-weight:600;">${nickname}</a>
       <button class="login-btn" onclick="authSignOut()" style="background:none;border:none;cursor:pointer;">로그아웃</button>
-      <a href="/trade/register.html" class="navbar-sell-btn">판매하기 ↗</a>
     `
     if (mobileEl) {
       mobileEl.innerHTML = `
         <a href="/mypage/" class="btn btn-primary" style="text-align:center;">마이페이지 (${nickname})</a>
-        <a href="/trade/register.html" class="btn btn-outline" style="text-align:center;">판매하기 ↗</a>
         <button class="mobile-logout-btn" onclick="authSignOut()">로그아웃</button>
       `
     }

@@ -60,6 +60,25 @@
     .trade-game-card .card-emoji { font-size: 28px; line-height: 1; }
     .trade-game-card span { line-height: 1.3; word-break: keep-all; }
 
+    /* 판매하기 CTA */
+    .sell-cta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #6c47ff 0%, #9b72ff 100%);
+      color: #fff;
+      text-decoration: none;
+      margin-bottom: 20px;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .sell-cta:hover { opacity: 0.93; transform: translateY(-1px); }
+    .sell-cta-text { display: flex; flex-direction: column; gap: 2px; }
+    .sell-cta-text strong { font-size: 15px; font-weight: 800; }
+    .sell-cta-text span { font-size: 12px; opacity: 0.85; }
+    .sell-cta-arrow { font-size: 14px; font-weight: 700; white-space: nowrap; padding-left: 12px; }
+
     /* 정렬 바 */
     .trade-sort-bar {
       display: flex;
@@ -79,6 +98,15 @@
     <div class="trade-page-sub">수수료 없는 리세계 직거래 플랫폼</div>
   </div>
 
+  <!-- 판매하기 CTA -->
+  <a href="/trade/register.html" class="sell-cta">
+    <div class="sell-cta-text">
+      <strong>내 계정 팔기</strong>
+      <span>리세계 판매계정을 무료로 등록하세요</span>
+    </div>
+    <div class="sell-cta-arrow">등록하기 →</div>
+  </a>
+
   <!-- 게임 그리드 -->
   <div class="trade-game-grid" id="trade-tabs">
     <a href="/trade/" class="trade-game-card active">
@@ -94,7 +122,6 @@
       <span class="sort-divider">|</span>
       <button class="sort-btn" id="sort-price" onclick="setSort('price')">가격순</button>
     </div>
-    <a href="/trade/register.html" class="btn btn-primary" style="font-size:13px;padding:7px 16px;">판매하기 ↗</a>
   </div>
 
   <div id="listings-container"><div class="loading">불러오는 중...</div></div>
