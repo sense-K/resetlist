@@ -23,6 +23,9 @@ export async function onRequest({ params, env, request }) {
   const pageUrl = `https://resetlist.kr/game/${slug}/`
   const emoji = game.emoji ?? '🎮'
   const heroBg = game.artImageUrl ? `style="background-image:url('${game.artImageUrl}')"` : ''
+  const iconHtml = game.imageUrl
+    ? `<img class="game-hub-app-icon" src="${game.imageUrl}" alt="${nameKo}">`
+    : `<span class="game-hub-icon" style="font-size:48px;line-height:1;">${emoji}</span>`
 
   const html = `<!DOCTYPE html>
 <html lang="ko">
@@ -60,8 +63,7 @@ export async function onRequest({ params, env, request }) {
       <div class="game-hub-hero-bg" ${heroBg}></div>
       <div class="game-hub-hero-overlay"></div>
       <div class="game-hub-hero-content">
-        <img class="game-hub-app-icon" id="game-hub-app-icon" src="" alt="" style="display:none;">
-        <span class="game-hub-icon" id="game-hub-emoji" style="font-size:48px;line-height:1;">${emoji}</span>
+        ${iconHtml}
         <div>
           <div class="game-hub-title">${displayName}</div>
           <div class="game-hub-sub">공략 도구 준비 중</div>
@@ -84,23 +86,6 @@ export async function onRequest({ params, env, request }) {
   </main>
   <div id="footer-container"></div>
   <script>
-    const GAME_SLUG = '${slug}'
-    async function loadGameHero() {
-      const { data: game } = await db.from('Game').select('imageUrl, artImageUrl').eq('slug', GAME_SLUG).single()
-      if (!game) return
-      if (game.artImageUrl) {
-        document.getElementById('game-hub-hero-bg').style.backgroundImage = \`url('\${game.artImageUrl}')\`
-      }
-      if (game.imageUrl) {
-        const icon = document.getElementById('game-hub-app-icon')
-        const emoji = document.getElementById('game-hub-emoji')
-        icon.src = game.imageUrl
-        icon.alt = '${nameKo}'
-        icon.style.display = 'block'
-        if (emoji) emoji.style.display = 'none'
-      }
-    }
-    loadGameHero()
     document.getElementById('navbar-container').innerHTML = renderNavbar()
     loadAndRenderGameUI(null)
     document.getElementById('footer-container').innerHTML = typeof renderFooter === 'function' ? renderFooter() : ''
