@@ -540,10 +540,8 @@ a { text-decoration: none; color: inherit; }
 
 /* ===== 페이지 레이아웃 ===== */
 .page-wrapper {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 36px 32px 80px;
-  min-height: calc(100vh - 60px - 140px); /* 뷰포트 - 네비바 - 푸터 */
+  padding: 36px 48px 80px;
+  min-height: calc(100vh - 60px - 140px);
 }
 
 .layout-with-sidebar {
@@ -554,7 +552,7 @@ a { text-decoration: none; color: inherit; }
 
 /* ===== 사이드바 ===== */
 .sidebar {
-  width: 200px;
+  width: 180px;
   flex-shrink: 0;
   position: sticky;
   top: 120px;
