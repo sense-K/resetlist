@@ -20,8 +20,6 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
 a { text-decoration: none; color: inherit; }
@@ -543,7 +541,8 @@ a { text-decoration: none; color: inherit; }
   max-width: 1300px;
   margin: 0 auto;
   padding: 36px 60px 80px;
-  min-height: calc(100vh - 60px - 140px);
+  min-height: calc(100vh - 200px);
+  box-sizing: border-box;
 }
 
 .layout-with-sidebar {
