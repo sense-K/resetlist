@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>게임 공략 - 리세리스트</title>
+  <meta name="description" content="모바일 게임 공략 도구 모음. 에픽세븐 RTA 드래프트, 영웅 도감, 아티팩트 도감, 장비 추천 등 다양한 툴을 제공합니다." />
+  <meta name="keywords" content="모바일게임 공략, 에픽세븐 공략, 리세리스트 공략" />
+  <link rel="canonical" href="https://resetlist.kr/guide/" />
+  <meta property="og:title" content="게임 공략 - 리세리스트" />
+  <meta property="og:description" content="모바일 게임 공략 도구 모음. 에픽세븐 RTA 드래프트, 영웅 도감, 아티팩트 도감, 장비 추천 등 다양한 툴을 제공합니다." />
+  <meta property="og:url" content="https://resetlist.kr/guide/" />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/config.js"></script>
+  <style>
+    .guide-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 16px;
+    }
+    .guide-header {
+      margin-bottom: 32px;
+    }
+    .guide-header h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text, #1e293b);
+      margin-bottom: 6px;
+    }
+    .guide-header p {
+      font-size: 14px;
+      color: var(--text-sub, #64748b);
+    }
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .guide-game-card {
+      background: #fff;
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 20px;
+      padding: 24px;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .guide-game-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+    .guide-game-card.coming-soon {
+      opacity: 0.5;
+      cursor: default;
+      pointer-events: none;
+    }
+    .guide-game-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .guide-game-icon {
+      font-size: 36px;
+      line-height: 1;
+    }
+    .guide-game-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+    }
+    .badge-live {
+      background: rgba(59,130,246,0.1);
+      color: #3b82f6;
+    }
+    .badge-soon {
+      background: #f1f5f9;
+      color: #94a3b8;
+    }
+    .guide-game-name {
+      font-size: 17px;
+      font-weight: 800;
+      color: #1e293b;
+    }
+    .guide-game-tools {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar-container"></div>
+
+  <main class="guide-wrap">
+    <div class="guide-header">
+      <h1>🎮 게임 공략</h1>
+      <p>게임을 더 잘 즐길 수 있도록 도와주는 공략 도구 모음이에요.</p>
+    </div>
+
+    <div class="guide-grid">
+      <a href="/guide/epic7/" class="guide-game-card">
+        <div class="guide-game-top">
+          <span class="guide-game-icon">⚔️</span>
+          <span class="guide-game-badge badge-live">4종 서비스 중</span>
+        </div>
+        <div class="guide-game-name">에픽세븐</div>
+        <div class="guide-game-tools">RTA 드래프트 도우미 · 영웅 도감<br>아티팩트 도감 · 장비 주인 찾기</div>
+      </a>
+
+      <div class="guide-game-card coming-soon">
+        <div class="guide-game-top">
+          <span class="guide-game-icon">🎭</span>
+          <span class="guide-game-badge badge-soon">준비 중</span>
+        </div>
+        <div class="guide-game-name">림버스 컴퍼니</div>
+        <div class="guide-game-tools">거던 시뮬레이터</div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container"></div>
+
+  <script>
+    document.getElementById('navbar-container').innerHTML = renderNavbar();
+    loadAndRenderGameUI(null);
+    document.getElementById('footer-container').innerHTML = typeof renderFooter === 'function' ? renderFooter() : '';
+  </script>
+</body>
+</html>
