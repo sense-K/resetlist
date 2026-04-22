@@ -270,18 +270,6 @@ async function loadAndRenderGameUI(activeSlug) {
       </a>
     `).join('')
   }
-  const tradeDropdown = document.getElementById('nav-trade-dropdown')
-  if (tradeDropdown) {
-    tradeDropdown.innerHTML = `
-      <a href="/trade/price/" class="nav-dropdown-item" style="font-weight:700;">💰 계정 시세 보기</a>
-      <div style="height:1px;background:#eee;margin:4px 0;"></div>
-      ${games.map(g => `
-        <a href="${gameSlugToPath(g.slug)}" class="nav-dropdown-item ${g.slug === activeSlug ? 'active' : ''}">
-          ${gameIcon(g, 20)} <span>${g.nameKo}</span>
-        </a>
-      `).join('')}
-    `
-  }
   const mobileGameLinks = document.getElementById('mobile-game-links')
   if (mobileGameLinks) {
     mobileGameLinks.innerHTML = games.map(g => `
@@ -290,18 +278,6 @@ async function loadAndRenderGameUI(activeSlug) {
       </a>
     `).join('')
   }
-  const mobileTradeLinks = document.getElementById('mobile-trade-links')
-  if (mobileTradeLinks) {
-    mobileTradeLinks.innerHTML = `
-      <a href="/trade/price/" class="mobile-game-item" style="font-weight:700;">💰 계정 시세 보기</a>
-      ${games.map(g => `
-        <a href="${gameSlugToPath(g.slug)}" class="mobile-game-item">
-          ${gameIcon(g, 22)} <span>${g.nameKo}</span>
-        </a>
-      `).join('')}
-    `
-  }
-
   // 게임 공략 드롭다운 업데이트
   const guideDropdown = document.getElementById('nav-guide-dropdown')
   if (guideDropdown) {
