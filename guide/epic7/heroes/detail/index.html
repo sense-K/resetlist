@@ -228,9 +228,9 @@
     const STAT_ICON     = { att:'/epic7-icons/stat/att.png', def:'/epic7-icons/stat/def.png', max_hp:'/epic7-icons/stat/max_hp.png', speed:'/epic7-icons/stat/speed.png', cri:'/epic7-icons/stat/cri.png', cri_dmg:'/epic7-icons/stat/cri_dmg.png', acc:'/epic7-icons/stat/acc.png', res:'/epic7-icons/stat/res.png' };
     const STAR_IMG      = '/epic7-icons/star/star1.svg';
 
-    const S = 'https://static-pubcomm.onstove.com/event/live/epic7/guide/wearingStatus/images/sets';
+    const S = 'https://ltcibadxwkupwjikqzik.supabase.co/storage/v1/object/public/epic7/sets';
     const SET_INFO = {
-      set_attack:   { name:'공격',  img:'https://i.namu.wiki/i/cj4sjkju90Yrrd2NO9KaxFzBOaBYyaHaLdJAAO5H5ZbNWeD_x3lN8KAqIADu009CMg3cCLoC0pKUQHZ3OSkaiA.webp' },
+      set_attack:   { name:'공격',  img:`${S}/set_attack.webp` },
       set_speed:    { name:'속도',  img:`${S}/set_speed.png` },
       set_destroy:  { name:'파멸',  img:`${S}/set_cri_dmg.png` },
       set_cri_dmg:  { name:'파멸',  img:`${S}/set_cri_dmg.png` },
@@ -238,7 +238,8 @@
       set_counter:  { name:'반격',  img:`${S}/set_counter.png` },
       set_rage:     { name:'분노',  img:`${S}/set_rage.png` },
       set_revenge:  { name:'복수',  img:`${S}/set_revenge.png` },
-      set_injury:   { name:'상처',  img:`${S}/set_injury.png` },
+      set_injury:   { name:'상처',  img:`${S}/set_scar.png` },
+      set_scar:     { name:'상처',  img:`${S}/set_scar.png` },
       set_shield:   { name:'수호',  img:`${S}/set_shield.png` },
       set_revenant: { name:'역습',  img:`${S}/set_revenant.png` },
       set_riposte:  { name:'응수',  img:`${S}/set_riposte.png` },

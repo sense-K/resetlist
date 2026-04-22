@@ -288,7 +288,7 @@ loadAndRenderGameUI(null)
 
 // ─── 상수 ────────────────────────────────────────
 const PROXY = 'https://epicsense-e7proxy.zzabhm.workers.dev'
-const SET_IMG_BASE = 'https://static-pubcomm.onstove.com/event/live/epic7/guide/wearingStatus/images/sets'
+const SET_IMG_BASE = 'https://ltcibadxwkupwjikqzik.supabase.co/storage/v1/object/public/epic7/sets'
 
 const STATS = [
   { key: 'att',     label: '공격력%',   icon: '/epic7-icons/stat/att.png'     },
@@ -315,7 +315,7 @@ const SETS = [
   { key: 'set_speed',    name: '속도'  },
   { key: 'set_cri',      name: '치명'  },
   { key: 'set_cri_dmg',  name: '파멸'  },
-  { key: 'set_attack',   name: '공격', img: 'https://i.namu.wiki/i/cj4sjkju90Yrrd2NO9KaxFzBOaBYyaHaLdJAAO5H5ZbNWeD_x3lN8KAqIADu009CMg3cCLoC0pKUQHZ3OSkaiA.webp' },
+  { key: 'set_attack',   name: '공격', ext: 'webp' },
   { key: 'set_rage',     name: '분노'  },
   { key: 'set_counter',  name: '반격'  },
   { key: 'set_vampire',  name: '흡혈'  },
@@ -520,7 +520,7 @@ function updateSearchBtn() {
 function renderSetBtns() {
   document.getElementById('set-btns').innerHTML = SETS.map(s => `
     <button class="gr-set-btn" id="setbtn-${s.key}" onclick="toggleSet('${s.key}')">
-      <img src="${s.img || `${SET_IMG_BASE}/${s.key}.png`}" alt="${s.name}" onerror="this.style.display='none'">
+      <img src="${SET_IMG_BASE}/${s.key}.${s.ext || 'png'}" alt="${s.name}" onerror="this.style.display='none'">
       ${s.name}
     </button>
   `).join('')
