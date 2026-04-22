@@ -74,21 +74,10 @@ listup-site/
 - git config: user.email=zzabhm@gmail.com, user.name=sense-K
 - git 커밋 시 `git config windows.appendAtomically false` 필요 (Windows 이슈)
 
-## ⚠️ git 작업 방식 (OneDrive mmap 오류)
-- listup-site가 OneDrive 경로 안에 있어서 git CLI에서 `mmap failed: Invalid argument` 오류 발생
-- **해결책**: `c:\tmp\listup-temp`에 임시 클론해서 작업
-  ```
-  # 처음 한 번만
-  git clone https://github.com/sense-K/listup-site.git c:\tmp\listup-temp
-
-  # 매번 작업 시
-  cd c:\tmp\listup-temp
-  git pull
-  # 파일 수정 후 OneDrive 경로에서 c:\tmp\listup-temp로 복사
-  git add . && git commit -m "..." && git push
-  ```
-- 노트북에서도 동일하게 `c:\tmp\listup-temp`에 클론해서 쓸 것
-- VSCode 소스 제어 탭은 OneDrive 경로에서도 작동할 수 있으나 CLI는 위 방법 사용
+## git 작업 방식
+- **작업 폴더**: `C:\Users\혁문\OneDrive\Desktop\vibe coding\리세계\listup-site` (OneDrive 동기화, 노트북 공유됨)
+- push → GitHub `sense-K/listup-site` main → Cloudflare Pages 자동 배포
+- git config: user.email=zzabhm@gmail.com, user.name=sense-K
 
 ## 용어 통일
 - 사이트명: **리세리스트** (로고/네비바), **리세 리스트** (본문/SEO)
@@ -287,16 +276,73 @@ const GRADE_ORDER_MAP = {
 /game/[slug]/ → 거래소 바로가기 + 시세 확인
 ```
 
-## 현재 상태 (2026-04-22)
+## 붕괴: 스타레일 지원 (2026-04-23 추가)
+
+### 추가된 페이지
+- `/game/starrail/` — 공략 허브 (정적 페이지, `_routes.json` exclude)
+- `/game/starrail/uid/` — UID 캐릭터 조회 (MiHoMo API 프록시)
+- `/trade/price/starrail/` — 시세 페이지 (현재 "수집 중" 상태, 정적 페이지)
+
+### API 프록시
+- `functions/api/starrail/[[uid]].js` → `https://api.mihomo.me/sr_info_parsed/{uid}?lang=kr`
+- 응답: 한국어 이름 + rarity + icon 경로 (StarRailRes CDN 패턴)
+- 캐릭터 이미지: `https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/{icon}`
+
+### 관리자 캐릭터 일괄 등록
+- 관리자 → 캐릭터 관리 탭 상단에 "스타레일 캐릭터 불러오기" 버튼
+- StarRailRes `index_min/kr/characters.json` + `index_min/en/characters.json` 동시 fetch
+- rarity 5 → tier `S`, rarity 4 → tier `A` 자동 변환
+- 개척자(id 8001~8008) 자동 제외, 이미 등록된 캐릭터 skip
+
+### Character 테이블 insert 시 필수 필드 (모두 포함해야 함)
+```js
+{
+  id: crypto.randomUUID(),
+  gameId, nameKo, nameEn,   // nameEn NOT NULL
+  tier,
+  isLimited: false,          // Boolean NOT NULL
+  basePrice: 0,              // Int NOT NULL
+  imageUrl,
+  isActive: true,
+  sortOrder: 0,
+  createdAt: now,
+  updatedAt: now,            // @updatedAt — Prisma 자동처리지만 직접 insert 시 수동 필요
+}
+```
+
+### 판매 등록 UID 조회
+- `trade/register/index.html`의 `isUidGame` / `lookupUid()` 에 `starrail` 추가
+- MiHoMo 응답 직접 사용 (charMap 불필요)
+
+## 거래소 목록 정렬 (2026-04-23 개선)
+- **판매중(active/trading) → 판매완료(sold) 그룹 우선 정렬**
+- `js/listings.js`에서 두 쿼리 병렬 fetch 후 합산 → 클라이언트 페이지네이션
+  ```js
+  // active/trading 먼저, sold 나중 (각 그룹 내 최신순 또는 가격순)
+  const [activeData, soldData] = await Promise.all([
+    buildBase(['active', 'trading']).limit(200),
+    buildBase(['sold']).limit(200),
+  ])
+  const allListings = [...activeData, ...soldData]
+  ```
+- 그룹 내에서는 기존 최신순/가격순 정렬 그대로 적용
+
+## DB 직접 조작 (Python + psycopg2)
+- PostgreSQL 직접 연결: `postgresql://postgres.ltcibadxwkupwjikqzik:5Ml3kon0rZE0dI3w@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres`
+- anon key는 RLS로 Listing INSERT 불가 → psycopg2로 직접 INSERT
+- 스타레일 더미 sold 글 30개 생성 완료 (userId: zzabhm, 서버 4개 순환)
+
+## 현재 상태 (2026-04-23)
 - 핵심 기능 + 보안 + UX 개선 완료
 - resetlist.kr 도메인 연결 완료
 - SEO + Google Search Console 등록 완료
 - 거래 전 플로우 완성, 이메일 알림 시스템 완성
-- 시세 페이지 12개 생성 완료 (원신/니케/쿠킹덤 데이터 준비됨, 나머지 준비중)
+- 시세 페이지 13개 (원신/니케/쿠킹덤 데이터 있음, 스타레일 포함 나머지 수집 중)
 - GTM + GA4 연결 완료
-- 에픽세븐 공략 도구 4종 서비스 중 (RTA 드래프트, 영웅 도감, 아티팩트 도감, 장비 주인 찾기)
-- 원신 UID 조회 페이지 신규 오픈 (`/genshin/uid/`)
-- 거래소/시세 URL 구조 개편 완료 (`/trade/`, `/trade/price/` 분리)
+- 에픽세븐 공략 도구 4종 서비스 중
+- 원신/ZZZ/스타레일 UID 조회 서비스 중
+- 거래소 목록 판매중 우선 정렬 적용
+- 작업 폴더: OneDrive (`C:\Users\혁문\OneDrive\Desktop\vibe coding\리세계\listup-site`)
 
 ## 남은 작업 목록
 ### 중요도 높음
