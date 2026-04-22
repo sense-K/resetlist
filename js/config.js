@@ -426,7 +426,7 @@ function renderFooter() {
         <div class="footer-top">
           <div class="footer-brand">
             <span class="footer-logo">플레이센스</span>
-            <p class="footer-desc">모바일 게임 계정 시세 조회 및 직거래 플랫폼</p>
+            <p class="footer-desc">모바일 게임 공략 · 빌드 · 거래 플랫폼</p>
           </div>
         </div>
         <div class="footer-bottom">
