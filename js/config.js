@@ -51,6 +51,7 @@ function renderNavbar(activePage = '') {
             </div>
           </div>
           <a href="/trade/" class="muted">거래소</a>
+          <a href="/trade/price/" class="muted">시세</a>
           <a href="/contact/" class="muted">문의하기</a>
         </div>
         <div class="navbar-actions" id="navbar-actions">
@@ -71,6 +72,8 @@ function renderNavbar(activePage = '') {
         <div id="mobile-guide-links" style="display:none;padding:4px 0 8px 12px;"></div>
         <div class="mobile-menu-divider"></div>
         <a href="/trade/" class="mobile-menu-link">거래소</a>
+        <div class="mobile-menu-divider"></div>
+        <a href="/trade/price/" class="mobile-menu-link">시세</a>
         <div class="mobile-menu-divider"></div>
         <a href="/contact/" class="mobile-menu-link">문의하기</a>
         <div class="mobile-menu-divider"></div>
