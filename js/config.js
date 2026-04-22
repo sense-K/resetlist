@@ -42,16 +42,10 @@ function renderNavbar(activePage = '') {
   return `
     <nav class="navbar">
       <div class="navbar-inner">
-        <a href="/" class="navbar-logo">리세리스트</a>
+        <a href="/" class="navbar-logo">플레이센스</a>
         <div class="navbar-menu">
-          <div class="nav-dropdown-wrap" id="nav-dropdown-wrap">
-            <span class="navbar-menu-item ${activePage === 'home' ? '' : 'muted'}" onclick="toggleNavDropdown()">거래소 ▾</span>
-            <div class="nav-dropdown" id="nav-game-dropdown">
-              <div class="nav-dropdown-loading">불러오는 중...</div>
-            </div>
-          </div>
-          <a href="/price/" class="muted">계정 시세</a>
-          <a href="/guide/" class="muted">게임 공략</a>
+          <a href="/trade/" class="muted">거래소</a>
+          <a href="/trade/price/" class="muted">계정 시세</a>
           <a href="/contact/" class="muted">문의하기</a>
         </div>
         <div class="navbar-actions" id="navbar-actions">
@@ -66,12 +60,9 @@ function renderNavbar(activePage = '') {
     </nav>
     <div class="mobile-menu" id="mobile-menu">
       <div class="mobile-menu-inner">
-        <div class="mobile-menu-section-label">거래소</div>
-        <div id="mobile-game-links" class="mobile-game-grid"></div>
+        <a href="/trade/" class="mobile-menu-link">거래소</a>
         <div class="mobile-menu-divider"></div>
-        <a href="/price/" class="mobile-menu-link">계정 시세</a>
-        <div class="mobile-menu-divider"></div>
-        <a href="/guide/" class="mobile-menu-link">게임 공략</a>
+        <a href="/trade/price/" class="mobile-menu-link">계정 시세</a>
         <div class="mobile-menu-divider"></div>
         <a href="/contact/" class="mobile-menu-link">문의하기</a>
         <div class="mobile-menu-divider"></div>
@@ -174,20 +165,36 @@ function gameIcon(game, size = 20) {
 
 // DB slug → 실제 URL 경로 매핑
 const SLUG_TO_PATH = {
-  'genshin':        '/genshin/',
-  'bluearchive':    '/bluearchive/',
-  'nikke':          '/nikke/',
-  'cookie-run':     '/cookierunkingdom/',
-  'zzz':            '/zzz/',
-  'sevenknightsre': '/sevenknightsre/',
-  'leehwan':        '/leehwan/',
-  'stardive':       '/stardive/',
-  'epicseven':      '/epicseven/',
-  'trickcal':       '/trickcal/',
-  'limbus':         '/limbus/',
+  'genshin':        '/trade/genshin/',
+  'bluearchive':    '/trade/bluearchive/',
+  'nikke':          '/trade/nikke/',
+  'cookie-run':     '/trade/cookierunkingdom/',
+  'zzz':            '/trade/zzz/',
+  'sevenknightsre': '/trade/sevenknightsre/',
+  'leehwan':        '/trade/leehwan/',
+  'stardive':       '/trade/stardive/',
+  'epicseven':      '/trade/epic7/',
+  'trickcal':       '/trade/trickcal/',
+  'limbus':         '/trade/limbus/',
+}
+const SLUG_TO_GAME_PATH = {
+  'genshin':        '/game/genshin/',
+  'bluearchive':    '/game/bluearchive/',
+  'nikke':          '/game/nikke/',
+  'cookie-run':     '/game/cookierunkingdom/',
+  'zzz':            '/game/zzz/',
+  'sevenknightsre': '/game/sevenknightsre/',
+  'leehwan':        '/game/leehwan/',
+  'stardive':       '/game/stardive/',
+  'epicseven':      '/game/epic7/',
+  'trickcal':       '/game/trickcal/',
+  'limbus':         '/game/limbus/',
 }
 function gameSlugToPath(slug) {
-  return SLUG_TO_PATH[slug] ?? `/${slug}/`
+  return SLUG_TO_PATH[slug] ?? `/trade/${slug}/`
+}
+function gameHubPath(slug) {
+  return SLUG_TO_GAME_PATH[slug] ?? `/game/${slug}/`
 }
 
 // DB에서 게임 목록 동적으로 가져와서 탭/사이드바 렌더
@@ -283,7 +290,7 @@ async function loadAndRenderGameUI(activeSlug) {
   const gameCardsEl = document.getElementById('game-cards-section')
   if (gameCardsEl) {
     gameCardsEl.innerHTML = games.map(g => `
-      <a href="${gameSlugToPath(g.slug)}" class="game-select-card">
+      <a href="${gameHubPath(g.slug)}" class="game-select-card">
         ${g.artImageUrl
           ? `<img class="game-select-card-bg" src="${g.artImageUrl}" alt="${g.nameKo}">`
           : `<div class="game-select-card-bg" style="background:linear-gradient(135deg,#1a1a2e,#2d2d4e);"></div>`
@@ -338,12 +345,12 @@ function renderFooter() {
       <div class="site-footer-inner">
         <div class="footer-top">
           <div class="footer-brand">
-            <span class="footer-logo">리세 리스트</span>
+            <span class="footer-logo">플레이센스</span>
             <p class="footer-desc">모바일 게임 계정 시세 조회 및 직거래 플랫폼</p>
           </div>
         </div>
         <div class="footer-bottom">
-          <span>© 2025 리세 리스트. All rights reserved.</span>
+          <span>© 2025 플레이센스. All rights reserved.</span>
           <a href="mailto:zzabhm@gmail.com" style="color:inherit;opacity:0.6;font-size:12px;text-decoration:none;">zzabhm@gmail.com</a>
         </div>
       </div>

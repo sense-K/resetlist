@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>원신 (Genshin Impact) 공략 - 플레이센스</title>
+  <meta name="description" content="원신 (Genshin Impact) 공략 도구와 판매계정 거래소를 플레이센스에서 확인하세요." />
+  <link rel="canonical" href="https://resetlist.kr/game/genshin/" />
+  <meta property="og:title" content="원신 (Genshin Impact) 공략 - 플레이센스" />
+  <meta property="og:url" content="https://resetlist.kr/game/genshin/" />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/config.js"></script>
+  <style>
+    .game-hub-wrap { max-width: 900px; margin: 0 auto; padding: 32px 16px; }
+    .game-hub-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+    .game-hub-icon { font-size: 48px; line-height: 1; }
+    .game-hub-title { font-size: 24px; font-weight: 800; color: var(--text, #1e293b); }
+    .game-hub-sub { font-size: 14px; color: var(--text-sub, #64748b); margin-top: 4px; }
+    .section-label {
+      font-size: 12px; font-weight: 700; color: var(--text-sub, #64748b);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 1px solid var(--border, #e5e7eb);
+    }
+    .coming-soon-box {
+      background: #f8fafc; border: 1.5px dashed var(--border, #e5e7eb);
+      border-radius: 16px; padding: 32px; text-align: center;
+      color: var(--text-sub, #64748b); margin-bottom: 40px;
+    }
+    .coming-soon-box p { font-size: 14px; margin-top: 8px; }
+    .trade-section { display: flex; gap: 12px; flex-wrap: wrap; }
+    .trade-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 24px; border-radius: 14px; text-decoration: none;
+      font-size: 15px; font-weight: 700; transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .trade-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+    .trade-btn-primary { background: #6c47ff; color: #fff; }
+    .trade-btn-secondary { background: #f1f5f9; color: #1e293b; border: 1.5px solid var(--border, #e5e7eb); }
+  </style>
+</head>
+<body>
+  <div id="navbar-container"></div>
+  <main class="game-hub-wrap">
+    <div class="game-hub-header">
+      <div class="game-hub-icon">🌸</div>
+      <div>
+        <div class="game-hub-title">원신 (Genshin Impact)</div>
+        <div class="game-hub-sub">공략 도구 1종 서비스 중</div>
+      </div>
+    </div>
+    <div class="section-label">공략 도구</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:40px;">
+      <a href="/game/genshin/uid/" style="background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:16px;padding:20px;text-decoration:none;display:flex;flex-direction:column;gap:8px;transition:transform 0.15s,box-shadow 0.15s;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(59,130,246,0.1);display:flex;align-items:center;justify-content:center;font-size:18px;">🔍</div>
+          <span style="background:rgba(59,130,246,0.1);color:#3b82f6;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;">서비스 중</span>
+        </div>
+        <div style="font-size:14px;font-weight:700;color:#1e293b;">UID 캐릭터 조회</div>
+        <div style="font-size:12px;color:#64748b;line-height:1.5;">UID 입력 → 쇼케이스 캐릭터 빌드 확인</div>
+      </a>
+    </div>
+    <div class="section-label">거래소</div>
+    <div class="trade-section">
+      <a href="/trade/genshin/" class="trade-btn trade-btn-primary">🌸 판매계정 보러가기 →</a>
+      <a href="/trade/price/genshin/" class="trade-btn trade-btn-secondary">📊 계정 시세 확인</a>
+    </div>
+  </main>
+  <div id="footer-container"></div>
+  <script>
+    document.getElementById('navbar-container').innerHTML = renderNavbar();
+    loadAndRenderGameUI(null);
+    document.getElementById('footer-container').innerHTML = typeof renderFooter === 'function' ? renderFooter() : '';
+  </script>
+</body>
+</html>

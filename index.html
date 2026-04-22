@@ -5,31 +5,30 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="shortcut icon" href="/favicon.svg">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>리세 리스트 - 모바일 게임 리세계 직거래 플랫폼 | resetlist</title>
-  <meta name="description" content="원하는 리세계를 검색해보세요. 다양한 모바일 게임의 리세계 판매계정을 한 곳에서 확인하고 안전하게 거래하세요.">
-  <meta name="keywords" content="리세계, 리세계 직거래, 리세계 판매, 리세계 계정거래, 리세계 계정구매, 리세계 사는곳, 리세계 파는곳, 판매계정, 리세 리스트, resetlist">
+  <title>플레이센스 - 모바일 게임 공략 & 계정거래 플랫폼</title>
+  <meta name="description" content="모바일 게임 공략 도구, 도감, 시뮬레이터 모음. 에픽세븐, 원신, 니케 등 다양한 게임의 공략과 계정거래를 한 곳에서.">
+  <meta name="keywords" content="모바일게임 공략, 게임 도감, 게임 시뮬레이터, 에픽세븐 공략, 원신 공략, 리세계 계정거래, 플레이센스">
   <link rel="canonical" href="https://resetlist.kr/">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://resetlist.kr/">
-  <meta property="og:title" content="리세 리스트 - 모바일 게임 리세계 직거래 플랫폼">
-  <meta property="og:description" content="원하는 리세계를 검색해보세요. 다양한 모바일 게임의 리세계 판매계정을 한 곳에서 확인하고 안전하게 거래하세요.">
-  <meta property="og:site_name" content="리세 리스트">
+  <meta property="og:title" content="플레이센스 - 모바일 게임 공략 & 계정거래 플랫폼">
+  <meta property="og:description" content="모바일 게임 공략 도구, 도감, 시뮬레이터 모음. 에픽세븐, 원신, 니케 등 다양한 게임의 공략과 계정거래를 한 곳에서.">
+  <meta property="og:site_name" content="플레이센스">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="리세 리스트 - 모바일 게임 리세계 직거래 플랫폼">
-  <meta name="twitter:description" content="원하는 리세계를 검색해보세요. 다양한 모바일 게임의 리세계 판매계정을 한 곳에서 확인하고 안전하게 거래하세요.">
+  <meta name="twitter:title" content="플레이센스 - 모바일 게임 공략 & 계정거래 플랫폼">
+  <meta name="twitter:description" content="모바일 게임 공략 도구, 도감, 시뮬레이터 모음. 에픽세븐, 원신, 니케 등 다양한 게임의 공략과 계정거래를 한 곳에서.">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "리세 리스트",
-    "alternateName": "resetlist",
+    "name": "플레이센스",
     "url": "https://resetlist.kr",
-    "description": "다양한 모바일 게임의 리세계 판매계정을 한 곳에서 확인하고 안전하게 거래하는 직거래 플랫폼",
+    "description": "모바일 게임 공략 도구, 도감, 시뮬레이터 모음과 리세계 계정거래 플랫폼",
     "potentialAction": {
       "@type": "SearchAction",
       "target": {
         "@type": "EntryPoint",
-        "urlTemplate": "https://resetlist.kr/?q={search_term_string}"
+        "urlTemplate": "https://resetlist.kr/trade/?q={search_term_string}"
       },
       "query-input": "required name=search_term_string"
     }
@@ -47,7 +46,8 @@
   <div class="hero-overlay"></div>
   <div class="hero-inner">
     <div class="hero-text">
-      <h1>리세계 직거래,<br>지금 시작하세요.</h1>
+      <h1>모바일 게임,<br>더 깊이 즐기세요.</h1>
+      <p style="font-size:16px;color:rgba(255,255,255,0.8);margin-top:12px;font-weight:400;">공략 도구 · 도감 · 시뮬레이터 · 계정거래</p>
     </div>
   </div>
 </section>
@@ -56,52 +56,16 @@
 <section class="game-select-section">
   <div class="game-select-inner">
     <div class="game-select-header">
-      <span class="game-select-title">거래소 바로가기</span>
+      <span class="game-select-title">게임 선택</span>
     </div>
     <div class="game-cards-grid" id="game-cards-section"></div>
   </div>
 </section>
 
-<!-- 최신 판매글 -->
-<div class="page-wrapper">
-  <div class="listings-section-header">
-    <span class="listings-section-title">최신 판매글</span>
-    <div class="tab-sort">
-      <button class="sort-btn active" id="sort-latest" onclick="setSort('latest')">최신순</button>
-      <span class="sort-divider">|</span>
-      <button class="sort-btn" id="sort-price" onclick="setSort('price')">가격순</button>
-    </div>
-  </div>
-  <div id="listings-container">
-    <div class="loading">불러오는 중...</div>
-  </div>
-  <a href="#" class="btn-more" id="more-btn" style="display:none;">계정 더보기</a>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/config.js"></script>
-<script src="/js/listings.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('home')
-
-  let currentSort = 'latest'
-  let currentPage = 1
-
-  function setSort(sort) {
-    currentSort = sort
-    currentPage = 1
-    document.getElementById('sort-latest').classList.toggle('active', sort === 'latest')
-    document.getElementById('sort-price').classList.toggle('active', sort === 'price')
-    loadListings({ container: 'listings-container', limit: 12, sort, moreBtn: 'more-btn' })
-  }
-
-  document.getElementById('more-btn').addEventListener('click', e => {
-    e.preventDefault()
-    currentPage++
-    loadListings({ container: 'listings-container', limit: 12, sort: currentSort, page: currentPage, append: true, moreBtn: 'more-btn' })
-  })
-
-  loadListings({ container: 'listings-container', limit: 12, moreBtn: 'more-btn' })
   loadAndRenderGameUI(null)
 </script>
 <div id="footer"></div>

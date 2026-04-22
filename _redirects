@@ -1,7 +1,49 @@
-/epic7/                     /guide/epic7/                    301
-/epic7/rta/                 /guide/epic7/rta/                301
-/epic7/heroes/              /guide/epic7/heroes/             301
-/epic7/heroes/detail/       /guide/epic7/heroes/detail/      301
-/epic7/artifacts/           /guide/epic7/artifacts/          301
-/epic7/gear-recommend/      /guide/epic7/gear-recommend/     301
-/epic7/my-heroes/           /guide/epic7/my-heroes/          301
+# 구 게임 거래소 페이지 → /trade/[game]/
+/genshin/                   /trade/genshin/                  301
+/bluearchive/               /trade/bluearchive/               301
+/nikke/                     /trade/nikke/                     301
+/cookierunkingdom/          /trade/cookierunkingdom/          301
+/zzz/                       /trade/zzz/                       301
+/sevenknightsre/            /trade/sevenknightsre/            301
+/leehwan/                   /trade/leehwan/                   301
+/trickcal/                  /trade/trickcal/                  301
+/limbus/                    /trade/limbus/                    301
+/stardive/                  /trade/stardive/                  301
+
+# 구 시세 페이지 → /trade/price/
+/price/                     /trade/price/                     301
+/price/genshin/             /trade/price/genshin/             301
+/price/nikke/               /trade/price/nikke/               301
+/price/cookierunkingdom/    /trade/price/cookierunkingdom/    301
+/price/bluearchive/         /trade/price/bluearchive/         301
+/price/zzz/                 /trade/price/zzz/                 301
+/price/sevenknightsre/      /trade/price/sevenknightsre/      301
+/price/leehwan/             /trade/price/leehwan/             301
+/price/trickcal/            /trade/price/trickcal/            301
+/price/limbus/              /trade/price/limbus/              301
+/price/stardive/            /trade/price/stardive/            301
+
+# 구 에픽세븐 공략 → /game/epic7/
+/epic7/                     /game/epic7/                      301
+/epic7/rta/                 /game/epic7/rta/                  301
+/epic7/heroes/              /game/epic7/heroes/               301
+/epic7/heroes/detail/       /game/epic7/heroes/detail/        301
+/epic7/artifacts/           /game/epic7/artifacts/            301
+/epic7/gear-recommend/      /game/epic7/gear-recommend/       301
+/epic7/my-heroes/           /game/epic7/my-heroes/            301
+
+# 구 /guide/ → /game/
+/guide/                     /                                 301
+/guide/epic7/               /game/epic7/                      301
+/guide/epic7/rta/           /game/epic7/rta/                  301
+/guide/epic7/heroes/        /game/epic7/heroes/               301
+/guide/epic7/heroes/detail/ /game/epic7/heroes/detail/        301
+/guide/epic7/artifacts/     /game/epic7/artifacts/            301
+/guide/epic7/gear-recommend/ /game/epic7/gear-recommend/      301
+/guide/epic7/my-heroes/     /game/epic7/my-heroes/            301
+
+# 원신 UID → /game/genshin/uid/
+/genshin/uid/               /game/genshin/uid/                301
+
+# 구 epicseven
+/epicseven/                 /game/epic7/                      301
