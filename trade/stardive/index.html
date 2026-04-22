@@ -57,6 +57,7 @@
       </div>
             <div class="char-filter-bar">
         <button class="char-filter-btn" id="char-filter-btn" onclick="openCharFilter()">캐릭터 선택 →</button>
+        <span class="char-filter-hint" id="char-filter-hint">보유 캐릭터로 계정을 검색할 수 있어요</span>
         <div class="filter-tag-list" id="filter-tag-list"></div>
         <button class="filter-clear-btn" id="filter-clear-btn" style="display:none;" onclick="clearAllFilter()">필터 초기화</button>
       </div>
@@ -246,13 +247,16 @@
     const btn = document.getElementById('char-filter-btn')
     const tagList = document.getElementById('filter-tag-list')
     const clearBtn = document.getElementById('filter-clear-btn')
+    const hint = document.getElementById('char-filter-hint')
     const entries = Object.values(filterChars)
     if (entries.length === 0) {
       btn.textContent = '캐릭터 선택 →'
       btn.classList.remove('has-filter')
       tagList.innerHTML = ''
       clearBtn.style.display = 'none'
+      if (hint) hint.style.display = ''
     } else {
+      if (hint) hint.style.display = 'none'
       btn.textContent = entries.length + '개 선택됨'
       btn.classList.add('has-filter')
       tagList.innerHTML = entries.map(({ char: c, count }) =>
