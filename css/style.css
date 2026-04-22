@@ -545,6 +545,24 @@ a { text-decoration: none; color: inherit; }
   box-sizing: border-box;
 }
 
+/* 게임 공략 허브 */
+.game-hub-wrap {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 36px 60px 80px;
+  min-height: calc(100vh - 200px);
+  box-sizing: border-box;
+}
+
+/* UID 조회 */
+.uid-wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 36px 60px 80px;
+  min-height: calc(100vh - 200px);
+  box-sizing: border-box;
+}
+
 .layout-with-sidebar {
   display: flex;
   gap: 32px;
@@ -1605,6 +1623,17 @@ a { text-decoration: none; color: inherit; }
 }
 .mobile-menu-backdrop.open { display: block; }
 
+/* ===== 태블릿 (1024px 이하) ===== */
+@media (max-width: 1024px) {
+  .navbar-inner { padding: 0 32px; }
+  .tab-bar-inner { padding: 0 32px; }
+  .page-wrapper { padding: 32px 32px 80px; }
+  .game-hub-wrap { padding: 32px 32px 80px; }
+  .uid-wrap { padding: 32px 32px 80px; }
+  .site-footer-inner { padding: 0 32px; }
+  .game-select-section { padding: 32px 32px; }
+}
+
 /* ===== 모바일 ===== */
 @media (max-width: 768px) {
   .navbar-inner { padding: 0 16px; gap: 0; }
@@ -1618,8 +1647,11 @@ a { text-decoration: none; color: inherit; }
   .hero-text h1 { font-size: 32px; }
   .hero-overlay { backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
   .game-select-section { padding: 28px 16px; }
-  .page-wrapper { padding: 28px 16px 60px; }
-  .tab-bar-inner { padding: 0 20px; }
+  .page-wrapper { padding: 24px 16px 60px; }
+  .game-hub-wrap { padding: 20px 16px 60px; }
+  .uid-wrap { padding: 20px 16px 60px; }
+  .tab-bar-inner { padding: 0 16px; }
+  .site-footer-inner { padding: 0 16px; }
   .layout-with-sidebar { flex-direction: column; align-items: stretch; }
   .content-area { width: 100%; }
   .sidebar { width: 100%; position: static; }
@@ -1648,8 +1680,13 @@ a { text-decoration: none; color: inherit; }
   .char-img-badge { width: 40px; height: 40px; border-radius: 8px; }
   .char-img-more { width: 40px; height: 40px; border-radius: 8px; font-size: 11px; }
   .char-count-badge { font-size: 10px; min-width: 15px; height: 15px; }
-  .card-chars { max-height: 86px; } /* 40px × 2줄 + 6px 간격 */
+  .card-chars { max-height: 86px; }
   .fab { bottom: 16px; right: 16px; padding: 12px 18px; font-size: 13px; }
+  /* 캐릭터 필터 모달: 7열 → 4열 */
+  .cf-modal-body .char-grid { grid-template-columns: repeat(4, 1fr); }
+  /* 푸터 링크 세로 정렬 */
+  .footer-top { flex-direction: column; gap: 24px; padding: 28px 0 20px; }
+  .footer-links { gap: 24px; flex-wrap: wrap; }
 }
 
 @media (min-width: 769px) {

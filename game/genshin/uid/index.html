@@ -9,7 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/config.js"></script>
   <style>
-    .uid-wrap { max-width: 1000px; margin: 0 auto; padding: 24px 16px; }
+    /* .uid-wrap → style.css */
 
     /* 검색 */
     .uid-search-section {
@@ -69,10 +69,10 @@
     /* 캐릭터 카드 그리드 */
     .uid-chars-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 16px;
     }
-    @media (max-width: 520px) {
+    @media (max-width: 640px) {
       .uid-chars-grid { grid-template-columns: 1fr; }
     }
 
