@@ -24,12 +24,17 @@
       margin-bottom: 12px; padding-bottom: 8px;
       border-bottom: 1px solid var(--border, #e5e7eb);
     }
-    .coming-soon-box {
-      background: #f8fafc; border: 1.5px dashed var(--border, #e5e7eb);
-      border-radius: 16px; padding: 32px; text-align: center;
-      color: var(--text-sub, #64748b); margin-bottom: 40px;
+    .tool-section { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 40px; }
+    .tool-card {
+      display: flex; align-items: center; gap: 14px;
+      padding: 18px 22px; border-radius: 16px; text-decoration: none;
+      background: #fff; border: 1.5px solid var(--border, #e5e7eb);
+      transition: transform 0.15s, box-shadow 0.15s; min-width: 220px;
     }
-    .coming-soon-box p { font-size: 14px; margin-top: 8px; }
+    .tool-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
+    .tool-card-icon { font-size: 28px; line-height: 1; flex-shrink: 0; }
+    .tool-card-label { font-size: 14px; font-weight: 700; color: #1e293b; }
+    .tool-card-sub { font-size: 12px; color: #64748b; margin-top: 2px; }
     .trade-section { display: flex; gap: 12px; flex-wrap: wrap; }
     .trade-btn {
       display: inline-flex; align-items: center; gap: 8px;
@@ -57,10 +62,14 @@
       </div>
     </div>
     <div class="section-label">공략 도구</div>
-    <div class="coming-soon-box">
-      <div style="font-size:32px">🔧</div>
-      <strong>공략 도구 준비 중이에요</strong>
-      <p>곧 다양한 공략 도구가 추가될 예정이에요.<br>그동안 판매계정 거래소를 이용해보세요!</p>
+    <div class="tool-section">
+      <a href="/game/zzz/uid/" class="tool-card">
+        <div class="tool-card-icon">🔍</div>
+        <div>
+          <div class="tool-card-label">UID 에이전트 조회</div>
+          <div class="tool-card-sub">UID로 보유 에이전트를 확인하세요</div>
+        </div>
+      </a>
     </div>
     <div class="section-label">거래소</div>
     <div class="trade-section">
