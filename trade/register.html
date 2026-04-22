@@ -315,6 +315,21 @@
   <div class="step-panel" id="panel-2">
     <div class="section-title" style="margin-bottom:12px;">보유 캐릭터를 선택하세요</div>
 
+    <!-- UID 자동 불러오기 (원신 선택 시에만 표시) -->
+    <div id="uid-lookup-section" style="display:none;background:#f8f5ff;border:1.5px solid #e0d4ff;border-radius:12px;padding:14px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:700;color:#6c47ff;margin-bottom:10px;">✨ UID로 캐릭터 자동 불러오기</div>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="uid-input" placeholder="UID 입력 (예: 618285856)" inputmode="numeric"
+          style="flex:1;padding:8px 12px;border:1.5px solid #d4c5ff;border-radius:8px;font-size:13px;font-family:inherit;outline:none;"
+          onfocus="this.style.borderColor='#6c47ff'" onblur="this.style.borderColor='#d4c5ff'"
+          onkeydown="if(event.key==='Enter')lookupUid()">
+        <button id="uid-lookup-btn" onclick="lookupUid()"
+          style="padding:8px 16px;background:#6c47ff;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">조회</button>
+      </div>
+      <div id="uid-result" style="display:none;font-size:12px;margin-top:8px;"></div>
+      <div style="font-size:11px;color:#a78bfa;margin-top:6px;">쇼케이스에 올린 캐릭터(최대 8개)가 자동 선택돼요. 직접 추가·제거도 가능해요.</div>
+    </div>
+
     <div class="selected-chars-bar" id="selected-chars">
       <span style="color:var(--text-muted);font-size:13px;" id="selected-placeholder">캐릭터를 선택하면 여기 표시돼요</span>
     </div>
@@ -454,6 +469,9 @@
       })
       await loadChars()
       renderSelectedChars()
+
+      const uidSection = document.getElementById('uid-lookup-section')
+      if (uidSection) uidSection.style.display = listing.game?.slug === 'genshin' ? 'block' : 'none'
 
       // 가격/설명/연락처
       document.getElementById('price-input').value = listing.price ? Number(listing.price).toLocaleString('ko-KR') : ''
@@ -714,6 +732,10 @@
       const serverVal = document.getElementById('server-select').value
       if (!serverVal) { alert('서버를 선택해주세요'); return }
       selectedServerId = serverVal
+
+      const uidSection = document.getElementById('uid-lookup-section')
+      if (uidSection) uidSection.style.display = selectedGame?.slug === 'genshin' ? 'block' : 'none'
+
       loadChars()
     }
     if (n === 3) {
@@ -759,6 +781,80 @@
       <div class="summary-row"><span>캐릭터</span>${charsHtml}</div>
       ${currencyEntries.length > 0 ? `<div class="summary-row"><span>보유 재화</span>${currenciesHtml}</div>` : ''}
     `
+  }
+
+  // ===== 원신 UID 조회 =====
+  let genshinCharMap = null
+
+  async function buildGenshinCharMap() {
+    if (genshinCharMap) return genshinCharMap
+    const cached = sessionStorage.getItem('gi-char-map-v1')
+    if (cached) { genshinCharMap = JSON.parse(cached); return genshinCharMap }
+    try {
+      const res = await fetch('https://gi.yatta.moe/api/v2/KR/avatar')
+      const json = await res.json()
+      const items = json?.data?.items ?? {}
+      genshinCharMap = {}
+      Object.values(items).forEach(c => { genshinCharMap[String(c.id)] = c.name })
+      sessionStorage.setItem('gi-char-map-v1', JSON.stringify(genshinCharMap))
+    } catch { genshinCharMap = {} }
+    return genshinCharMap
+  }
+
+  async function lookupUid() {
+    const uid = document.getElementById('uid-input').value.trim()
+    if (!/^\d{6,10}$/.test(uid)) { showUidResult('error', 'UID는 6~10자리 숫자예요'); return }
+
+    const btn = document.getElementById('uid-lookup-btn')
+    btn.disabled = true; btn.textContent = '조회 중...'
+    showUidResult('loading', '계정 정보를 불러오는 중...')
+
+    try {
+      const [charMap, enkaRes] = await Promise.all([
+        buildGenshinCharMap(),
+        fetch('/api/enka/' + uid)
+      ])
+
+      if (!enkaRes.ok) {
+        const msgs = { 400: 'UID를 찾을 수 없어요', 404: '존재하지 않는 UID예요', 429: '잠시 후 다시 시도해주세요' }
+        showUidResult('error', msgs[enkaRes.status] ?? '조회에 실패했어요')
+        return
+      }
+
+      const data = await enkaRes.json()
+      const playerInfo = data.playerInfo
+      const showcaseChars = data.avatarInfoList ?? []
+
+      if (!playerInfo) { showUidResult('error', '계정 정보를 불러올 수 없어요'); return }
+
+      const normalize = s => s.replace(/\s/g, '').toLowerCase()
+      let matched = 0
+      for (const avatar of showcaseChars) {
+        const name = charMap[String(avatar.avatarId)]
+        if (!name) continue
+        const dbChar = allChars.find(c => normalize(c.nameKo) === normalize(name))
+        if (dbChar && !selectedChars[dbChar.id]) {
+          selectedChars[dbChar.id] = { char: dbChar, count: 1 }
+          matched++
+        }
+      }
+
+      renderCharGrid()
+      renderSelectedChars()
+
+      const nickname = playerInfo.nickname ?? '알 수 없음'
+      const level = playerInfo.level ?? '?'
+      showUidResult('success', `${nickname} · AR${level} · 쇼케이스 ${matched}명이 자동 선택됐어요`)
+    } catch { showUidResult('error', '조회에 실패했어요') }
+    finally { btn.disabled = false; btn.textContent = '조회' }
+  }
+
+  function showUidResult(type, msg) {
+    const el = document.getElementById('uid-result')
+    const colors = { success: '#10b981', error: '#ef4444', loading: '#94a3b8' }
+    el.style.display = 'block'
+    el.style.color = colors[type] ?? '#666'
+    el.textContent = msg
   }
 
   function handlePriceInput(input) {
