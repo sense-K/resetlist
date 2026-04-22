@@ -135,69 +135,51 @@
   document.getElementById('navbar').innerHTML = renderNavbar()
   loadAndRenderGameUI(null)
 
+  function renderComingSoon() {
+    document.getElementById('price-meta').textContent = '시세 데이터 수집 중'
+    const s = document.getElementById('price-summary')
+    Array.from(s.children).forEach(c => {
+      c.querySelector('.price-stat-value').textContent = '준비 중'
+      c.querySelector('.price-stat-value').style.cssText = 'font-size:15px;color:#aaa;font-weight:700;'
+    })
+    document.getElementById('price-table-body').innerHTML = `
+      <tr><td colspan="3" style="text-align:center;padding:40px 24px;color:#aaa;">
+        <div style="font-size:15px;font-weight:700;margin-bottom:8px;">시세 데이터 수집 중이에요</div>
+        <div style="font-size:13px;">커뮤니티 매물 분석 후 곧 업데이트 예정이에요</div>
+      </td></tr>`
+  }
+
   async function loadPriceData() {
     const [{ data: game }, { data: rows }] = await Promise.all([
       db.from('Game').select('id, nameKo, imageUrl').eq('slug', GAME_SLUG).single(),
       db.from('price_data').select('*').eq('game_slug', GAME_SLUG).order('sort_order')
     ])
-
-    if (game) {
-      const header = document.getElementById('price-header')
-      const imgEl = header.querySelector('div')
-      if (game.imageUrl) {
-        imgEl.outerHTML = `<img class="price-header-img" src="${game.imageUrl}" alt="${game.nameKo}">`
-      }
-    }
-
-    if (!rows || rows.length === 0) {
-      document.getElementById('price-meta').textContent = '시세 데이터가 없습니다'
-      document.getElementById('price-table-body').innerHTML = '<tr><td colspan="3" style="text-align:center;padding:24px;color:#aaa;">데이터가 없어요</td></tr>'
-      return
-    }
+    if (game?.imageUrl) document.getElementById('price-header').querySelector('div').outerHTML = `<img class="price-header-img" src="${game.imageUrl}" alt="${game.nameKo}">`
+    if (!rows || rows.length === 0) { renderComingSoon(); return }
 
     const lastUpdated = rows.reduce((a, b) => a.updated_at > b.updated_at ? a : b).updated_at
-    const updatedDate = new Date(lastUpdated).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
-    document.getElementById('price-meta').textContent = `커뮤니티 매물 기준 · 마지막 업데이트 ${updatedDate}`
-
-    const allMins = rows.map(r => r.price_min)
-    const allMaxs = rows.map(r => r.price_max)
-    const overallMin = Math.min(...allMins)
-    const overallMax = Math.max(...allMaxs)
-    const midRow = rows[1] || rows[0]
-    const midRange = `${midRow.price_min.toLocaleString()}원~`
-
-    const summaryEl = document.getElementById('price-summary')
-    summaryEl.children[0].querySelector('.price-stat-value').textContent = overallMin.toLocaleString() + '원~'
-    summaryEl.children[1].querySelector('.price-stat-value').textContent = midRange
-    summaryEl.children[2].querySelector('.price-stat-value').textContent = '~' + overallMax.toLocaleString() + '원'
-
-    const tbody = document.getElementById('price-table-body')
-    tbody.innerHTML = rows.map(r => `
+    document.getElementById('price-meta').textContent = `커뮤니티 매물 기준 · 마지막 업데이트 ${new Date(lastUpdated).toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' })}`
+    const s = document.getElementById('price-summary')
+    s.children[0].querySelector('.price-stat-value').textContent = Math.min(...rows.map(r=>r.price_min)).toLocaleString() + '원~'
+    s.children[1].querySelector('.price-stat-value').textContent = rows[1]?.price_min.toLocaleString() + '원~'
+    s.children[2].querySelector('.price-stat-value').textContent = '~' + Math.max(...rows.map(r=>r.price_max)).toLocaleString() + '원'
+    document.getElementById('price-table-body').innerHTML = rows.map(r=>`
       <tr>
         <td class="td-type">${r.account_type}</td>
         <td class="td-range">${r.price_min.toLocaleString()}원 ~ ${r.price_max.toLocaleString()}원</td>
-        <td class="td-desc">${r.description || ''}</td>
-      </tr>
-    `).join('')
+        <td class="td-desc">${r.description||''}</td>
+      </tr>`).join('')
   }
 
   async function loadRecentListings() {
     const { data: game } = await db.from('Game').select('id').eq('slug', GAME_SLUG).single()
     if (!game) return
-
     const { data: listings } = await db.from('Listing')
-      .select('id, price, status, description, discountAmount, viewCount, createdAt, game:gameId(slug,nameKo,emoji,imageUrl,artImageUrl), server:serverId(nameKo), user:userId(nickname), characters:ListingCharacter(count, character:characterId(nameKo,imageUrl,tier))')
-      .eq('gameId', game.id)
-      .eq('status', 'active')
-      .order('createdAt', { ascending: false })
-      .limit(3)
-
-    if (!listings || listings.length === 0) return
-
-    const section = document.getElementById('recent-section')
-    const grid = document.getElementById('recent-listings')
-    grid.innerHTML = listings.map(l => renderListingCard(l)).join('')
-    section.style.display = 'block'
+      .select('id,price,status,description,discountAmount,viewCount,createdAt,game:gameId(slug,nameKo,emoji,imageUrl,artImageUrl),server:serverId(nameKo),user:userId(nickname),characters:ListingCharacter(count,character:characterId(nameKo,imageUrl,tier))')
+      .eq('gameId', game.id).eq('status', 'active').order('createdAt', {ascending:false}).limit(3)
+    if (!listings?.length) return
+    document.getElementById('recent-listings').innerHTML = listings.map(l => renderListingCard(l)).join('')
+    document.getElementById('recent-section').style.display = 'block'
   }
 
   loadPriceData()
