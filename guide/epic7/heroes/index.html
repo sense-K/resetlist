@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>에픽세븐 영웅 도감 - 장비 세팅 & 스탯 추천 | 리세리스트</title>
+  <meta name="description" content="에픽세븐 전체 영웅의 장비 세팅, 추천 스탯 구간, 시너지 영웅을 확인하세요. 챔피언~레전드 등급 실시간 픽률 데이터 제공." />
+  <meta name="keywords" content="에픽세븐 영웅 도감, 에픽세븐 장비 세팅, 에픽세븐 스탯, 에픽세븐 영웅 추천" />
+  <link rel="canonical" href="https://resetlist.kr/guide/epic7/heroes/" />
+  <meta property="og:title" content="에픽세븐 영웅 도감 - Epic Sense" />
+  <meta property="og:description" content="에픽세븐 전체 영웅의 장비 세팅, 추천 스탯 구간, 시너지 영웅을 확인하세요." />
+  <meta property="og:url" content="https://resetlist.kr/guide/epic7/heroes/" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/config.js"></script>
+  <style>
+    .h-wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px; min-height: calc(100vh - 60px - 140px); }
+
+    /* 필터 영역 */
+    .h-filter {
+      background: #fff;
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .h-search {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+      color: var(--text, #1e293b);
+      background: #f8fafc;
+    }
+    .h-search:focus { border-color: #7c3aed; background: #fff; }
+    .h-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .h-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
+      border: 1px solid var(--border, #e5e7eb);
+      background: transparent; color: var(--text-sub, #64748b);
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .h-chip:hover { opacity: 0.8; }
+    .h-chip.active { color: #fff; }
+    .h-chip img { width: 13px; height: 13px; object-fit: contain; }
+    .h-chip-divider { width: 1px; height: 20px; background: var(--border, #e5e7eb); margin: 0 2px; }
+
+    /* 결과 카운트 */
+    .h-count { font-size: 13px; color: var(--text-sub, #64748b); margin-bottom: 14px; }
+    .h-count strong { color: var(--text, #1e293b); }
+
+    /* 영웅 그리드 */
+    .h-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .h-card {
+      background: #fff;
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 14px;
+      padding: 12px 8px 10px;
+      text-decoration: none;
+      display: flex; flex-direction: column; align-items: center; gap: 0;
+      transition: transform 0.15s, box-shadow 0.15s;
+      cursor: pointer;
+    }
+    .h-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+
+    .h-portrait-wrap { position: relative; width: 72px; height: 72px; margin-bottom: 8px; }
+    .h-portrait {
+      width: 72px; height: 72px;
+      border-radius: 50%; overflow: hidden;
+      border: 3px solid transparent;
+      background: #f1f5f9;
+    }
+    .h-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+    .h-icon-tl, .h-icon-tr {
+      position: absolute; top: -3px;
+      width: 22px; height: 22px; border-radius: 50%; overflow: hidden;
+      background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.2);
+    }
+    .h-icon-tl { left: -3px; }
+    .h-icon-tr { right: -3px; }
+    .h-icon-tl img, .h-icon-tr img { width: 100%; height: 100%; object-fit: contain; }
+    .h-stars {
+      position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center;
+    }
+    .h-stars img { width: 16px; height: 16px; margin-right: -5px; }
+    .h-stars img:last-child { margin-right: 0; }
+
+    .h-card-name {
+      font-size: 12px; font-weight: 700; color: #1e293b;
+      text-align: center; white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis; width: 100%;
+      margin-top: 4px;
+    }
+    /* 로딩 */
+    .h-loading { text-align: center; padding: 60px 20px; color: var(--text-sub, #64748b); font-size: 14px; }
+    .h-empty { text-align: center; padding: 60px 20px; color: var(--text-sub, #64748b); font-size: 14px; }
+
+    @media (max-width: 480px) {
+      .h-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
+      .h-portrait-wrap { width: 60px; height: 60px; }
+      .h-portrait { width: 60px; height: 60px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar-container"></div>
+
+  <main class="h-wrap">
+    <div style="margin-bottom:16px;">
+      <h1 style="font-size:20px;font-weight:800;color:var(--text,#1e293b);margin-bottom:4px;">에픽세븐 영웅 도감</h1>
+      <p style="font-size:13px;color:var(--text-sub,#64748b);">전체 영웅의 장비 세팅, 추천 스탯 구간, 시너지 영웅 정보</p>
+    </div>
+
+    <!-- 검색 + 필터 -->
+    <div class="h-filter">
+      <input type="search" class="h-search" id="heroSearch" placeholder="영웅 이름 검색..." />
+      <div class="h-chips" id="chipRow"></div>
+    </div>
+
+    <div class="h-count" id="heroCount"></div>
+
+    <div id="heroGrid">
+      <div class="h-loading">영웅 데이터 불러오는 중...</div>
+    </div>
+  </main>
+
+  <div id="footer-container"></div>
+
+  <script>
+    document.getElementById('navbar-container').innerHTML = renderNavbar('epic7');
+    loadAndRenderGameUI(null)
+    document.getElementById('footer-container').innerHTML = typeof renderFooter === 'function' ? renderFooter() : '';
+
+    // ── 상수 ─────────────────────────────────────
+    const PROXY = 'https://epicsense-e7proxy.zzabhm.workers.dev';
+    const HERO_IMG = code => `https://static-pubcomm.onstove.com/event/live/epic7/guide/images/hero/${code}_s.png`;
+    const ATTR_MAP = { fire:'fire', ice:'ice', wind:'earth', light:'light', dark:'dark' };
+    const JOB_MAP  = { warrior:'warrior', knight:'knight', mage:'mage', ranger:'ranger', assassin:'thief', manauser:'soul' };
+
+    const ELEMENT_COLOR = { fire:'#ef4444', ice:'#3b82f6', earth:'#22c55e', light:'#eab308', dark:'#a855f7' };
+    const ELEMENT_BG    = { fire:'rgba(239,68,68,0.15)', ice:'rgba(59,130,246,0.15)', earth:'rgba(34,197,94,0.15)', light:'rgba(234,179,8,0.15)', dark:'rgba(168,85,247,0.15)' };
+    const ELEMENT_LABEL = { fire:'화염', ice:'냉기', earth:'자연', light:'광', dark:'암' };
+    const ELEMENT_IMG   = { fire:'/epic7-icons/element/fire.png', ice:'/epic7-icons/element/ice.png', earth:'/epic7-icons/element/wind.png', light:'/epic7-icons/element/light.png', dark:'/epic7-icons/element/dark.png' };
+    const CLASS_LABEL   = { warrior:'전사', knight:'기사', mage:'마도사', thief:'도적', ranger:'사수', soul:'정령사' };
+    const CLASS_IMG     = { warrior:'/epic7-icons/class/warrior.webp', knight:'/epic7-icons/class/knight.webp', mage:'/epic7-icons/class/mage.png', thief:'/epic7-icons/class/thief.webp', ranger:'/epic7-icons/class/ranger.webp', soul:'/epic7-icons/class/soul.webp' };
+    const STAR_IMG = '/epic7-icons/star/star1.svg';
+
+    const ELEMENTS = ['fire','ice','earth','light','dark'];
+    const CLASSES  = ['warrior','knight','mage','thief','ranger','soul'];
+
+    // ── 상태 ─────────────────────────────────────
+    let allHeroes = [];
+    let filterEls = new Set();
+    let filterCls = new Set();
+    let searchText = '';
+
+    // ── API ──────────────────────────────────────
+    async function e7fetch(endpoint, params = {}) {
+      const qs = new URLSearchParams(params).toString();
+      const res = await fetch(`${PROXY}/api/e7/${endpoint}${qs ? '?' + qs : ''}`);
+      const json = await res.json();
+      if (json.code !== 0) throw new Error('api error');
+      return json.value.result_body;
+    }
+
+    async function loadHeroJson() {
+      const res = await fetch(`${PROXY}/api/hero-json`);
+      const json = await res.json();
+      return (json['ko'] || []).filter(h => h.code !== 'c0001' && h.code !== 'c1005');
+    }
+
+    // ── 초기화 ───────────────────────────────────
+    async function init() {
+      try {
+        const [heroJson, seasons] = await Promise.all([loadHeroJson(), e7fetch('getSeasonList', { lang: 'ko' })]);
+        const seasonCode = (seasons.find(s => s.is_now_season === 1) || seasons[0])?.season_code || '';
+        const popular = await e7fetch('getPopularHero', { season_code: seasonCode, grade_code: 'champion', lang: 'ko' });
+        const popMap = new Map(popular.map(h => [h.hero_code, h]));
+
+        allHeroes = heroJson.map(h => ({
+          code: h.code,
+          name: h.name,
+          element: ATTR_MAP[h.attribute_cd] || 'fire',
+          heroClass: JOB_MAP[h.job_cd] || 'warrior',
+          stars: parseInt(h.grade) || 5,
+          pickRate: popMap.get(h.code)?.pick_rate ?? null,
+        }));
+        allHeroes.sort((a, b) => (b.pickRate ?? -1) - (a.pickRate ?? -1));
+
+        buildChips();
+        renderGrid();
+      } catch(e) {
+        document.getElementById('heroGrid').innerHTML = '<div class="h-loading">데이터를 불러오지 못했어요. 잠시 후 새로고침 해주세요.</div>';
+      }
+    }
+
+    // ── 필터 칩 렌더 ─────────────────────────────
+    function buildChips() {
+      const row = document.getElementById('chipRow');
+      row.innerHTML = '';
+
+      // 전체 칩
+      row.appendChild(makeChip('전체', null, null, true, () => {
+        filterEls.clear(); filterCls.clear(); renderChips(); renderGrid();
+      }));
+
+      // 속성
+      ELEMENTS.forEach(el => {
+        row.appendChild(makeChip(ELEMENT_LABEL[el], ELEMENT_IMG[el], ELEMENT_COLOR[el], false, () => {
+          filterEls.has(el) ? filterEls.delete(el) : filterEls.add(el);
+          renderChips(); renderGrid();
+        }, () => filterEls.has(el)));
+      });
+
+      // 구분선
+      const div = document.createElement('div');
+      div.className = 'h-chip-divider';
+      row.appendChild(div);
+
+      // 직업
+      CLASSES.forEach(cls => {
+        row.appendChild(makeChip(CLASS_LABEL[cls], CLASS_IMG[cls], null, false, () => {
+          filterCls.has(cls) ? filterCls.delete(cls) : filterCls.add(cls);
+          renderChips(); renderGrid();
+        }, () => filterCls.has(cls)));
+      });
+    }
+
+    function makeChip(label, iconSrc, color, isAll, onClick, isActive) {
+      const btn = document.createElement('button');
+      btn.className = 'h-chip';
+      btn.dataset.label = label;
+      if (iconSrc) {
+        const img = document.createElement('img');
+        img.src = iconSrc; img.alt = label;
+        btn.appendChild(img);
+      }
+      btn.appendChild(document.createTextNode(label));
+      btn.addEventListener('click', onClick);
+      if (isAll) btn.dataset.allChip = '1';
+      if (color) btn.dataset.color = color;
+      if (isActive) btn.dataset.activeCheck = '1';
+      updateChipStyle(btn, isAll ? (filterEls.size === 0 && filterCls.size === 0) : (isActive ? isActive() : false), color);
+      return btn;
+    }
+
+    function renderChips() {
+      const isAllActive = filterEls.size === 0 && filterCls.size === 0;
+      document.querySelectorAll('.h-chip').forEach(btn => {
+        if (btn.dataset.allChip) {
+          updateChipStyle(btn, isAllActive, null);
+          return;
+        }
+        // 속성 칩
+        const label = btn.dataset.label;
+        const elKey = Object.entries(ELEMENT_LABEL).find(([,v]) => v === label)?.[0];
+        const clsKey = Object.entries(CLASS_LABEL).find(([,v]) => v === label)?.[0];
+        const active = elKey ? filterEls.has(elKey) : (clsKey ? filterCls.has(clsKey) : false);
+        updateChipStyle(btn, active, btn.dataset.color || null);
+      });
+    }
+
+    function updateChipStyle(btn, active, color) {
+      if (active) {
+        btn.style.background = color || '#1e293b';
+        btn.style.borderColor = color || '#1e293b';
+        btn.style.color = '#fff';
+        // 아이콘 밝게
+        const img = btn.querySelector('img');
+        if (img) img.style.filter = !color ? 'brightness(0) invert(1)' : 'none';
+      } else {
+        btn.style.background = 'transparent';
+        btn.style.borderColor = 'var(--border, #e5e7eb)';
+        btn.style.color = 'var(--text-sub, #64748b)';
+        const img = btn.querySelector('img');
+        if (img) img.style.filter = 'none';
+      }
+    }
+
+    // ── 그리드 렌더 ──────────────────────────────
+    function getFiltered() {
+      return allHeroes.filter(h => {
+        if (searchText && !h.name.includes(searchText)) return false;
+        if (filterEls.size > 0 && !filterEls.has(h.element)) return false;
+        if (filterCls.size > 0 && !filterCls.has(h.heroClass)) return false;
+        return true;
+      });
+    }
+
+    function renderGrid() {
+      const filtered = getFiltered();
+      document.getElementById('heroCount').innerHTML = `총 <strong>${filtered.length}</strong>명`;
+
+      if (filtered.length === 0) {
+        document.getElementById('heroGrid').innerHTML = '<div class="h-empty">검색 결과가 없어요</div>';
+        return;
+      }
+
+      const color = h => ELEMENT_COLOR[h.element];
+      const bg = h => ELEMENT_BG[h.element];
+
+      const cards = filtered.map(h => {
+        const stars = Array.from({length: h.stars}, (_, i) =>
+          `<img src="${STAR_IMG}" alt="" style="margin-right:${i < h.stars-1 ? '-5px' : '0'}">`
+        ).join('');
+
+        return `
+          <a href="/guide/epic7/heroes/detail/?code=${h.code}" class="h-card">
+            <div class="h-portrait-wrap">
+              <div class="h-portrait" style="border-color:${color(h)};background:${bg(h)};">
+                <img src="${HERO_IMG(h.code)}" alt="${h.name}" loading="lazy"
+                  onerror="this.style.display='none'" />
+              </div>
+              <div class="h-icon-tl">
+                <img src="${CLASS_IMG[h.heroClass]}" alt="${CLASS_LABEL[h.heroClass]}" />
+              </div>
+              <div class="h-icon-tr">
+                <img src="${ELEMENT_IMG[h.element]}" alt="${ELEMENT_LABEL[h.element]}" />
+              </div>
+              <div class="h-stars">${stars}</div>
+            </div>
+            <div class="h-card-name">${h.name}</div>
+          </a>
+        `;
+      }).join('');
+
+      document.getElementById('heroGrid').innerHTML = `<div class="h-grid">${cards}</div>`;
+    }
+
+    // ── 이벤트 ───────────────────────────────────
+    document.getElementById('heroSearch').addEventListener('input', e => {
+      searchText = e.target.value.trim();
+      renderGrid();
+    });
+
+    init();
+  </script>
+</body>
+</html>
