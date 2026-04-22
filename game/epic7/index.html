@@ -29,26 +29,7 @@
       margin-bottom: 12px; padding-bottom: 8px;
       border-bottom: 1px solid var(--border, #e5e7eb);
     }
-    .tools-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 14px; margin-bottom: 40px;
-    }
-    .tool-card {
-      background: #fff; border: 1px solid var(--border, #e5e7eb);
-      border-radius: 16px; padding: 20px; text-decoration: none;
-      display: flex; flex-direction: column; gap: 8px;
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .tool-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
-    .tool-card-top { display: flex; align-items: center; justify-content: space-between; }
-    .tool-card-icon {
-      width: 36px; height: 36px; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center; font-size: 18px;
-    }
-    .badge-live { background: rgba(59,130,246,0.1); color: #3b82f6; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
-    .tool-card-title { font-size: 14px; font-weight: 700; color: #1e293b; }
-    .tool-card-desc { font-size: 12px; color: #64748b; line-height: 1.5; }
+    /* .tools-grid, .hub-tool-card → style.css */
     .trade-section { display: flex; gap: 12px; flex-wrap: wrap; }
     .trade-btn {
       display: inline-flex; align-items: center; gap: 8px;
@@ -79,37 +60,37 @@
 
     <div class="section-label">공략 도구</div>
     <div class="tools-grid">
-      <a href="/game/epic7/rta/" class="tool-card">
-        <div class="tool-card-top">
-          <div class="tool-card-icon" style="background:rgba(59,130,246,0.1)">⚔️</div>
-          <span class="badge-live">서비스 중</span>
+      <a href="/game/epic7/rta/" class="hub-tool-card">
+        <div class="hub-tool-card-top">
+          <div class="hub-tool-card-icon" style="background:rgba(59,130,246,0.1)">⚔️</div>
+          <span class="hub-tool-card-badge">서비스 중</span>
         </div>
-        <div class="tool-card-title">RTA 드래프트 도우미</div>
-        <div class="tool-card-desc">실시간 밴픽 추천, 시너지·카운터 영웅</div>
+        <div class="hub-tool-card-title">RTA 드래프트 도우미</div>
+        <div class="hub-tool-card-desc">실시간 밴픽 추천, 시너지·카운터 영웅</div>
       </a>
-      <a href="/game/epic7/heroes/" class="tool-card">
-        <div class="tool-card-top">
-          <div class="tool-card-icon" style="background:rgba(34,197,94,0.1)">📖</div>
-          <span class="badge-live">서비스 중</span>
+      <a href="/game/epic7/heroes/" class="hub-tool-card">
+        <div class="hub-tool-card-top">
+          <div class="hub-tool-card-icon" style="background:rgba(34,197,94,0.1)">📖</div>
+          <span class="hub-tool-card-badge">서비스 중</span>
         </div>
-        <div class="tool-card-title">영웅 도감</div>
-        <div class="tool-card-desc">장비 세팅, 추천 스탯, 시너지·카운터</div>
+        <div class="hub-tool-card-title">영웅 도감</div>
+        <div class="hub-tool-card-desc">장비 세팅, 추천 스탯, 시너지·카운터</div>
       </a>
-      <a href="/game/epic7/artifacts/" class="tool-card">
-        <div class="tool-card-top">
-          <div class="tool-card-icon" style="background:rgba(234,179,8,0.1)">💎</div>
-          <span class="badge-live">서비스 중</span>
+      <a href="/game/epic7/artifacts/" class="hub-tool-card">
+        <div class="hub-tool-card-top">
+          <div class="hub-tool-card-icon" style="background:rgba(234,179,8,0.1)">💎</div>
+          <span class="hub-tool-card-badge">서비스 중</span>
         </div>
-        <div class="tool-card-title">아티팩트 도감</div>
-        <div class="tool-card-desc">직업별·등급별 필터, 영웅 사용 현황</div>
+        <div class="hub-tool-card-title">아티팩트 도감</div>
+        <div class="hub-tool-card-desc">직업별·등급별 필터, 영웅 사용 현황</div>
       </a>
-      <a href="/game/epic7/gear-recommend/" class="tool-card">
-        <div class="tool-card-top">
-          <div class="tool-card-icon" style="background:rgba(168,85,247,0.1)">🔍</div>
-          <span class="badge-live">서비스 중</span>
+      <a href="/game/epic7/gear-recommend/" class="hub-tool-card">
+        <div class="hub-tool-card-top">
+          <div class="hub-tool-card-icon" style="background:rgba(168,85,247,0.1)">🔍</div>
+          <span class="hub-tool-card-badge">서비스 중</span>
         </div>
-        <div class="tool-card-title">장비 주인 찾기</div>
-        <div class="tool-card-desc">장비 스탯 입력 → 어울리는 영웅 추천</div>
+        <div class="hub-tool-card-title">장비 주인 찾기</div>
+        <div class="hub-tool-card-desc">장비 스탯 입력 → 어울리는 영웅 추천</div>
       </a>
     </div>
 
