@@ -1,3 +1,7 @@
+# 구 .html URL 호환
+/trade/register.html        /trade/register/                 301
+/trade/bulk.html            /trade/bulk/                     301
+
 # 구 게임 거래소 페이지 → /trade/[game]/
 /genshin/                   /trade/genshin/                  301
 /bluearchive/               /trade/bluearchive/               301

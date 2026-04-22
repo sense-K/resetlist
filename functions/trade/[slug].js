@@ -48,7 +48,7 @@ export async function onRequest({ params }) {
     <div class="content-area">
       <div class="content-header">
         <div class="content-title" id="game-page-title">${nameKo} 계정</div>
-        <a href="/trade/register.html" class="btn btn-primary" style="font-size:13px;padding:7px 16px;white-space:nowrap;flex-shrink:0;">판매 등록하기 ↗</a>
+        <a href="/trade/register/" class="btn btn-primary" style="font-size:13px;padding:7px 16px;white-space:nowrap;flex-shrink:0;">판매 등록하기 ↗</a>
       </div>
       <div class="char-filter-bar">
         <select class="form-select" id="server-filter" style="width:auto;min-width:110px;"><option value="">전체 서버</option></select>
@@ -63,7 +63,7 @@ export async function onRequest({ params }) {
   </div>
 </div>
 
-<a href="/trade/register.html" class="fab">판매하기 ↗</a>
+<a href="/trade/register/" class="fab">판매하기 ↗</a>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/config.js"></script>
