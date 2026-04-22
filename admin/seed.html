@@ -121,6 +121,7 @@
         const now = new Date().toISOString()
 
         const { data: listing, error } = await db.from('Listing').insert({
+          id: crypto.randomUUID(),
           gameId,
           userId,
           serverId: server.id,
