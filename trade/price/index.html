@@ -55,10 +55,10 @@
   loadAndRenderGameUI(null)
 
   // 시세 페이지가 존재하는 게임 슬러그 목록
-  const PRICE_PAGE_SLUGS = ['genshin', 'cookie-run', 'nikke', 'bluearchive', 'zzz', 'sevenknightsre', 'leehwan', 'trickcal', 'limbus', 'stardive']
+  const PRICE_PAGE_SLUGS = ['epicseven', 'genshin', 'cookie-run', 'nikke', 'bluearchive', 'zzz', 'sevenknightsre', 'leehwan', 'trickcal', 'limbus', 'stardive']
 
   // DB slug → price URL path 매핑 (slug != URL 경로인 경우)
-  const PRICE_PATH_MAP = { 'cookie-run': 'cookierunkingdom' }
+  const PRICE_PATH_MAP = { 'cookie-run': 'cookierunkingdom', 'epicseven': 'epic7' }
 
   async function loadPriceIndex() {
     const grid = document.getElementById('price-index-grid')
@@ -91,7 +91,7 @@
         : '시세 데이터 준비 중'
 
       const pricePathSlug = PRICE_PATH_MAP[g.slug] || g.slug
-      const href = hasPricePage ? `/price/${pricePathSlug}/` : null
+      const href = hasPricePage ? `/trade/price/${pricePathSlug}/` : null
       const tag = hasPricePage ? `<span class="price-index-card-badge">시세 보기 →</span>` : `<span class="price-index-card-badge" style="color:#aaa;background:#f3f4f6;">준비 중</span>`
       const wrapOpen = hasPricePage ? `<a class="price-index-card" href="${href}">` : `<div class="price-index-card" style="opacity:0.6;cursor:default;">`
       const wrapClose = hasPricePage ? `</a>` : `</div>`
