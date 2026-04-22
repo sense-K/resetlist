@@ -859,13 +859,16 @@
       '<div style="text-align:center;padding:40px;color:#888;font-size:14px;">데이터를 불러오는 중...</div>'
 
     try {
-      // 1. StarRailRes에서 캐릭터 데이터 fetch
-      const res = await fetch(STARRAIL_CHARS_JSON)
-      if (!res.ok) throw new Error('GitHub 데이터 로드 실패')
-      const raw = await res.json()
+      // 1. StarRailRes에서 한국어 + 영어 캐릭터 데이터 동시 fetch
+      const [resKr, resEn] = await Promise.all([
+        fetch(STARRAIL_CHARS_JSON),
+        fetch(`${STARRAIL_CDN}/index_min/en/characters.json`),
+      ])
+      if (!resKr.ok) throw new Error('GitHub 데이터 로드 실패')
+      const rawKr = await resKr.json()
+      const rawEn = resEn.ok ? await resEn.json() : {}
 
-      // raw는 { "1001": { id, name, rarity, icon, ... }, ... } 구조
-      const entries = Object.values(raw).filter(c => c.id && c.name && c.rarity)
+      const entries = Object.values(rawKr).filter(c => c.id && c.name && c.rarity)
 
       // 2. Supabase에서 starrail 게임 ID 조회
       const { data: games } = await db.from('Game').select('id, slug').eq('slug', 'starrail')
@@ -886,6 +889,7 @@
           gameId: starrailGameId,
           id: String(c.id),
           nameKo: c.name,
+          nameEn: rawEn[String(c.id)]?.name ?? c.name,
           tier: c.rarity >= 5 ? 'S' : 'A',
           imageUrl: c.icon ? `${STARRAIL_CDN}/${c.icon}` : null,
         }))
@@ -938,6 +942,7 @@
       id: crypto.randomUUID(),
       gameId: c.gameId,
       nameKo: c.nameKo,
+      nameEn: c.nameEn,
       tier: c.tier,
       imageUrl: c.imageUrl,
       isActive: true,
