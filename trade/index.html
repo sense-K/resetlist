@@ -5,84 +5,168 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="shortcut icon" href="/favicon.svg">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>플레이센스 - 모바일 게임 리세계 직거래 플랫폼 | playsense</title>
-  <meta name="description" content="원하는 리세계를 검색해보세요. 다양한 모바일 게임의 리세계 판매계정을 한 곳에서 확인하고 안전하게 거래하세요.">
-  <meta name="keywords" content="리세계, 리세계 직거래, 리세계 판매, 리세계 계정거래, 리세계 계정구매, 리세계 사는곳, 리세계 파는곳, 판매계정, 플레이센스, playsense">
+  <title>리세계 직거래 거래소 | 플레이센스</title>
+  <meta name="description" content="원신, 블루아카이브, 니케, 에픽세븐 등 인기 모바일 게임 리세계 판매계정과 시세를 한눈에 확인하세요. 수수료 없는 직거래 플랫폼.">
+  <meta name="keywords" content="리세계 직거래, 리세계 판매, 리세계 계정거래, 리세계 시세, 판매계정, 플레이센스">
   <link rel="canonical" href="https://resetlist.kr/trade/">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://resetlist.kr/trade/">
-  <meta property="og:title" content="플레이센스 - 모바일 게임 리세계 직거래 플랫폼">
-  <meta property="og:description" content="원하는 리세계를 검색해보세요. 다양한 모바일 게임의 리세계 판매계정을 한 곳에서 확인하고 안전하게 거래하세요.">
+  <meta property="og:title" content="리세계 직거래 거래소 | 플레이센스">
+  <meta property="og:description" content="원신, 블루아카이브, 니케, 에픽세븐 등 인기 모바일 게임 리세계 판매계정과 시세를 한눈에 확인하세요.">
   <meta property="og:site_name" content="플레이센스">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="플레이센스 - 모바일 게임 리세계 직거래 플랫폼">
-  <meta name="twitter:description" content="원하는 리세계를 검색해보세요. 다양한 모바일 게임의 리세계 판매계정을 한 곳에서 확인하고 안전하게 거래하세요.">
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "플레이센스",
-    "alternateName": "playsense",
-    "url": "https://resetlist.kr",
-    "description": "다양한 모바일 게임의 리세계 판매계정을 한 곳에서 확인하고 안전하게 거래하는 직거래 플랫폼",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": {
-        "@type": "EntryPoint",
-        "urlTemplate": "https://resetlist.kr/?q={search_term_string}"
-      },
-      "query-input": "required name=search_term_string"
-    }
-  }
-  </script>
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .trade-main-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 16px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 768px) {
+      .trade-main-wrap { grid-template-columns: 1fr; }
+    }
+
+    /* 좌측 게임 목록 */
+    .trade-game-col { position: sticky; top: 72px; }
+    .trade-col-title {
+      font-size: 13px; font-weight: 700; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .trade-game-list { display: flex; flex-direction: column; gap: 8px; }
+    .trade-game-item {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .trade-game-item-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px; object-fit: cover; flex-shrink: 0;
+    }
+    .trade-game-item-info { flex: 1; min-width: 0; }
+    .trade-game-item-name {
+      font-size: 13px; font-weight: 700; color: #1e293b;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .trade-game-item-price {
+      font-size: 11px; color: #94a3b8; margin-top: 2px;
+    }
+    .trade-game-item-btns {
+      display: flex; gap: 5px; flex-shrink: 0;
+    }
+    .trade-game-btn {
+      font-size: 11px; font-weight: 700;
+      padding: 5px 9px; border-radius: 8px;
+      text-decoration: none; white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+    .trade-game-btn:hover { opacity: 0.8; }
+    .trade-game-btn-trade { background: #6c47ff; color: #fff; }
+    .trade-game-btn-price { background: #f1f5f9; color: #475569; border: 1px solid #e5e7eb; }
+
+    /* 우측 최신 거래글 */
+    .trade-listings-col {}
+    .trade-listings-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px; padding-bottom: 8px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .trade-listings-title { font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+    .trade-sort { display: flex; align-items: center; gap: 6px; }
+  </style>
 </head>
 <body>
-
 <div id="navbar"></div>
 
-<!-- 히어로 -->
-<section class="hero">
-  <div class="hero-collage" id="hero-collage"></div>
-  <div class="hero-overlay"></div>
-  <div class="hero-inner">
-    <div class="hero-text">
-      <h1>리세계 직거래,<br>지금 시작하세요.</h1>
+<div class="trade-main-wrap">
+  <!-- 좌측: 게임 목록 -->
+  <div class="trade-game-col">
+    <div class="trade-col-title">게임별 거래소</div>
+    <div class="trade-game-list" id="trade-game-list">
+      <div class="loading">불러오는 중...</div>
     </div>
   </div>
-</section>
 
-<!-- 게임 선택 카드 -->
-<section class="game-select-section">
-  <div class="game-select-inner">
-    <div class="game-select-header">
-      <span class="game-select-title">거래소 바로가기</span>
+  <!-- 우측: 최신 거래글 -->
+  <div class="trade-listings-col">
+    <div class="trade-listings-header">
+      <span class="trade-listings-title">최신 판매글</span>
+      <div class="trade-sort">
+        <button class="sort-btn active" id="sort-latest" onclick="setSort('latest')">최신순</button>
+        <span class="sort-divider">|</span>
+        <button class="sort-btn" id="sort-price" onclick="setSort('price')">가격순</button>
+      </div>
     </div>
-    <div class="game-cards-grid" id="game-cards-section" data-trade="true"></div>
+    <div id="listings-container"><div class="loading">불러오는 중...</div></div>
+    <a href="#" class="btn-more" id="more-btn" style="display:none;">계정 더보기</a>
   </div>
-</section>
-
-<!-- 최신 판매글 -->
-<div class="page-wrapper">
-  <div class="listings-section-header">
-    <span class="listings-section-title">최신 판매글</span>
-    <div class="tab-sort">
-      <button class="sort-btn active" id="sort-latest" onclick="setSort('latest')">최신순</button>
-      <span class="sort-divider">|</span>
-      <button class="sort-btn" id="sort-price" onclick="setSort('price')">가격순</button>
-    </div>
-  </div>
-  <div id="listings-container">
-    <div class="loading">불러오는 중...</div>
-  </div>
-  <a href="#" class="btn-more" id="more-btn" style="display:none;">계정 더보기</a>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/config.js"></script>
 <script src="/js/listings.js"></script>
 <script>
-  document.getElementById('navbar').innerHTML = renderNavbar('home')
+  document.getElementById('navbar').innerHTML = renderNavbar()
+  loadAndRenderGameUI(null)
+
+  const PRICE_PAGE_SLUGS = ['epicseven', 'genshin', 'cookie-run', 'nikke', 'bluearchive', 'zzz', 'sevenknightsre', 'leehwan', 'trickcal', 'limbus', 'stardive']
+  const PRICE_PATH_MAP = { 'cookie-run': 'cookierunkingdom', 'epicseven': 'epic7' }
+
+  async function loadGameList() {
+    const [{ data: games }, { data: priceRows }] = await Promise.all([
+      db.from('Game').select('id, nameKo, slug, emoji, imageUrl').eq('isActive', true).order('sortOrder', { nullsFirst: false }).order('nameKo'),
+      db.from('price_data').select('game_slug, price_min, price_max')
+    ])
+    if (!games) return
+
+    const priceMap = {}
+    if (priceRows) {
+      priceRows.forEach(r => {
+        if (!priceMap[r.game_slug]) priceMap[r.game_slug] = { min: r.price_min, max: r.price_max }
+        else {
+          priceMap[r.game_slug].min = Math.min(priceMap[r.game_slug].min, r.price_min)
+          priceMap[r.game_slug].max = Math.max(priceMap[r.game_slug].max, r.price_max)
+        }
+      })
+    }
+
+    document.getElementById('trade-game-list').innerHTML = games.map(g => {
+      const tradePath = gameSlugToPath(g.slug)
+      const hasPricePage = PRICE_PAGE_SLUGS.includes(g.slug)
+      const pricePathSlug = PRICE_PATH_MAP[g.slug] || g.slug
+      const pricePath = `/trade/price/${pricePathSlug}/`
+      const priceInfo = priceMap[g.slug]
+      const priceText = priceInfo
+        ? `${priceInfo.min.toLocaleString()}~${priceInfo.max.toLocaleString()}원`
+        : '시세 준비 중'
+
+      return `<div class="trade-game-item">
+        ${g.imageUrl
+          ? `<img class="trade-game-item-icon" src="${g.imageUrl}" alt="${g.nameKo}">`
+          : `<div class="trade-game-item-icon" style="background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:20px;">${g.emoji}</div>`
+        }
+        <div class="trade-game-item-info">
+          <div class="trade-game-item-name">${g.nameKo}</div>
+          <div class="trade-game-item-price">${priceText}</div>
+        </div>
+        <div class="trade-game-item-btns">
+          <a href="${tradePath}" class="trade-game-btn trade-game-btn-trade">거래소</a>
+          ${hasPricePage
+            ? `<a href="${pricePath}" class="trade-game-btn trade-game-btn-price">시세</a>`
+            : `<span class="trade-game-btn trade-game-btn-price" style="opacity:0.4;cursor:default;">시세</span>`
+          }
+        </div>
+      </div>`
+    }).join('')
+  }
 
   let currentSort = 'latest'
   let currentPage = 1
@@ -101,8 +185,8 @@
     loadListings({ container: 'listings-container', limit: 12, sort: currentSort, page: currentPage, append: true, moreBtn: 'more-btn' })
   })
 
+  loadGameList()
   loadListings({ container: 'listings-container', limit: 12, moreBtn: 'more-btn' })
-  loadAndRenderGameUI(null)
 </script>
 <div id="footer"></div>
 </body>

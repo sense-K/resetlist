@@ -23,6 +23,9 @@
 /price/limbus/              /trade/price/limbus/              301
 /price/stardive/            /trade/price/stardive/            301
 
+# 거래소 시세 인덱스 → /trade/
+/trade/price/               /trade/                          301
+
 # 구 에픽세븐 공략 → /game/epic7/
 /epic7/                     /game/epic7/                      301
 /epic7/rta/                 /game/epic7/rta/                  301
