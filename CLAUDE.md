@@ -328,8 +328,8 @@ const GRADE_ORDER_MAP = {
 - 그룹 내에서는 기존 최신순/가격순 정렬 그대로 적용
 
 ## DB 직접 조작 (Python + psycopg2)
-- PostgreSQL 직접 연결: `postgresql://postgres.ltcibadxwkupwjikqzik:5Ml3kon0rZE0dI3w@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres`
-- anon key는 RLS로 Listing INSERT 불가 → psycopg2로 직접 INSERT
+- anon key는 RLS로 Listing INSERT 불가 → psycopg2로 직접 INSERT 가능
+- 연결 문자열은 Supabase 대시보드 → Settings → Database → Connection string에서 확인
 - 스타레일 더미 sold 글 30개 생성 완료 (userId: zzabhm, 서버 4개 순환)
 
 ## 현재 상태 (2026-04-23)
