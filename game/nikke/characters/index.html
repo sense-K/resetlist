@@ -188,7 +188,7 @@
 
     const { data: chars } = await db
       .from('Character')
-      .select('id, nameKo, nameEn, tier, imageUrl, rarity, manufacturer, weaponType, element, classType, burstType')
+      .select('id, nameKo, nameEn, tier, imageUrl, rarity, manufacturer, weaponType, element, classType, burstType, slug')
       .eq('gameId', game.id)
       .eq('isActive', true)
       .order('tier')
