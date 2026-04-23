@@ -1,11 +1,11 @@
-export async function onRequest({ params, env }) {
+const SUPABASE_URL = 'https://ltcibadxwkupwjikqzik.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0Y2liYWR4d2t1cHdqaWtxemlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMTQ5OTEsImV4cCI6MjA5MDY5MDk5MX0.KYrP2xopjSxBOee2KcS8tM89misAkyzfBvx0828t4No'
+
+export async function onRequest({ params }) {
   const slug = params.slug
   if (!slug || !/^[a-z0-9\-]+$/.test(slug)) {
     return new Response('Not Found', { status: 404 })
   }
-
-  const SUPABASE_URL = 'https://ltcibadxwkupwjikqzik.supabase.co'
-  const SUPABASE_KEY = env.SUPABASE_ANON_KEY
 
   // 캐릭터 조회 (slug 기준)
   const res = await fetch(
