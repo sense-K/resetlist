@@ -319,6 +319,11 @@
         <p style="font-size:13px;color:rgba(255,255,255,0.65);margin:0 0 14px;">StarRailRes 공식 데이터에서 한국어 이름·등급·이미지를 자동으로 가져와 Supabase에 등록합니다. 이미 등록된 캐릭터는 건너뜁니다.</p>
         <button class="btn-bulk-import" onclick="openBulkImport()" style="background:rgba(245,158,11,0.9);">🔄 스타레일 캐릭터 불러오기</button>
       </div>
+      <div class="admin-card" style="background:linear-gradient(135deg,#1a3a5c,#2d5586);color:#fff;border:none;">
+        <div class="admin-card-title" style="color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.1);">🌸 원신 캐릭터 일괄 등록</div>
+        <p style="font-size:13px;color:rgba(255,255,255,0.65);margin:0 0 14px;">genshin-db API에서 한국어 이름·등급·이미지를 자동으로 가져와 Supabase에 등록합니다. 이미 등록된 캐릭터는 건너뜁니다.</p>
+        <button class="btn-bulk-import" onclick="openGenshinBulkImport()" style="background:rgba(59,130,246,0.9);">🔄 원신 캐릭터 불러오기</button>
+      </div>
       <div class="admin-card">
         <div class="admin-card-title">새 캐릭터 추가</div>
         <div class="inline-form" style="margin-bottom:8px;">
@@ -410,6 +415,24 @@
       <span class="bulk-modal-status" id="bulk-modal-status"></span>
       <button class="btn-sm btn-gray" onclick="closeBulkModal()">취소</button>
       <button class="btn-bulk-import" id="bulk-import-btn" onclick="runBulkImport()" disabled>등록하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 원신 일괄 등록 모달 -->
+<div class="bulk-modal-overlay" id="genshin-bulk-modal-overlay" onclick="if(event.target===this)closeGenshinBulkModal()">
+  <div class="bulk-modal">
+    <div class="bulk-modal-header">
+      <div class="bulk-modal-title">🌸 원신 캐릭터 일괄 등록</div>
+      <button class="bulk-modal-close" onclick="closeGenshinBulkModal()">✕</button>
+    </div>
+    <div id="genshin-bulk-preview-list" class="bulk-preview-list">
+      <div style="text-align:center;padding:40px;color:#888;font-size:14px;">데이터를 불러오는 중...</div>
+    </div>
+    <div class="bulk-modal-footer">
+      <span class="bulk-modal-status" id="genshin-bulk-modal-status"></span>
+      <button class="btn-sm btn-gray" onclick="closeGenshinBulkModal()">취소</button>
+      <button class="btn-bulk-import" id="genshin-bulk-import-btn" onclick="runGenshinBulkImport()" disabled>등록하기</button>
     </div>
   </div>
 </div>
@@ -990,6 +1013,177 @@
 
   function closeBulkModal() {
     document.getElementById('bulk-modal-overlay').classList.remove('open')
+  }
+
+  // ===== 원신 일괄 등록 =====
+  const GENSHIN_API_BASE = 'https://genshin-db-api.vercel.app/api/v5'
+  const GENSHIN_TRAVELER_NAMES = new Set(['아이테르', '루미네'])
+
+  let genshinBulkCharList = []
+  let genshinBulkSkipSet  = new Set()
+
+  async function openGenshinBulkImport() {
+    const overlay = document.getElementById('genshin-bulk-modal-overlay')
+    overlay.classList.add('open')
+    document.getElementById('genshin-bulk-import-btn').disabled = true
+    document.getElementById('genshin-bulk-modal-status').textContent = '캐릭터 목록 불러오는 중...'
+    document.getElementById('genshin-bulk-preview-list').innerHTML =
+      '<div style="text-align:center;padding:40px;color:#888;font-size:14px;">데이터를 불러오는 중...</div>'
+
+    try {
+      // 1. 한국어 캐릭터 이름 목록 가져오기
+      const listRes = await fetch(
+        `${GENSHIN_API_BASE}/characters?query=names&matchCategories=true&queryLanguages=Korean&resultLanguage=Korean`
+      )
+      if (!listRes.ok) throw new Error('캐릭터 목록 로드 실패')
+      const nameList = await listRes.json()
+
+      // 여행자(아이테르·루미네) 제외
+      const filteredNames = nameList.filter(name => !GENSHIN_TRAVELER_NAMES.has(name))
+
+      // 2. Supabase에서 genshin 게임 ID 조회
+      const { data: games } = await db.from('Game').select('id, slug').eq('slug', 'genshin')
+      if (!games || games.length === 0) {
+        throw new Error('Supabase에 genshin 게임이 없어요. 먼저 게임을 추가하세요.')
+      }
+      const genshinGameId = games[0].id
+
+      // 3. 이미 등록된 캐릭터 이름 조회
+      const { data: existing } = await db.from('Character').select('nameKo').eq('gameId', genshinGameId)
+      genshinBulkSkipSet = new Set((existing ?? []).map(c => c.nameKo))
+
+      // 4. 개별 캐릭터 상세 10개씩 배치 fetch
+      const BATCH = 10
+      const total = filteredNames.length
+      const fetched = []
+
+      for (let i = 0; i < filteredNames.length; i += BATCH) {
+        const batch = filteredNames.slice(i, i + BATCH)
+        document.getElementById('genshin-bulk-modal-status').textContent =
+          `캐릭터 정보 가져오는 중... ${Math.min(i + BATCH, total)}/${total}`
+
+        const results = await Promise.all(batch.map(async name => {
+          const [krRes, enRes] = await Promise.all([
+            fetch(`${GENSHIN_API_BASE}/characters?query=${encodeURIComponent(name)}&queryLanguages=Korean&resultLanguage=Korean`),
+            fetch(`${GENSHIN_API_BASE}/characters?query=${encodeURIComponent(name)}&queryLanguages=Korean&resultLanguage=English`),
+          ])
+          const kr = krRes.ok ? await krRes.json() : null
+          const en = enRes.ok ? await enRes.json() : null
+          return { name, kr, en }
+        }))
+
+        fetched.push(...results)
+      }
+
+      // 5. 데이터 변환
+      const slugify = str => (str || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+
+      genshinBulkCharList = fetched
+        .filter(({ kr }) => kr && kr.name && kr.rarity)
+        .map(({ kr, en }) => ({
+          gameId: genshinGameId,
+          nameKo: kr.name,
+          nameEn: en?.name ?? kr.name,
+          tier: kr.rarity >= 5 ? 'S' : 'A',
+          element: kr.elementText ?? null,
+          weaponType: kr.weaponText ?? null,
+          region: kr.region || null,
+          imageUrl: kr.images?.card ?? kr.images?.cover1 ?? null,
+          slug: slugify(en?.name ?? kr.name),
+        }))
+        .sort((a, b) => {
+          if (a.tier !== b.tier) return a.tier === 'S' ? -1 : 1
+          return a.nameKo.localeCompare(b.nameKo, 'ko')
+        })
+
+      const newCount = genshinBulkCharList.filter(c => !genshinBulkSkipSet.has(c.nameKo)).length
+      renderGenshinBulkPreview()
+      document.getElementById('genshin-bulk-modal-status').textContent =
+        `총 ${genshinBulkCharList.length}명 (신규 ${newCount}명, 이미 등록 ${genshinBulkSkipSet.size}명 건너뜀)`
+      document.getElementById('genshin-bulk-import-btn').disabled = newCount === 0
+      if (newCount === 0) document.getElementById('genshin-bulk-import-btn').textContent = '모두 등록됨'
+      else document.getElementById('genshin-bulk-import-btn').textContent = `${newCount}명 등록하기`
+
+    } catch(e) {
+      document.getElementById('genshin-bulk-preview-list').innerHTML =
+        `<div style="text-align:center;padding:32px;color:#ef4444;font-size:14px;">⚠️ ${e.message}</div>`
+      document.getElementById('genshin-bulk-modal-status').textContent = ''
+    }
+  }
+
+  function renderGenshinBulkPreview() {
+    const list = document.getElementById('genshin-bulk-preview-list')
+    list.innerHTML = genshinBulkCharList.map(c => {
+      const skip = genshinBulkSkipSet.has(c.nameKo)
+      return `
+        <div class="bulk-preview-item ${skip ? 'bulk-preview-skip' : ''}">
+          ${c.imageUrl
+            ? `<img src="${c.imageUrl}" alt="${c.nameKo}" onerror="this.style.display='none'">`
+            : '<div style="width:36px;height:36px;border-radius:50%;background:#f1f5f9;flex-shrink:0;"></div>'
+          }
+          <span class="b-name">${c.nameKo}</span>
+          <span class="b-tier ${c.tier.toLowerCase()}">${c.tier} (${c.tier === 'S' ? '5성' : '4성'})</span>
+          ${skip ? '<span style="font-size:11px;color:#aaa;margin-left:4px;">이미 등록됨</span>' : ''}
+        </div>`
+    }).join('')
+  }
+
+  async function runGenshinBulkImport() {
+    const toInsert = genshinBulkCharList.filter(c => !genshinBulkSkipSet.has(c.nameKo))
+    if (toInsert.length === 0) return
+
+    const btn = document.getElementById('genshin-bulk-import-btn')
+    btn.disabled = true
+    btn.textContent = '등록 중...'
+
+    const now = new Date().toISOString()
+    const rows = toInsert.map(c => ({
+      id: crypto.randomUUID(),
+      gameId: c.gameId,
+      nameKo: c.nameKo,
+      nameEn: c.nameEn,
+      tier: c.tier,
+      element: c.element,
+      weaponType: c.weaponType,
+      region: c.region,
+      imageUrl: c.imageUrl,
+      slug: c.slug,
+      isLimited: false,
+      basePrice: 0,
+      isActive: true,
+      sortOrder: 0,
+      createdAt: now,
+      updatedAt: now,
+    }))
+
+    const CHUNK = 50
+    let inserted = 0
+    for (let i = 0; i < rows.length; i += CHUNK) {
+      const chunk = rows.slice(i, i + CHUNK)
+      const { error } = await db.from('Character').insert(chunk)
+      if (error) {
+        alert(`등록 중 오류 (${inserted}명 완료 후): ${error.message}`)
+        btn.disabled = false
+        btn.textContent = '다시 시도'
+        document.getElementById('genshin-bulk-modal-status').textContent =
+          `⚠️ ${inserted}명 등록 완료 후 오류 발생`
+        return
+      }
+      inserted += chunk.length
+      document.getElementById('genshin-bulk-modal-status').textContent = `등록 중... ${inserted}/${rows.length}명`
+    }
+
+    document.getElementById('genshin-bulk-modal-status').textContent = `✅ ${inserted}명 등록 완료!`
+    btn.textContent = '등록 완료'
+
+    toInsert.forEach(c => genshinBulkSkipSet.add(c.nameKo))
+    renderGenshinBulkPreview()
+
+    if (selectedCharGameId) loadCharsForGame()
+  }
+
+  function closeGenshinBulkModal() {
+    document.getElementById('genshin-bulk-modal-overlay').classList.remove('open')
   }
 
   // ===== 초기화 =====
