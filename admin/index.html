@@ -324,6 +324,12 @@
         <p style="font-size:13px;color:rgba(255,255,255,0.65);margin:0 0 14px;">genshin-db API에서 한국어 이름·등급·이미지를 자동으로 가져와 Supabase에 등록합니다. 이미 등록된 캐릭터는 건너뜁니다.</p>
         <button class="btn-bulk-import" onclick="openGenshinBulkImport()" style="background:rgba(59,130,246,0.9);">🔄 원신 캐릭터 불러오기</button>
       </div>
+      <div class="admin-card" style="background:linear-gradient(135deg,#2d5586,#4a7fb8);color:#fff;border:none;">
+        <div class="admin-card-title" style="color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.1);">🖼️ 원신 캐릭터 이미지 재동기화</div>
+        <p style="font-size:13px;color:rgba(255,255,255,0.65);margin:0 0 14px;">등록된 원신 캐릭터 이미지를 hoyoverse 도메인 URL로 일괄 교체합니다. wikia 핫링크 차단 문제 해결용.</p>
+        <button class="btn-bulk-import" onclick="syncGenshinImages()" id="genshin-sync-btn" style="background:rgba(99,179,237,0.9);">🖼️ 이미지 재동기화</button>
+        <div id="genshin-sync-status" style="font-size:13px;color:rgba(255,255,255,0.8);margin-top:10px;min-height:18px;"></div>
+      </div>
       <div class="admin-card">
         <div class="admin-card-title">새 캐릭터 추가</div>
         <div class="inline-form" style="margin-bottom:8px;">
@@ -1088,7 +1094,7 @@
           element: kr.elementText ?? null,
           weaponType: kr.weaponText ?? null,
           region: kr.region || null,
-          imageUrl: kr.images?.card ?? kr.images?.cover1 ?? null,
+          imageUrl: kr.images?.cover1 ?? kr.images?.cover2 ?? kr.images?.['hoyolab-avatar'] ?? kr.images?.mihoyo_icon ?? null,
           slug: slugify(en?.name ?? kr.name),
         }))
         .sort((a, b) => {
@@ -1184,6 +1190,78 @@
 
   function closeGenshinBulkModal() {
     document.getElementById('genshin-bulk-modal-overlay').classList.remove('open')
+  }
+
+  // ===== 원신 이미지 재동기화 =====
+  async function syncGenshinImages() {
+    const btn    = document.getElementById('genshin-sync-btn')
+    const status = document.getElementById('genshin-sync-status')
+    btn.disabled = true
+    status.textContent = 'Supabase에서 캐릭터 목록 불러오는 중...'
+
+    try {
+      // 1. genshin 게임 ID 조회
+      const { data: game } = await db.from('Game').select('id').eq('slug', 'genshin').single()
+      if (!game) throw new Error('Supabase에 genshin 게임이 없어요.')
+
+      // 2. 등록된 원신 캐릭터 전체 조회 (nameEn 기준으로 API fetch)
+      const { data: chars, error } = await db
+        .from('Character')
+        .select('id, nameKo, nameEn')
+        .eq('gameId', game.id)
+      if (error) throw error
+      if (!chars || chars.length === 0) throw new Error('등록된 원신 캐릭터가 없어요.')
+
+      const total = chars.length
+      status.textContent = `총 ${total}명 이미지 동기화 시작...`
+
+      // 3. 10개씩 배치로 fetch
+      const BATCH = 10
+      const updates = []
+
+      for (let i = 0; i < chars.length; i += BATCH) {
+        const batch = chars.slice(i, i + BATCH)
+        status.textContent = `이미지 동기화 중... ${Math.min(i + BATCH, total)}/${total}`
+
+        const results = await Promise.all(batch.map(async c => {
+          const query = encodeURIComponent(c.nameEn || c.nameKo)
+          // nameEn은 영문이므로 queryLanguages 불필요
+          const res = await fetch(`${GENSHIN_API_BASE}/characters?query=${query}&resultLanguage=English`)
+          if (!res.ok) return null
+          const data = await res.json()
+          const imageUrl =
+            data.images?.cover1 ??
+            data.images?.cover2 ??
+            data.images?.['hoyolab-avatar'] ??
+            data.images?.mihoyo_icon ??
+            null
+          return imageUrl ? { id: c.id, imageUrl } : null
+        }))
+
+        updates.push(...results.filter(Boolean))
+      }
+
+      // 4. 50개씩 청크로 UPDATE
+      const CHUNK = 50
+      let updated = 0
+      for (let i = 0; i < updates.length; i += CHUNK) {
+        const chunk = updates.slice(i, i + CHUNK)
+        await Promise.all(chunk.map(u =>
+          db.from('Character').update({ imageUrl: u.imageUrl }).eq('id', u.id)
+        ))
+        updated += chunk.length
+        status.textContent = `DB 업데이트 중... ${updated}/${updates.length}명`
+      }
+
+      status.textContent = `✅ ${updated}명 이미지 업데이트 완료! (API 응답 없음 ${total - updates.length}명 건너뜀)`
+      btn.textContent = '✅ 완료'
+      if (selectedCharGameId) loadCharsForGame()
+
+    } catch(e) {
+      status.textContent = `⚠️ ${e.message}`
+      btn.disabled = false
+      btn.textContent = '🖼️ 이미지 재동기화'
+    }
   }
 
   // ===== 초기화 =====
