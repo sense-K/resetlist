@@ -413,3 +413,73 @@ const GRADE_ORDER_MAP = {
 - [ ] 준비중 시세 페이지 데이터 채우기 (블루아카이브, 젠레스, 림버스 등)
 - [ ] 거래 분쟁 처리 메커니즘
 - [ ] 판매자 프로필 페이지 완성 (/user/)
+
+## 원신 캐릭터 도감 (2026-04-28 추가)
+
+### 페이지 구조
+- `/game/genshin/characters/` — 도감 메인 (정적 HTML, Supabase 직접 쿼리, 114명)
+- `/game/genshin/characters/[slug]/` — 캐릭터 상세 (Cloudflare Function 동적 SSR)
+
+### 데이터 소스
+- genshin-db API (`https://genshin-db-api.vercel.app/api/v5`)
+- 한국어 데이터 fetch 후 Supabase `Character` 테이블에 캐싱
+- 외부 의존도 0 (사이트 운영 중 외부 API 끊겨도 무관)
+- **fetch 시 `queryLanguages=Korean` 파라미터 필수** (없으면 한국어 쿼리 빈 응답 반환)
+- **JSON 파싱 안전 처리 필수**: `safeFetchJson()` 사용 — 일부 신캐릭터는 talents/constellations 응답이 비어있음
+
+### Character 테이블 사용 컬럼 (원신 전용)
+- `element`: `"불"`, `"물"`, `"바람"`, `"번개"`, `"얼음"`, `"풀"`, `"바위"` (한국어 그대로)
+- `weaponType`: `"한손검"`, `"양손검"`, `"장병기"`, `"활"`, `"법구"`
+- `region`: `"몬드"`, `"리월"`, `"이나즈마"`, `"수메르"`, `"폰타인"`, `"나타"`, `"노드크라이"` 등
+  - DB에 컬럼 없을 시 추가: `ALTER TABLE "Character" ADD COLUMN IF NOT EXISTS region TEXT;`
+- `slug`: 영문 이름 슬러그 (예: `hu-tao`, `raiden-shogun`)
+- `metadata` (JSONB):
+  ```json
+  {
+    "title": "캐릭터 칭호",
+    "description": "1-2문장 설명",
+    "birthday": "7월 15일",
+    "constellation": "나비자리",
+    "affiliation": "왕생당",
+    "substat": "치명타 피해",
+    "cv": { "korean": "김하루", "japanese": "Takahashi Rie" },
+    "skills": [
+      { "type": "normal|skill|burst|passive1|passive2|passive3", "name": "...", "desc": "..." }
+    ],
+    "constellations": [
+      { "rank": 1, "name": "...", "desc": "..." }
+    ]
+  }
+  ```
+
+### admin 페이지 운영 워크플로우 (신캐릭터 출시 시)
+1. admin → **"🔄 원신 캐릭터 불러오기"** → 모달 확인 후 INSERT (신규만)
+2. admin → **"🖼️ 원신 캐릭터 이미지 재동기화"** → hoyoverse 도메인으로 URL 업데이트
+3. admin → **"📚 원신 캐릭터 상세정보 동기화"** → metadata 업데이트
+
+이미지 URL 우선순위:
+```
+cover1 > cover2 > hoyolab-avatar > hoyowiki_icon > mihoyo_icon > null
+```
+- `wikia.nocookie.net` 도메인은 hotlink 차단으로 사용 불가 (`card`, `portrait` 필드)
+- 여행자(아이테르, 루미네) 자동 제외
+
+### 거래 위젯 연동
+- 캐릭터 상세 페이지에서 `ListingCharacter` JOIN으로 보유 계정 수·가격 범위 표시
+- SEO 메타에도 거래 데이터 반영 (`"호두 — 보유 계정 12개 거래중 · ..."`)
+- 거래 0개 시 "첫 판매자 되기" CTA 위젯으로 유도
+- RPC `get_character_trade_stats` 미존재 → 직접 쿼리 사용 중
+
+### 라우팅 (_routes.json)
+`/game/genshin/*` 일괄 exclude 제거 → 정적 경로만 개별 exclude:
+```
+/game/genshin/, /game/genshin/uid/*, /game/genshin/characters/  → 정적 파일 서빙
+/game/genshin/characters/[slug]/                                  → Function 실행
+```
+`functions/game/genshin/characters/[slug].js` (4-depth) > `functions/game/[slug].js` (2-depth) 우선 매칭.
+
+### 다른 게임 도감 추가 시 복제 패턴
+1. admin 일괄 등록 카드 (해당 게임 데이터 소스로)
+2. `/game/[gameSlug]/characters/index.html` (도감 메인)
+3. `functions/game/[gameSlug]/characters/[slug].js` (상세 SSR)
+4. `_routes.json`에 정적 경로 exclude 추가
