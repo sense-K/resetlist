@@ -1080,10 +1080,17 @@
     Wind:'바람', Quantum:'양자', Imaginary:'허수',
   }
   const SR_SKILL_LABEL = {
-    Normal:'일반 공격', BPSkill:'전투 스킬', Ultra:'궁극기',
-    Talent:'천부', Technique:'비술', MazeNormal:'비술',
+    Normal:'일반 공격', BPSkill:'전투 스킬', Ultra:'궁극기', Talent:'천부', Maze:'비술',
   }
-  const SR_TRAVELER = new Set(['8001','8002','8003','8004','8005','8006','8007','8008'])
+  const SR_VALID_SKILL_TYPES = new Set(['Normal', 'BPSkill', 'Ultra', 'Talent', 'Maze'])
+  const SR_EXCLUDE_IDS = new Set(['8001','8002','8003','8004','8005','8006','8007','8008','8009','8010'])
+
+  function shouldExcludeStarrailChar(c) {
+    if (SR_EXCLUDE_IDS.has(String(c.id))) return true
+    if (!c.name || c.name.trim() === '') return true
+    if (c.name === '{NICKNAME}') return true
+    return false
+  }
 
   let srBulkCharList = []
   let srBulkSkipSet  = new Set()
@@ -1092,7 +1099,7 @@
     const strip = s => (s || '').replace(/#\d+\[[\w.]+\]/g, '?').replace(/<[^>]+>/g, '').trim()
     const skills = (skillIds || [])
       .map(sid => skillsMap[String(sid)])
-      .filter(s => s?.name)
+      .filter(s => s?.name && SR_VALID_SKILL_TYPES.has(s.type))
       .map(s => ({ type: SR_SKILL_LABEL[s.type] || s.type, name: s.name, desc: strip(s.desc) }))
     const eidolons = (rankIds || [])
       .map(rid => ranksMap[String(rid)])
@@ -1126,7 +1133,7 @@
       const slugify = s => (s || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 
       srBulkCharList = Object.values(rawKr)
-        .filter(c => c.id && c.name && c.rarity && !SR_TRAVELER.has(String(c.id)) && !c.name.includes('{'))
+        .filter(c => c.id && c.rarity && !shouldExcludeStarrailChar(c))
         .map(c => {
           const nameEn = (rawEn || {})[String(c.id)]?.name ?? c.name
           return {
@@ -1272,7 +1279,7 @@
 
       const imgMap = {}
       Object.values(rawKr).forEach(c => {
-        if (c.name && !c.name.includes('{')) {
+        if (!shouldExcludeStarrailChar(c)) {
           imgMap[c.name] = `${STARRAIL_CDN}/${c.portrait || c.preview || c.icon}`
         }
       })
@@ -1325,7 +1332,7 @@
 
       const srMap = {}
       Object.values(rawKr).forEach(c => {
-        if (c.name && !c.name.includes('{')) {
+        if (!shouldExcludeStarrailChar(c)) {
           srMap[c.name] = { _minId: String(c.id), _skillIds: c.skills || [], _rankIds: c.ranks || [] }
         }
       })
