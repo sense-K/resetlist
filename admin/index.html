@@ -319,6 +319,23 @@
         <p style="font-size:13px;color:rgba(255,255,255,0.65);margin:0 0 14px;">StarRailRes 공식 데이터에서 한국어 이름·등급·이미지를 자동으로 가져와 Supabase에 등록합니다. 이미 등록된 캐릭터는 건너뜁니다.</p>
         <button class="btn-bulk-import" onclick="openBulkImport()" style="background:rgba(245,158,11,0.9);">🔄 스타레일 캐릭터 불러오기</button>
       </div>
+      <div class="admin-card" style="background:linear-gradient(135deg,#1a3a5c,#5e3a87);color:#fff;border:none;">
+        <div class="admin-card-title" style="color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.1);">🚂 스타레일 캐릭터 일괄 등록 (NEW)</div>
+        <p style="font-size:13px;color:rgba(255,255,255,0.65);margin:0 0 14px;">원소·운명의 길·slug·metadata(스킬·별자리) 포함 전체 등록. 이미 등록된 캐릭터는 건너뜁니다.</p>
+        <button class="btn-bulk-import" onclick="openStarrailBulkImportV2()" style="background:rgba(139,92,246,0.9);">🔄 스타레일 캐릭터 불러오기 (메타데이터 포함)</button>
+      </div>
+      <div class="admin-card" style="background:linear-gradient(135deg,#2d3a87,#4a5fb8);color:#fff;border:none;">
+        <div class="admin-card-title" style="color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.1);">🖼️ 스타레일 캐릭터 이미지 재동기화</div>
+        <p style="font-size:13px;color:rgba(255,255,255,0.65);margin:0 0 14px;">StarRailRes portrait/preview/icon 최신 URL로 일괄 교체합니다.</p>
+        <button class="btn-bulk-import" onclick="syncStarrailImages()" id="sr-sync-btn" style="background:rgba(99,149,237,0.9);">🖼️ 이미지 재동기화</button>
+        <div id="sr-sync-status" style="font-size:13px;color:rgba(255,255,255,0.8);margin-top:10px;min-height:18px;"></div>
+      </div>
+      <div class="admin-card" style="background:linear-gradient(135deg,#3a3d8a,#6d4fb8);color:#fff;border:none;">
+        <div class="admin-card-title" style="color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.1);">📚 스타레일 캐릭터 상세정보 동기화</div>
+        <p style="font-size:13px;color:rgba(255,255,255,0.65);margin:0 0 14px;">스킬·별자리·설명 등 상세정보를 metadata 컬럼에 저장합니다. 캐릭터 상세 페이지용.</p>
+        <button class="btn-bulk-import" onclick="syncStarrailMetadata()" id="sr-meta-btn" style="background:rgba(167,139,250,0.9);">📚 상세정보 동기화</button>
+        <div id="sr-meta-status" style="font-size:13px;color:rgba(255,255,255,0.8);margin-top:10px;min-height:18px;"></div>
+      </div>
       <div class="admin-card" style="background:linear-gradient(135deg,#1a3a5c,#2d5586);color:#fff;border:none;">
         <div class="admin-card-title" style="color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.1);">🌸 원신 캐릭터 일괄 등록</div>
         <p style="font-size:13px;color:rgba(255,255,255,0.65);margin:0 0 14px;">genshin-db API에서 한국어 이름·등급·이미지를 자동으로 가져와 Supabase에 등록합니다. 이미 등록된 캐릭터는 건너뜁니다.</p>
@@ -427,6 +444,24 @@
       <span class="bulk-modal-status" id="bulk-modal-status"></span>
       <button class="btn-sm btn-gray" onclick="closeBulkModal()">취소</button>
       <button class="btn-bulk-import" id="bulk-import-btn" onclick="runBulkImport()" disabled>등록하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 스타레일 V2 일괄 등록 모달 -->
+<div class="bulk-modal-overlay" id="sr-bulk-modal-v2" onclick="if(event.target===this)closeSrBulkModalV2()">
+  <div class="bulk-modal">
+    <div class="bulk-modal-header">
+      <div class="bulk-modal-title">🚂 스타레일 캐릭터 일괄 등록 (NEW)</div>
+      <button class="bulk-modal-close" onclick="closeSrBulkModalV2()">✕</button>
+    </div>
+    <div id="sr-bulk-preview-v2" class="bulk-preview-list">
+      <div style="text-align:center;padding:40px;color:#888;font-size:14px;">데이터를 불러오는 중...</div>
+    </div>
+    <div class="bulk-modal-footer">
+      <span class="bulk-modal-status" id="sr-bulk-status-v2"></span>
+      <button class="btn-sm btn-gray" onclick="closeSrBulkModalV2()">취소</button>
+      <button class="btn-bulk-import" id="sr-bulk-btn-v2" onclick="runStarrailBulkImportV2()" disabled>등록하기</button>
     </div>
   </div>
 </div>
@@ -1025,6 +1060,305 @@
 
   function closeBulkModal() {
     document.getElementById('bulk-modal-overlay').classList.remove('open')
+  }
+
+  // ===== 스타레일 V2 일괄 등록 (원소·path·slug·metadata 포함) =====
+  // 기존 openBulkImport()는 legacy로 유지, 이 함수는 별도로 동작
+
+  const SR_CHARS_KR = `${STARRAIL_CDN}/index_min/kr/characters.json`
+  const SR_CHARS_EN = `${STARRAIL_CDN}/index_min/en/characters.json`
+  const SR_DETAIL   = `${STARRAIL_CDN}/index_new/kr/characters.json`
+  const SR_SKILLS   = `${STARRAIL_CDN}/index_new/kr/character_skills.json`
+  const SR_RANKS    = `${STARRAIL_CDN}/index_new/kr/character_ranks.json`
+
+  const SR_PATH_MAP = {
+    Warrior:'파멸', Rogue:'수렵', Mage:'지식', Shaman:'화합',
+    Warlock:'공허', Knight:'보존', Priest:'풍요', Memory:'기억', Elation:'환락',
+  }
+  const SR_ELEM_MAP = {
+    Physical:'물리', Fire:'화염', Ice:'얼음', Thunder:'번개',
+    Wind:'바람', Quantum:'양자', Imaginary:'허수',
+  }
+  const SR_SKILL_LABEL = {
+    Normal:'일반 공격', BPSkill:'전투 스킬', Ultra:'궁극기',
+    Talent:'천부', Technique:'비술', MazeNormal:'비술',
+  }
+  const SR_TRAVELER = new Set(['8001','8002','8003','8004','8005','8006','8007','8008'])
+
+  let srBulkCharList = []
+  let srBulkSkipSet  = new Set()
+
+  function buildSrMetadata(skillIds, rankIds, detailChar, skillsMap, ranksMap) {
+    const strip = s => (s || '').replace(/#\d+\[[\w.]+\]/g, '?').replace(/<[^>]+>/g, '').trim()
+    const skills = (skillIds || [])
+      .map(sid => skillsMap[String(sid)])
+      .filter(s => s?.name)
+      .map(s => ({ type: SR_SKILL_LABEL[s.type] || s.type, name: s.name, desc: strip(s.desc) }))
+    const eidolons = (rankIds || [])
+      .map(rid => ranksMap[String(rid)])
+      .filter(r => r?.name)
+      .map(r => ({ rank: r.rank, name: r.name, desc: strip(r.desc) }))
+    return { description: detailChar?.description || null, skills, eidolons }
+  }
+
+  async function openStarrailBulkImportV2() {
+    const overlay = document.getElementById('sr-bulk-modal-v2')
+    overlay.classList.add('open')
+    document.getElementById('sr-bulk-btn-v2').disabled = true
+    document.getElementById('sr-bulk-status-v2').textContent = '캐릭터 목록 불러오는 중...'
+    document.getElementById('sr-bulk-preview-v2').innerHTML =
+      '<div style="text-align:center;padding:40px;color:#888;font-size:14px;">데이터를 불러오는 중...</div>'
+
+    try {
+      const [rawKr, rawEn] = await Promise.all([
+        safeFetchJson(SR_CHARS_KR),
+        safeFetchJson(SR_CHARS_EN),
+      ])
+      if (!rawKr) throw new Error('StarRailRes KR 데이터 로드 실패')
+
+      const { data: games } = await db.from('Game').select('id').eq('slug', 'starrail')
+      if (!games?.length) throw new Error('Supabase에 starrail 게임이 없어요.')
+      const srGameId = games[0].id
+
+      const { data: existing } = await db.from('Character').select('nameKo').eq('gameId', srGameId)
+      srBulkSkipSet = new Set((existing ?? []).map(c => c.nameKo))
+
+      const slugify = s => (s || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+
+      srBulkCharList = Object.values(rawKr)
+        .filter(c => c.id && c.name && c.rarity && !SR_TRAVELER.has(String(c.id)) && !c.name.includes('{'))
+        .map(c => {
+          const nameEn = (rawEn || {})[String(c.id)]?.name ?? c.name
+          return {
+            gameId:     srGameId,
+            _minId:     String(c.id),
+            _skillIds:  c.skills || [],
+            _rankIds:   c.ranks  || [],
+            nameKo:     c.name,
+            nameEn,
+            tier:       c.rarity >= 5 ? 'S' : 'A',
+            element:    SR_ELEM_MAP[c.element]  || null,
+            weaponType: SR_PATH_MAP[c.path]     || null,
+            imageUrl:   `${STARRAIL_CDN}/${c.portrait || c.preview || c.icon}`,
+            slug:       slugify(nameEn),
+          }
+        })
+        .sort((a, b) => {
+          if (a.tier !== b.tier) return a.tier === 'S' ? -1 : 1
+          return a.nameKo.localeCompare(b.nameKo, 'ko')
+        })
+
+      const newCount = srBulkCharList.filter(c => !srBulkSkipSet.has(c.nameKo)).length
+      renderSrBulkPreviewV2()
+      document.getElementById('sr-bulk-status-v2').textContent =
+        `총 ${srBulkCharList.length}명 (신규 ${newCount}명, 이미 등록 ${srBulkSkipSet.size}명 건너뜀)`
+      const btn = document.getElementById('sr-bulk-btn-v2')
+      btn.disabled = newCount === 0
+      btn.textContent = newCount === 0 ? '모두 등록됨' : `${newCount}명 등록하기`
+    } catch(e) {
+      document.getElementById('sr-bulk-preview-v2').innerHTML =
+        `<div style="text-align:center;padding:32px;color:#ef4444;font-size:14px;">⚠️ ${e.message}</div>`
+      document.getElementById('sr-bulk-status-v2').textContent = ''
+    }
+  }
+
+  function renderSrBulkPreviewV2() {
+    const list = document.getElementById('sr-bulk-preview-v2')
+    list.innerHTML = srBulkCharList.map(c => {
+      const skip = srBulkSkipSet.has(c.nameKo)
+      return `
+        <div class="bulk-preview-item ${skip ? 'bulk-preview-skip' : ''}">
+          ${c.imageUrl
+            ? `<img src="${c.imageUrl}" alt="${c.nameKo}" onerror="this.style.display='none'">`
+            : '<div style="width:36px;height:36px;border-radius:50%;background:#f1f5f9;flex-shrink:0;"></div>'
+          }
+          <span class="b-name">${c.nameKo}</span>
+          <span class="b-tier ${c.tier.toLowerCase()}">${c.tier} (${c.tier === 'S' ? '5성' : '4성'})</span>
+          ${c.element    ? `<span style="font-size:11px;color:#94a3b8;margin-left:4px;">${c.element}</span>` : ''}
+          ${c.weaponType ? `<span style="font-size:11px;color:#94a3b8;margin-left:2px;">/ ${c.weaponType}</span>` : ''}
+          ${skip ? '<span style="font-size:11px;color:#aaa;margin-left:4px;">이미 등록됨</span>' : ''}
+        </div>`
+    }).join('')
+  }
+
+  async function runStarrailBulkImportV2() {
+    const toInsert = srBulkCharList.filter(c => !srBulkSkipSet.has(c.nameKo))
+    if (toInsert.length === 0) return
+
+    const btn    = document.getElementById('sr-bulk-btn-v2')
+    const status = document.getElementById('sr-bulk-status-v2')
+    btn.disabled = true
+    btn.textContent = '상세 데이터 로드 중...'
+    status.textContent = '스킬·별자리 데이터 불러오는 중...'
+
+    try {
+      const [detailMap, skillsMap, ranksMap] = await Promise.all([
+        safeFetchJson(SR_DETAIL),
+        safeFetchJson(SR_SKILLS),
+        safeFetchJson(SR_RANKS),
+      ])
+
+      btn.textContent = '등록 중...'
+      const now = new Date().toISOString()
+      const rows = toInsert.map(c => ({
+        id:         crypto.randomUUID(),
+        gameId:     c.gameId,
+        nameKo:     c.nameKo,
+        nameEn:     c.nameEn,
+        tier:       c.tier,
+        element:    c.element,
+        weaponType: c.weaponType,
+        region:     null,
+        imageUrl:   c.imageUrl,
+        slug:       c.slug,
+        metadata:   buildSrMetadata(c._skillIds, c._rankIds, detailMap?.[c._minId], skillsMap || {}, ranksMap || {}),
+        isLimited:  false,
+        basePrice:  0,
+        isActive:   true,
+        sortOrder:  0,
+        createdAt:  now,
+        updatedAt:  now,
+      }))
+
+      const CHUNK = 50
+      let inserted = 0
+      for (let i = 0; i < rows.length; i += CHUNK) {
+        const chunk = rows.slice(i, i + CHUNK)
+        const { error } = await db.from('Character').insert(chunk)
+        if (error) {
+          alert(`등록 중 오류 (${inserted}명 완료 후): ${error.message}`)
+          btn.disabled = false
+          btn.textContent = '다시 시도'
+          status.textContent = `⚠️ ${inserted}명 등록 완료 후 오류 발생`
+          return
+        }
+        inserted += chunk.length
+        status.textContent = `등록 중... ${inserted}/${rows.length}명`
+      }
+
+      status.textContent = `✅ ${inserted}명 등록 완료!`
+      btn.textContent = '등록 완료'
+      toInsert.forEach(c => srBulkSkipSet.add(c.nameKo))
+      renderSrBulkPreviewV2()
+      if (selectedCharGameId) loadCharsForGame()
+    } catch(e) {
+      status.textContent = `⚠️ ${e.message}`
+      btn.disabled = false
+      btn.textContent = '다시 시도'
+    }
+  }
+
+  function closeSrBulkModalV2() {
+    document.getElementById('sr-bulk-modal-v2').classList.remove('open')
+  }
+
+  // ===== 스타레일 이미지 재동기화 =====
+  async function syncStarrailImages() {
+    const btn    = document.getElementById('sr-sync-btn')
+    const status = document.getElementById('sr-sync-status')
+    btn.disabled = true
+    status.textContent = 'Supabase에서 캐릭터 목록 불러오는 중...'
+
+    try {
+      const { data: game } = await db.from('Game').select('id').eq('slug', 'starrail').single()
+      if (!game) throw new Error('Supabase에 starrail 게임이 없어요.')
+
+      const { data: chars, error } = await db.from('Character').select('id, nameKo').eq('gameId', game.id)
+      if (error) throw error
+      if (!chars?.length) throw new Error('등록된 스타레일 캐릭터가 없어요.')
+
+      const rawKr = await safeFetchJson(SR_CHARS_KR)
+      if (!rawKr) throw new Error('StarRailRes 데이터 로드 실패')
+
+      const imgMap = {}
+      Object.values(rawKr).forEach(c => {
+        if (c.name && !c.name.includes('{')) {
+          imgMap[c.name] = `${STARRAIL_CDN}/${c.portrait || c.preview || c.icon}`
+        }
+      })
+
+      const updates = chars.map(c => ({ id: c.id, imageUrl: imgMap[c.nameKo] })).filter(u => u.imageUrl)
+      status.textContent = `총 ${chars.length}명 중 ${updates.length}명 업데이트 시작...`
+
+      const CHUNK = 50
+      let updated = 0
+      for (let i = 0; i < updates.length; i += CHUNK) {
+        const chunk = updates.slice(i, i + CHUNK)
+        await Promise.all(chunk.map(u => db.from('Character').update({ imageUrl: u.imageUrl }).eq('id', u.id)))
+        updated += chunk.length
+        status.textContent = `DB 업데이트 중... ${updated}/${updates.length}명`
+      }
+
+      status.textContent = `✅ ${updated}명 이미지 업데이트 완료! (매핑 없음 ${chars.length - updates.length}명 건너뜀)`
+      btn.textContent = '✅ 완료'
+      if (selectedCharGameId) loadCharsForGame()
+    } catch(e) {
+      status.textContent = `⚠️ ${e.message}`
+      btn.disabled = false
+      btn.textContent = '🖼️ 이미지 재동기화'
+    }
+  }
+
+  // ===== 스타레일 상세정보(metadata) 동기화 =====
+  async function syncStarrailMetadata() {
+    const btn    = document.getElementById('sr-meta-btn')
+    const status = document.getElementById('sr-meta-status')
+    btn.disabled = true
+    status.textContent = 'Supabase에서 캐릭터 목록 불러오는 중...'
+
+    try {
+      const { data: game } = await db.from('Game').select('id').eq('slug', 'starrail').single()
+      if (!game) throw new Error('Supabase에 starrail 게임이 없어요.')
+
+      const { data: chars, error } = await db.from('Character').select('id, nameKo').eq('gameId', game.id)
+      if (error) throw error
+      if (!chars?.length) throw new Error('등록된 스타레일 캐릭터가 없어요.')
+
+      status.textContent = 'StarRailRes 데이터 로드 중...'
+      const [rawKr, detailMap, skillsMap, ranksMap] = await Promise.all([
+        safeFetchJson(SR_CHARS_KR),
+        safeFetchJson(SR_DETAIL),
+        safeFetchJson(SR_SKILLS),
+        safeFetchJson(SR_RANKS),
+      ])
+      if (!rawKr) throw new Error('StarRailRes 데이터 로드 실패')
+
+      const srMap = {}
+      Object.values(rawKr).forEach(c => {
+        if (c.name && !c.name.includes('{')) {
+          srMap[c.name] = { _minId: String(c.id), _skillIds: c.skills || [], _rankIds: c.ranks || [] }
+        }
+      })
+
+      let updated = 0, skipCount = 0
+      const dbUpdates = []
+      chars.forEach(c => {
+        const sr = srMap[c.nameKo]
+        if (!sr) { console.warn('매핑 없음:', c.nameKo); skipCount++; return }
+        dbUpdates.push({
+          id: c.id,
+          metadata: buildSrMetadata(sr._skillIds, sr._rankIds, detailMap?.[sr._minId], skillsMap || {}, ranksMap || {}),
+        })
+      })
+
+      status.textContent = `${dbUpdates.length}명 DB 업데이트 중...`
+      const CHUNK = 50
+      for (let i = 0; i < dbUpdates.length; i += CHUNK) {
+        const chunk = dbUpdates.slice(i, i + CHUNK)
+        await Promise.all(chunk.map(u => db.from('Character').update({ metadata: u.metadata }).eq('id', u.id)))
+        updated += chunk.length
+        status.textContent = `DB 업데이트 중... ${updated}/${dbUpdates.length}명`
+      }
+
+      status.textContent = skipCount > 0
+        ? `✅ ${chars.length}명 중 ${updated}명 성공, ${skipCount}명 실패 (콘솔 확인)`
+        : `✅ ${updated}명 상세정보 업데이트 완료!`
+      btn.textContent = '✅ 완료'
+    } catch(e) {
+      status.textContent = `⚠️ ${e.message}`
+      btn.disabled = false
+      btn.textContent = '📚 상세정보 동기화'
+    }
   }
 
   // ===== 원신 일괄 등록 =====
