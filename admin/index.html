@@ -230,6 +230,7 @@
   .game-import-card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:16px; box-shadow:0 2px 4px rgba(0,0,0,0.04); }
   .game-import-card[data-game="genshin"]  { border-left:4px solid #3b82f6; }
   .game-import-card[data-game="starrail"] { border-left:4px solid #8b5cf6; }
+  .game-import-card[data-game="zzz"]      { border-left:4px solid #f59e0b; }
   .game-import-header { margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid #f3f4f6; }
   .game-import-title  { display:flex; align-items:center; gap:10px; font-size:18px; font-weight:700; }
   .game-emoji  { font-size:24px; }
@@ -398,6 +399,34 @@
           <div class="action-status" id="sr-meta-status"></div>
         </div>
       </div>
+
+      <!-- 젠레스 존 제로 통합 관리 카드 -->
+      <div class="game-import-card" data-game="zzz">
+        <div class="game-import-header">
+          <div class="game-import-title">
+            <span class="game-emoji">⚡</span>
+            <span>젠레스 존 제로</span>
+            <span class="game-source">Hakushin API</span>
+          </div>
+        </div>
+        <div class="game-import-actions" style="grid-template-columns:repeat(2,1fr);">
+          <button class="action-btn action-import" onclick="openZzzBulkImport()">
+            <span class="action-icon">🔄</span>
+            <span class="action-label">캐릭터 등록</span>
+            <span class="action-desc">스킬·마인드스케이프 포함 일괄 등록</span>
+          </button>
+          <button class="action-btn action-image" id="zzz-sync-btn" onclick="syncZzzImages()">
+            <span class="action-icon">🖼️</span>
+            <span class="action-label">이미지 동기화</span>
+            <span class="action-desc">이미지 URL 갱신</span>
+          </button>
+        </div>
+        <div class="game-import-status-row" style="grid-template-columns:repeat(2,1fr);">
+          <div></div>
+          <div class="action-status" id="zzz-sync-status"></div>
+        </div>
+      </div>
+
       <div class="admin-card">
         <div class="admin-card-title">새 캐릭터 추가</div>
         <div class="inline-form" style="margin-bottom:8px;">
@@ -489,6 +518,24 @@
       <span class="bulk-modal-status" id="sr-bulk-status-v2"></span>
       <button class="btn-sm btn-gray" onclick="closeSrBulkModalV2()">취소</button>
       <button class="btn-bulk-import" id="sr-bulk-btn-v2" onclick="runStarrailBulkImportV2()" disabled>등록하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 젠레스 일괄 등록 모달 -->
+<div class="bulk-modal-overlay" id="zzz-bulk-modal-overlay" onclick="if(event.target===this)closeZzzBulkModal()">
+  <div class="bulk-modal">
+    <div class="bulk-modal-header">
+      <div class="bulk-modal-title">⚡ 젠레스 존 제로 캐릭터 일괄 등록</div>
+      <button class="bulk-modal-close" onclick="closeZzzBulkModal()">✕</button>
+    </div>
+    <div id="zzz-bulk-preview" class="bulk-preview-list">
+      <div style="text-align:center;padding:40px;color:#888;font-size:14px;">데이터를 불러오는 중...</div>
+    </div>
+    <div class="bulk-modal-footer">
+      <span class="bulk-modal-status" id="zzz-bulk-status"></span>
+      <button class="btn-sm btn-gray" onclick="closeZzzBulkModal()">취소</button>
+      <button class="btn-bulk-import" id="zzz-bulk-btn" onclick="runZzzBulkImport()" disabled>등록하기</button>
     </div>
   </div>
 </div>
@@ -1617,6 +1664,272 @@
       status.textContent = `⚠️ ${e.message}`
       btn.disabled = false
       btn.textContent = '📚 상세정보 동기화'
+    }
+  }
+
+  // ===== 젠레스 존 제로 일괄 등록 =====
+  const ZZZ_CDN_BASE  = 'https://static.nanoka.cc/zzz'
+  const ZZZ_IMG_BASE  = 'https://enka.network/ui/zzz'
+
+  const ZZZ_ELEMENT_MAP = { 200:'물리', 201:'화염', 202:'얼음', 203:'전기', 205:'에테르' }
+  const ZZZ_SPECIALTY_MAP = { 1:'공격', 2:'격파', 3:'이상', 4:'지원', 5:'방어', 6:'강탈' }
+  const ZZZ_SKILL_LABEL = {
+    basic:'기본 공격', dodge:'회피', special:'특수 스킬',
+    chain:'콤보 스킬', assist:'지원 스킬', core:'코어 스킬',
+  }
+
+  function shouldExcludeZZZChar(char) {
+    if (!char.ko || char.ko.trim() === '') return true
+    if (char.rank === null || char.rank === undefined) return true
+    return false
+  }
+
+  function buildZzzMetadata(detail) {
+    if (!detail) return {}
+    const strip = s => (s || '').replace(/<[^>]+>/g, '').replace(/<IconMap:[^>]*>/g, '').trim()
+
+    const skills = Object.entries(detail.skill || {})
+      .filter(([, s]) => s?.description?.[0])
+      .map(([type, s]) => ({
+        type: ZZZ_SKILL_LABEL[type] || type,
+        name: s.description[0].name || '',
+        desc: strip(s.description[0].desc || ''),
+      }))
+
+    const mindscapes = Object.entries(detail.talent || {})
+      .filter(([, t]) => t?.name)
+      .map(([rank, t]) => ({ rank: parseInt(rank), name: t.name, desc: strip(t.desc || '') }))
+      .sort((a, b) => a.rank - b.rank)
+
+    const camp    = Object.values(detail.camp     || {})[0] || null
+    const hitType = Object.values(detail.hit_type || {})[0] || null
+
+    return { skills, mindscapes, camp, hitType }
+  }
+
+  let zzzBulkCharList = []
+  let zzzBulkSkipSet  = new Set()
+  let zzzVersion      = null
+
+  async function openZzzBulkImport() {
+    const overlay = document.getElementById('zzz-bulk-modal-overlay')
+    overlay.classList.add('open')
+    document.getElementById('zzz-bulk-btn').disabled = true
+    document.getElementById('zzz-bulk-status').textContent = '버전 정보 조회 중...'
+    document.getElementById('zzz-bulk-preview').innerHTML =
+      '<div style="text-align:center;padding:40px;color:#888;font-size:14px;">데이터를 불러오는 중...</div>'
+
+    try {
+      // 1. 최신 버전 조회
+      const manifest = await safeFetchJson('https://static.nanoka.cc/manifest.json')
+      if (!manifest?.zzz?.latest) throw new Error('버전 정보 조회 실패')
+      zzzVersion = manifest.zzz.latest
+
+      // 2. 캐릭터 목록 fetch
+      document.getElementById('zzz-bulk-status').textContent = `v${zzzVersion} 캐릭터 목록 불러오는 중...`
+      const rawChars = await safeFetchJson(`${ZZZ_CDN_BASE}/${zzzVersion}/character.json`)
+      if (!rawChars) throw new Error('캐릭터 목록 로드 실패')
+
+      // 3. Supabase에서 zzz 게임 ID 조회
+      const { data: games } = await db.from('Game').select('id').eq('slug', 'zzz')
+      if (!games?.length) throw new Error('Supabase에 zzz 게임이 없어요. 먼저 게임을 추가하세요.')
+      const zzzGameId = games[0].id
+
+      // 4. 이미 등록된 캐릭터
+      const { data: existing } = await db.from('Character').select('nameKo').eq('gameId', zzzGameId)
+      zzzBulkSkipSet = new Set((existing ?? []).map(c => c.nameKo))
+
+      const slugify = s => (s || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+
+      // 5. 목록 구성
+      zzzBulkCharList = Object.entries(rawChars)
+        .filter(([, char]) => !shouldExcludeZZZChar(char))
+        .map(([, char]) => ({
+          gameId:     zzzGameId,
+          _id:        char.code,       // 상세 fetch용 (index가 필요하면 entries에서 키 사용)
+          nameKo:     char.ko,
+          nameEn:     char.en || char.code,
+          tier:       char.rank === 4 ? 'S' : 'A',
+          element:    ZZZ_ELEMENT_MAP[char.element]   || null,
+          weaponType: ZZZ_SPECIALTY_MAP[char.type]    || null,
+          imageUrl:   `${ZZZ_IMG_BASE}/${char.icon}.webp`,
+          slug:       slugify(char.en || char.code),
+          _iconKey:   char.icon,
+        }))
+        .sort((a, b) => {
+          if (a.tier !== b.tier) return a.tier === 'S' ? -1 : 1
+          return a.nameKo.localeCompare(b.nameKo, 'ko')
+        })
+
+      // id 보존 (rawChars key)
+      const idByCode = {}
+      Object.entries(rawChars).forEach(([id, char]) => { idByCode[char.code || char.en] = id })
+      zzzBulkCharList.forEach(c => { c._rawId = idByCode[c._id] || idByCode[c.nameEn] })
+
+      const newCount = zzzBulkCharList.filter(c => !zzzBulkSkipSet.has(c.nameKo)).length
+      renderZzzBulkPreview()
+      document.getElementById('zzz-bulk-status').textContent =
+        `총 ${zzzBulkCharList.length}명 (신규 ${newCount}명, 이미 등록 ${zzzBulkSkipSet.size}명 건너뜀)`
+      const btn = document.getElementById('zzz-bulk-btn')
+      btn.disabled = newCount === 0
+      btn.textContent = newCount === 0 ? '모두 등록됨' : `${newCount}명 등록하기`
+    } catch(e) {
+      document.getElementById('zzz-bulk-preview').innerHTML =
+        `<div style="text-align:center;padding:32px;color:#ef4444;font-size:14px;">⚠️ ${e.message}</div>`
+      document.getElementById('zzz-bulk-status').textContent = ''
+    }
+  }
+
+  function renderZzzBulkPreview() {
+    const list = document.getElementById('zzz-bulk-preview')
+    list.innerHTML = zzzBulkCharList.map(c => {
+      const skip = zzzBulkSkipSet.has(c.nameKo)
+      return `
+        <div class="bulk-preview-item ${skip ? 'bulk-preview-skip' : ''}">
+          ${c.imageUrl
+            ? `<img src="${c.imageUrl}" alt="${c.nameKo}" onerror="this.style.display='none'">`
+            : '<div style="width:36px;height:36px;border-radius:50%;background:#f1f5f9;flex-shrink:0;"></div>'
+          }
+          <span class="b-name">${c.nameKo}</span>
+          <span class="b-tier ${c.tier.toLowerCase()}">${c.tier} (${c.tier === 'S' ? 'S등급' : 'A등급'})</span>
+          ${c.element    ? `<span style="font-size:11px;color:#94a3b8;margin-left:4px;">${c.element}</span>` : ''}
+          ${c.weaponType ? `<span style="font-size:11px;color:#94a3b8;margin-left:2px;">/ ${c.weaponType}</span>` : ''}
+          ${skip ? '<span style="font-size:11px;color:#aaa;margin-left:4px;">이미 등록됨</span>' : ''}
+        </div>`
+    }).join('')
+  }
+
+  async function runZzzBulkImport() {
+    const toInsert = zzzBulkCharList.filter(c => !zzzBulkSkipSet.has(c.nameKo))
+    if (toInsert.length === 0) return
+
+    const btn    = document.getElementById('zzz-bulk-btn')
+    const status = document.getElementById('zzz-bulk-status')
+    btn.disabled = true
+    btn.textContent = '상세 데이터 로드 중...'
+    status.textContent = '캐릭터 상세 정보 불러오는 중...'
+
+    try {
+      // 5개씩 배치로 상세 fetch
+      const BATCH = 5
+      const detailMap = {}
+      const total = toInsert.length
+
+      for (let i = 0; i < toInsert.length; i += BATCH) {
+        const batch = toInsert.slice(i, i + BATCH)
+        status.textContent = `상세 정보 로드 중... ${Math.min(i + BATCH, total)}/${total}`
+        await Promise.all(batch.map(async c => {
+          if (!c._rawId) return
+          const detail = await safeFetchJson(`${ZZZ_CDN_BASE}/${zzzVersion}/ko/character/${c._rawId}.json`)
+          detailMap[c.nameKo] = detail
+        }))
+      }
+
+      btn.textContent = '등록 중...'
+      const now = new Date().toISOString()
+      const rows = toInsert.map(c => ({
+        id:         crypto.randomUUID(),
+        gameId:     c.gameId,
+        nameKo:     c.nameKo,
+        nameEn:     c.nameEn,
+        tier:       c.tier,
+        element:    c.element,
+        weaponType: c.weaponType,
+        region:     null,
+        imageUrl:   c.imageUrl,
+        slug:       c.slug,
+        metadata:   buildZzzMetadata(detailMap[c.nameKo]),
+        isLimited:  false,
+        basePrice:  0,
+        isActive:   true,
+        sortOrder:  0,
+        createdAt:  now,
+        updatedAt:  now,
+      }))
+
+      const CHUNK = 50
+      let inserted = 0
+      for (let i = 0; i < rows.length; i += CHUNK) {
+        const chunk = rows.slice(i, i + CHUNK)
+        const { error } = await db.from('Character').insert(chunk)
+        if (error) {
+          alert(`등록 중 오류 (${inserted}명 완료 후): ${error.message}`)
+          btn.disabled = false
+          btn.textContent = '다시 시도'
+          status.textContent = `⚠️ ${inserted}명 등록 완료 후 오류 발생`
+          return
+        }
+        inserted += chunk.length
+        status.textContent = `등록 중... ${inserted}/${rows.length}명`
+      }
+
+      status.textContent = `✅ ${inserted}명 등록 완료!`
+      btn.textContent = '등록 완료'
+      toInsert.forEach(c => zzzBulkSkipSet.add(c.nameKo))
+      renderZzzBulkPreview()
+      if (selectedCharGameId) loadCharsForGame()
+    } catch(e) {
+      status.textContent = `⚠️ ${e.message}`
+      btn.disabled = false
+      btn.textContent = '다시 시도'
+    }
+  }
+
+  function closeZzzBulkModal() {
+    document.getElementById('zzz-bulk-modal-overlay').classList.remove('open')
+  }
+
+  // ===== 젠레스 이미지 재동기화 =====
+  async function syncZzzImages() {
+    const btn    = document.getElementById('zzz-sync-btn')
+    const status = document.getElementById('zzz-sync-status')
+    btn.disabled = true
+    status.textContent = 'Supabase에서 캐릭터 목록 불러오는 중...'
+
+    try {
+      const { data: game } = await db.from('Game').select('id').eq('slug', 'zzz').single()
+      if (!game) throw new Error('Supabase에 zzz 게임이 없어요.')
+
+      const { data: chars, error } = await db.from('Character').select('id, nameEn').eq('gameId', game.id)
+      if (error) throw error
+      if (!chars?.length) throw new Error('등록된 젠레스 캐릭터가 없어요.')
+
+      // 버전 조회
+      const manifest = await safeFetchJson('https://static.nanoka.cc/manifest.json')
+      const version  = manifest?.zzz?.latest
+      if (!version) throw new Error('버전 정보 조회 실패')
+
+      const rawChars = await safeFetchJson(`${ZZZ_CDN_BASE}/${version}/character.json`)
+      if (!rawChars) throw new Error('캐릭터 목록 로드 실패')
+
+      // nameEn → imageUrl 맵
+      const imgMap = {}
+      Object.values(rawChars).forEach(char => {
+        if (char.en) imgMap[char.en] = `${ZZZ_IMG_BASE}/${char.icon}.webp`
+      })
+
+      const updates = chars
+        .map(c => ({ id: c.id, imageUrl: imgMap[c.nameEn] }))
+        .filter(u => u.imageUrl)
+
+      status.textContent = `총 ${chars.length}명 중 ${updates.length}명 업데이트 시작...`
+
+      const CHUNK = 50
+      let updated = 0
+      for (let i = 0; i < updates.length; i += CHUNK) {
+        const chunk = updates.slice(i, i + CHUNK)
+        await Promise.all(chunk.map(u => db.from('Character').update({ imageUrl: u.imageUrl }).eq('id', u.id)))
+        updated += chunk.length
+        status.textContent = `DB 업데이트 중... ${updated}/${updates.length}명`
+      }
+
+      status.textContent = `✅ ${updated}명 이미지 업데이트 완료! (매핑 없음 ${chars.length - updates.length}명 건너뜀)`
+      btn.textContent = '✅ 완료'
+      if (selectedCharGameId) loadCharsForGame()
+    } catch(e) {
+      status.textContent = `⚠️ ${e.message}`
+      btn.disabled = false
+      btn.textContent = '🖼️ 이미지 동기화'
     }
   }
 
