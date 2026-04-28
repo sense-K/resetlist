@@ -483,3 +483,65 @@ cover1 > cover2 > hoyolab-avatar > hoyowiki_icon > mihoyo_icon > null
 2. `/game/[gameSlug]/characters/index.html` (도감 메인)
 3. `functions/game/[gameSlug]/characters/[slug].js` (상세 SSR)
 4. `_routes.json`에 정적 경로 exclude 추가
+
+## 스타레일 캐릭터 도감 (2026-04-28 추가)
+
+### 페이지 구조
+- `/game/starrail/characters/` — 도감 메인 (정적 HTML)
+- `/game/starrail/characters/[slug]/` — 캐릭터 상세 (Cloudflare Function SSR)
+
+### 데이터 소스
+StarRailRes GitHub raw JSON (https://raw.githubusercontent.com/Mar-7th/StarRailRes/master)
+- `index_min/kr/characters.json` — 기본 데이터 (name, rarity, path, element, icon/preview/portrait, skills[], ranks[])
+- `index_min/en/characters.json` — 영문 이름
+- `index_new/kr/characters.json` — description (대부분 빈 문자열)
+- `index_new/kr/character_skills.json` — 스킬 상세 (728개 통합 JSON)
+- `index_new/kr/character_ranks.json` — 성흔 상세 (606개 통합 JSON)
+- `index_min/kr/paths.json` — path 한국어 매핑
+
+### 매핑 테이블
+
+**운명의 길 (path → weaponType 컬럼에 저장):**
+```
+Warrior→파멸, Rogue→수렵, Mage→지식, Shaman→화합,
+Warlock→공허, Knight→보존, Priest→풍요, Memory→기억, Elation→환락
+```
+
+**원소 (element → element 컬럼):**
+```
+Physical→물리, Fire→화염, Ice→얼음, Thunder→번개,
+Wind→바람, Quantum→양자, Imaginary→허수
+```
+
+**스킬 타입 (metadata.skills[].type에 한국어로 저장됨):**
+```
+Normal→일반 공격, BPSkill→전투 스킬, Ultra→궁극기, Talent→천부, Maze→비술
+(Technique/MazeNormal 등 나머지는 필터링해서 제외)
+```
+
+### 원신과의 차이점
+- `region` 없음 (필터, attrs, DB 모두)
+- `weaponType` 컬럼에 path(운명의 길) 저장 (한국어)
+- `metadata.description` 대부분 null (StarRailRes에 설명 미수록)
+- 별자리 → **성흔(eidolons)**, "N돌파" → "N성" 라벨
+- 추가 정보 표 없음 (생일/소속/성우 등 미수록)
+- 스킬 type이 DB에 이미 한국어 저장 → 상세 페이지에서 직접 출력
+
+### 제외 대상
+- ID 8001~8010 (개척자/미출시)
+- 빈 이름 `""` (1504, 1505, 1506 등 한국 미출시)
+- `{NICKNAME}` 문자열
+- 예상 INSERT 수: 91개 중 13개 제외 → **78명**
+
+### admin 운영 워크플로우 (신캐릭터 출시 시)
+1. admin → **"🔄 스타레일 캐릭터 불러오기 (메타데이터 포함)"** → INSERT
+2. admin → **"🖼️ 스타레일 캐릭터 이미지 재동기화"** → portrait URL 업데이트
+3. admin → **"📚 스타레일 캐릭터 상세정보 동기화"** → metadata 갱신
+
+기존 **"🔄 스타레일 캐릭터 불러오기"** (legacy) — element/path/slug/metadata 없이 기본 필드만. 보존 중.
+
+### 라우팅 (_routes.json)
+```
+/game/starrail/, /game/starrail/uid/*, /game/starrail/characters/  → 정적 파일
+/game/starrail/characters/[slug]/                                   → Function 실행
+```
