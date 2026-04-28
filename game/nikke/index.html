@@ -60,11 +60,11 @@
     <div class="tools-grid">
       <a href="/game/nikke/characters/" class="hub-tool-card">
         <div class="hub-tool-card-top">
-          <div class="hub-tool-card-icon" style="background:rgba(192,38,211,0.1)">🔫</div>
+          <div class="hub-tool-card-icon" style="background:rgba(108,71,255,0.1)">📖</div>
           <span class="hub-tool-card-badge">서비스 중</span>
         </div>
         <div class="hub-tool-card-title">캐릭터 도감</div>
-        <div class="hub-tool-card-desc">전체 니케 목록 · SSS~C 티어 필터</div>
+        <div class="hub-tool-card-desc">니케 (NIKKE) 전체 캐릭터 정보와 보유 계정 시세를 한눈에</div>
       </a>
     </div>
     <div class="section-label">거래소</div>
@@ -93,7 +93,7 @@
     }
     loadGameHero()
     document.getElementById('navbar-container').innerHTML = renderNavbar();
-    loadAndRenderGameUI(null);
+    loadAndRenderGameUI('nikke');
     document.getElementById('footer-container').innerHTML = typeof renderFooter === 'function' ? renderFooter() : '';
   </script>
 </body>
