@@ -36,7 +36,8 @@ function renderListingCard(listing) {
     if (!c) return ''
     const gc = typeof gradeClass === 'function' ? gradeClass(c.tier) : ''
     const countBadge = (count > 1) ? `<span class="char-count-badge">×${count}</span>` : ''
-    if (c.imageUrl) return `<span style="position:relative;display:inline-block;"><img class="char-img-badge${gc ? ' grade-' + gc : ''}" src="${c.imageUrl}" alt="${c.nameKo}" title="${c.nameKo + (count > 1 ? ' ×' + count : '')}">${countBadge}</span>`
+    const charThumb = c.metadata?.cardImageUrl || c.imageUrl
+    if (charThumb) return `<span style="position:relative;display:inline-block;"><img class="char-img-badge${gc ? ' grade-' + gc : ''}" src="${charThumb}" alt="${c.nameKo}" title="${c.nameKo + (count > 1 ? ' ×' + count : '')}">${countBadge}</span>`
     return `<span class="char-badge${gc ? ' grade-' + gc : ''}">${c.nameKo}${count > 1 ? ` ×${count}` : ''}</span>`
   }
 
@@ -146,7 +147,7 @@ async function loadListings({ container, gameSlug, serverId, page = 1, limit = 9
       user:User(nickname),
       characters:ListingCharacter(
         count,
-        character:Character(nameKo, tier, imageUrl)
+        character:Character(nameKo, tier, imageUrl, metadata)
       ),
       currencies:ListingCurrency(amount, currency:Currency(nameKo, imageUrl, sortOrder))
     `

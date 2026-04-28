@@ -131,7 +131,7 @@
     const { data: game } = await db.from('Game').select('id').eq('slug', GAME_SLUG).single()
     if (!game) return
     nikkeGameId = game.id
-    const { data: chars } = await db.from('Character').select('id, nameKo, tier, imageUrl, slug')
+    const { data: chars } = await db.from('Character').select('id, nameKo, tier, imageUrl, slug, metadata')
       .eq('gameId', game.id).eq('isActive', true).order('sortOrder')
     allFilterChars = chars ?? []
     allFilterChars.forEach(c => { filterCharStore[c.id] = c })
@@ -182,7 +182,7 @@
         const cfCount = entry?.count ?? 0
         const sel = !!entry
         return `<div class="char-item${sel ? ' selected' : ''}" id="cfc-${c.id}" onclick="clickFilterChar('${c.id}')">
-          ${c.imageUrl ? `<img src="${c.imageUrl}" alt="${c.nameKo}" loading="lazy">` : '<div class="char-no-img">?</div>'}
+          ${(c.metadata?.cardImageUrl || c.imageUrl) ? `<img src="${c.metadata?.cardImageUrl || c.imageUrl}" alt="${c.nameKo}" loading="lazy">` : '<div class="char-no-img">?</div>'}
           <div class="char-name-label">${c.nameKo}</div>
           <div class="check-overlay" style="${sel ? 'display:flex;' : 'display:none;'}"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
           <div class="char-count-badge" style="${cfCount > 1 ? '' : 'display:none;'}">${cfCount > 1 ? cfCount : ''}</div>
