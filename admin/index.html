@@ -437,7 +437,7 @@
             <span class="game-source">NikkeAPI (prydwen)</span>
           </div>
         </div>
-        <div class="game-import-actions" style="grid-template-columns:repeat(2,1fr);">
+        <div class="game-import-actions" style="grid-template-columns:repeat(3,1fr);">
           <button class="action-btn action-import" onclick="openNikkeNewDetect()">
             <span class="action-icon">🔍</span>
             <span class="action-label">신규 캐릭터 감지</span>
@@ -448,10 +448,16 @@
             <span class="action-label">prydwen 동기화</span>
             <span class="action-desc">이미지·속성·등급 등 prydwen 기준으로 갱신</span>
           </button>
+          <button class="action-btn" onclick="copyTreasureImages()">
+            <span class="action-icon">🔗</span>
+            <span class="action-label">애장품 이미지 복사</span>
+            <span class="action-desc">기본 캐릭터에서 이미지 가져오기</span>
+          </button>
         </div>
-        <div class="game-import-status-row" style="grid-template-columns:repeat(2,1fr);">
+        <div class="game-import-status-row" style="grid-template-columns:repeat(3,1fr);">
           <div></div>
           <div class="action-status" id="nikke-sync-status"></div>
+          <div></div>
         </div>
       </div>
 
@@ -2259,6 +2265,62 @@
       status.textContent = `⚠️ ${e.message}`
       btn.disabled = false
     }
+  }
+
+  // ===== 니케 애장품 이미지 복사 =====
+  async function copyTreasureImages() {
+    if (!confirm('애장품 캐릭터 이미지를 기본 캐릭터에서 복사할까요?')) return
+
+    const { data: games } = await db.from('Game').select('id').eq('slug', 'nikke')
+    if (!games?.length) { alert('Supabase에 nikke 게임이 없어요.'); return }
+    const nikkeGameId = games[0].id
+
+    const { data: chars, error } = await db.from('Character')
+      .select('id, slug, imageUrl, nameKo')
+      .eq('gameId', nikkeGameId)
+    if (error) { alert('캐릭터 조회 실패: ' + error.message); return }
+
+    const slugMap = new Map((chars || []).map(c => [c.slug, c]))
+    const treasures = (chars || []).filter(c => c.slug?.endsWith('-treasure'))
+
+    if (treasures.length === 0) {
+      alert('애장품 캐릭터(-treasure)가 없어요.')
+      return
+    }
+
+    let success = 0, skipped = 0
+    const failures = []
+
+    for (const t of treasures) {
+      const baseSlug = t.slug.replace(/-treasure$/, '')
+      const base = slugMap.get(baseSlug)
+
+      if (!base) {
+        failures.push(`${t.nameKo}: 기본 캐릭터 없음 (${baseSlug})`)
+        skipped++
+        continue
+      }
+      if (!base.imageUrl) {
+        failures.push(`${t.nameKo}: 기본 캐릭터 imageUrl이 null`)
+        skipped++
+        continue
+      }
+
+      const { error: updateErr } = await db.from('Character')
+        .update({ imageUrl: base.imageUrl })
+        .eq('id', t.id)
+
+      if (updateErr) {
+        failures.push(`${t.nameKo}: UPDATE 실패 — ${updateErr.message}`)
+        skipped++
+      } else {
+        success++
+      }
+    }
+
+    if (failures.length > 0) console.warn('[애장품 복사 실패/skip]', failures)
+    if (selectedCharGameId) loadCharsForGame()
+    alert(`✅ ${success}명 복사 완료, ${skipped}명 skip (콘솔 확인)\n총 애장품: ${treasures.length}명`)
   }
 
   // ===== 초기화 =====
