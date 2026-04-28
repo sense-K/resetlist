@@ -73,6 +73,8 @@
     "/trade/epic7/*",
     "/trade/starrail",
     "/trade/starrail/*",
+    "/trade/wuwa",
+    "/trade/wuwa/*",
     "/trade/register",
     "/trade/register/*",
     "/trade/bulk",
