@@ -1752,7 +1752,7 @@
           tier:       char.rank === 4 ? 'S' : 'A',
           element:    ZZZ_ELEMENT_MAP[char.element]   || null,
           weaponType: ZZZ_SPECIALTY_MAP[char.type]    || null,
-          imageUrl:   `${ZZZ_IMG_BASE}/${char.icon}.webp`,
+          imageUrl:   `${ZZZ_IMG_BASE}/${char.icon.replace('IconRole','IconRoleSelect')}.png`,
           slug:       slugify(char.en || char.code),
           _iconKey:   char.icon,
         }))
@@ -1905,7 +1905,7 @@
       // nameEn → imageUrl 맵
       const imgMap = {}
       Object.values(rawChars).forEach(char => {
-        if (char.en) imgMap[char.en] = `${ZZZ_IMG_BASE}/${char.icon}.webp`
+        if (char.en) imgMap[char.en] = `${ZZZ_IMG_BASE}/${char.icon.replace('IconRole','IconRoleSelect')}.png`
       })
 
       const updates = chars
