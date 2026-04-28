@@ -2010,6 +2010,7 @@
 
       status.textContent = `신규 ${nikkeNewCharList.length}명 발견 (전체 ${apiChars.length}명 중)`
       renderNikkeNewPreview()
+      console.log('[니케 신규 감지]', nikkeNewCharList.map(c => c.name).join(', '))
     } catch(e) {
       list.innerHTML = `<div style="text-align:center;padding:40px;color:#ef4444;font-size:14px;">⚠️ ${e.message}</div>`
       status.textContent = ''
@@ -2081,51 +2082,86 @@
     const btn    = document.getElementById('nikke-detect-btn')
     const status = document.getElementById('nikke-detect-status')
     btn.disabled = true
-    btn.textContent = '등록 중...'
+    btn.textContent = '중복 확인 중...'
 
-    const now = new Date().toISOString()
-    const rows = toInsert.map(({ c, nameKo }) => ({
-      id:           crypto.randomUUID(),
-      gameId:       c._gameId,
-      nameKo,
-      nameEn:       c.name,
-      tier:         c.rarity === 'SSR' ? 'S' : (c.rarity === 'SR' ? 'A' : 'B'),
-      element:      c.element,
-      weaponType:   c.weapon,
-      rarity:       c.rarity,
-      manufacturer: c.manufacturer,
-      burstType:    c.burstType,
-      classType:    c.class,
-      slug:         c.slug,
-      imageUrl:     null,
-      isLimited:    c.isLimited ?? false,
-      basePrice:    0,
-      isActive:     true,
-      sortOrder:    0,
-      createdAt:    now,
-      updatedAt:    now,
-      metadata:     {},
-    }))
+    try {
+      // INSERT 직전 DB 재확인 — nameEn + nameKo 동시 체크
+      const gameId = toInsert[0].c._gameId
+      const enList = toInsert.map(t => t.c.name)
+      const koList = toInsert.map(t => t.nameKo)
 
-    const CHUNK = 50
-    let inserted = 0
-    for (let i = 0; i < rows.length; i += CHUNK) {
-      const chunk = rows.slice(i, i + CHUNK)
-      const { error } = await db.from('Character').insert(chunk)
-      if (error) {
-        alert(`등록 중 오류 (${inserted}명 완료 후): ${error.message}`)
+      const [{ data: dupesByEn }, { data: dupesByKo }] = await Promise.all([
+        db.from('Character').select('nameEn').eq('gameId', gameId).in('nameEn', enList),
+        db.from('Character').select('nameKo').eq('gameId', gameId).in('nameKo', koList),
+      ])
+      const dupeEnSet = new Set((dupesByEn ?? []).map(d => d.nameEn))
+      const dupeKoSet = new Set((dupesByKo ?? []).map(d => d.nameKo))
+
+      const safe    = toInsert.filter(t => !dupeEnSet.has(t.c.name) && !dupeKoSet.has(t.nameKo))
+      const skipped = toInsert.length - safe.length
+      if (skipped > 0) {
+        const dupeNames = toInsert
+          .filter(t => dupeEnSet.has(t.c.name) || dupeKoSet.has(t.nameKo))
+          .map(t => `${t.c.name} (${t.nameKo})`)
+          .join(', ')
+        alert(`${skipped}명이 이미 등록된 캐릭터라서 건너뛰었어요.\n충돌: ${dupeNames}`)
+      }
+      if (safe.length === 0) {
+        status.textContent = '⚠️ 등록할 캐릭터가 없어요 (모두 이미 등록됨)'
         btn.disabled = false
-        btn.textContent = '다시 시도'
-        status.textContent = `⚠️ ${inserted}명 등록 후 오류`
+        btn.textContent = '등록하기'
         return
       }
-      inserted += chunk.length
-      status.textContent = `등록 중... ${inserted}/${rows.length}명`
-    }
 
-    status.textContent = `✅ ${inserted}명 등록 완료!`
-    btn.textContent = '등록 완료'
-    if (selectedCharGameId) loadCharsForGame()
+      btn.textContent = '등록 중...'
+      const now = new Date().toISOString()
+      const rows = safe.map(({ c, nameKo }) => ({
+        id:           crypto.randomUUID(),
+        gameId:       c._gameId,
+        nameKo,
+        nameEn:       c.name,
+        tier:         c.rarity === 'SSR' ? 'S' : (c.rarity === 'SR' ? 'A' : 'B'),
+        element:      c.element,
+        weaponType:   c.weapon,
+        rarity:       c.rarity,
+        manufacturer: c.manufacturer,
+        burstType:    c.burstType,
+        classType:    c.class,
+        slug:         c.slug,
+        imageUrl:     null,
+        isLimited:    c.isLimited ?? false,
+        basePrice:    0,
+        isActive:     true,
+        sortOrder:    0,
+        createdAt:    now,
+        updatedAt:    now,
+        metadata:     {},
+      }))
+
+      const CHUNK = 50
+      let inserted = 0
+      for (let i = 0; i < rows.length; i += CHUNK) {
+        const chunk = rows.slice(i, i + CHUNK)
+        const { error } = await db.from('Character').insert(chunk)
+        if (error) {
+          alert(`등록 중 오류 (${inserted}명 완료 후): ${error.message}`)
+          btn.disabled = false
+          btn.textContent = '다시 시도'
+          status.textContent = `⚠️ ${inserted}명 등록 후 오류`
+          return
+        }
+        inserted += chunk.length
+        status.textContent = `등록 중... ${inserted}/${rows.length}명`
+      }
+
+      status.textContent = `✅ ${inserted}명 등록 완료!`
+      btn.textContent = '등록 완료'
+      if (selectedCharGameId) loadCharsForGame()
+    } catch(e) {
+      alert(`오류: ${e.message}`)
+      btn.disabled = false
+      btn.textContent = '다시 시도'
+    }
   }
 
   function closeNikkeNewModal() {
