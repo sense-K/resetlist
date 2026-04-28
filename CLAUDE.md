@@ -625,6 +625,61 @@ Normal→일반 공격, BPSkill→전투 스킬, Ultra→궁극기, Talent→천
 
 새 게임 추가 시: 카드 HTML 1블록 + JS 함수 3~4개 추가로 확장.
 
+### 도감 자동화 게임별 데이터 소스
+
+| 게임 | 데이터 소스 | 비고 |
+|---|---|---|
+| 원신 | genshin-db API (`genshin-db-api.vercel.app`) | `queryLanguages=Korean` 필수 |
+| 스타레일 | StarRailRes GitHub raw JSON | `index_min/kr/characters.json` |
+| 젠레스 | Hakushin API (`static.nanoka.cc`) | 버전 동적 조회 |
+| 니케 | prydwen.gg page-data.json | CF Function 프록시 경유 (CORS 우회) |
+
+## 니케 캐릭터 도감 운영 (2026-04-28 추가)
+
+### Cloudflare Function 프록시 2개
+- `/api/prydwen-nikke` → `functions/api/prydwen-nikke.js` (전체 목록, 1시간 캐시)
+- `/api/prydwen-nikke-char/{slug}` → `functions/api/prydwen-nikke-char/[slug].js` (개별 캐릭터, 24시간 캐시)
+- **직접 fetch 불가** — CORS 차단. 반드시 프록시 경유.
+
+### 운영 워크플로우 (admin → 캐릭터 관리 → 니케 카드)
+
+1. **🔍 신규 캐릭터 감지** (신규 출시 시)
+   - prydwen 206명 fetch → DB nameEn 정규화 비교 → 신규만 모달 표시
+   - 각 캐릭터에 한국어 이름 직접 입력 → 등록하기
+   - nameEn 기준 정규화: `normalize(str) = str.toLowerCase().replace(/[\s_:.\-,]+/g, '')`
+
+2. **🔄 prydwen 동기화** (정기 갱신 시)
+   - 전체 캐릭터 slug 기준 매칭 → 5명씩 개별 페이지 fetch → DB UPDATE
+   - 콘솔에서 매칭 실패 목록 확인: `console.warn('[니케 동기화] 매칭 실패:', nameKo, slug)`
+
+### 필드별 동기화 정책
+
+| 필드 | 정책 | 비고 |
+|---|---|---|
+| `imageUrl` | ✅ 덮어쓰기 | prydwen fullImage → 절대 URL 변환 |
+| `element` | ✅ 덮어쓰기 | 영문 그대로 (Fire/Water/Wind/Iron/Electric) |
+| `weaponType` | ✅ 덮어쓰기 | 영문 그대로 (Shotgun/SMG 등) |
+| `rarity` | ✅ 덮어쓰기 | SSR/SR/R |
+| `manufacturer` | ✅ 덮어쓰기 | Elysion/Missilis/Tetra/Pilgrim/Abnormal |
+| `burstType` | ✅ 덮어쓰기 | "1"/"2"/"3"/"All" |
+| `classType` | ✅ 덮어쓰기 | Attacker/Defender/Supporter |
+| `isLimited` | ✅ 덮어쓰기 | `prydwen.isLimited === true` |
+| `nameKo` | 🔒 보호 | 사용자 직접 입력값 |
+| `nameEn` | 🔒 보호 | 최초 등록 시 prydwen name 그대로 |
+| `slug` | 🔒 보호 | prydwen slug 그대로 |
+| `metadata` | 🔒 보호 | 수동 정리용 |
+| `basePrice`, `isActive`, `sortOrder` | 🔒 보호 | 기본값 유지 |
+
+### nameEn 정규화 규칙
+- prydwen `name` 표기 우선 (Ada Wong, Asuka Shikinami Langley 등 풀네임 그대로)
+- Treasure(애장품) 캐릭터는 별개 캐릭터로 등록 — slug에 `-treasure` 접미어
+- 한국어는 "이름 (애장품)" 패턴 사용
+
+### 미해결 이슈
+- prydwen 미수록 캐릭터(스킨/콜라보) → 매칭 실패 → 수동 imageUrl 입력 필요
+- 애장품(Treasure) 캐릭터 일부는 prydwen fullImage가 null → 기본 캐릭터 이미지 복사 전략 (작업 예정)
+- INSERT 시 중복 방지: 감지 단계 normalize 비교 + INSERT 직전 nameEn·nameKo DB 재쿼리 이중 방어
+
 ## sitemap.xml 동적 생성 (2026-04-28 추가)
 
 - 파일: `functions/sitemap.xml.js` (Cloudflare Function)
