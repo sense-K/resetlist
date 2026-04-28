@@ -437,12 +437,21 @@
             <span class="game-source">NikkeAPI (prydwen)</span>
           </div>
         </div>
-        <div class="game-import-actions" style="grid-template-columns:1fr;">
+        <div class="game-import-actions" style="grid-template-columns:repeat(2,1fr);">
           <button class="action-btn action-import" onclick="openNikkeNewDetect()">
             <span class="action-icon">🔍</span>
             <span class="action-label">신규 캐릭터 감지</span>
             <span class="action-desc">NikkeAPI에서 신규만 찾아 한국어 이름 입력 후 등록</span>
           </button>
+          <button class="action-btn action-image" id="nikke-sync-btn" onclick="syncNikkePrydwen()">
+            <span class="action-icon">🔄</span>
+            <span class="action-label">prydwen 동기화</span>
+            <span class="action-desc">이미지·속성·등급 등 prydwen 기준으로 갱신</span>
+          </button>
+        </div>
+        <div class="game-import-status-row" style="grid-template-columns:repeat(2,1fr);">
+          <div></div>
+          <div class="action-status" id="nikke-sync-status"></div>
         </div>
       </div>
 
@@ -2167,6 +2176,89 @@
   function closeNikkeNewModal() {
     document.getElementById('nikke-detect-modal').classList.remove('open')
     nikkeNewCharList = []
+  }
+
+  // ===== 니케 prydwen 동기화 =====
+  async function syncNikkePrydwen() {
+    if (!confirm('니케 캐릭터의 이미지·속성·등급을 prydwen 기준으로 갱신해요.\n한국어 이름과 metadata는 보호돼요. 진행할까요?')) return
+
+    const btn    = document.getElementById('nikke-sync-btn')
+    const status = document.getElementById('nikke-sync-status')
+    btn.disabled = true
+    status.textContent = '데이터 불러오는 중...'
+
+    try {
+      // 1. prydwen 메인 목록 → slug 맵
+      const mainData = await safeFetchJson('/api/prydwen-nikke')
+      const apiList  = mainData?.result?.data?.allCharacters?.nodes
+      if (!apiList?.length) throw new Error('prydwen 목록 로드 실패')
+      const prydwenMap = {}
+      apiList.forEach(c => { prydwenMap[c.slug] = c })
+
+      // 2. DB 니케 캐릭터 전체 조회
+      const { data: game } = await db.from('Game').select('id').eq('slug', 'nikke').single()
+      if (!game) throw new Error('nikke 게임 없음')
+      const { data: dbChars } = await db.from('Character').select('id, nameKo, slug, nameEn').eq('gameId', game.id)
+      if (!dbChars?.length) throw new Error('DB 캐릭터 없음')
+
+      // 3. slug 기준 매칭
+      const matched   = dbChars.filter(c => c.slug && prydwenMap[c.slug])
+      const unmatched = dbChars.filter(c => !c.slug || !prydwenMap[c.slug])
+      unmatched.forEach(c => console.warn('[니케 동기화] 매칭 실패:', c.nameKo, c.slug))
+      status.textContent = `매칭 ${matched.length}명 / 건너뜀 ${unmatched.length}명 — 개별 fetch 중...`
+
+      // 4. 5명씩 배치 fetch → fullImage + 속성 추출
+      const FETCH_CHUNK = 5
+      const updates = []
+      let fetched = 0
+      for (let i = 0; i < matched.length; i += FETCH_CHUNK) {
+        const batch   = matched.slice(i, i + FETCH_CHUNK)
+        const results = await Promise.all(batch.map(c => safeFetchJson(`/api/prydwen-nikke-char/${c.slug}`)))
+        results.forEach((charData, j) => {
+          const dbChar = batch[j]
+          const node   = charData?.result?.data?.currentUnit?.nodes?.[0]
+          if (!node) {
+            console.warn('[니케 동기화] 개별 fetch 실패:', dbChar.nameKo, dbChar.slug)
+            return
+          }
+          const imgSrc  = node?.fullImage?.localFile?.childImageSharp?.gatsbyImageData?.images?.fallback?.src
+          const imageUrl = imgSrc ? (imgSrc.startsWith('http') ? imgSrc : `https://www.prydwen.gg${imgSrc}`) : null
+          updates.push({
+            id:           dbChar.id,
+            imageUrl,
+            element:      node.element      ?? null,
+            weaponType:   node.weapon       ?? null,
+            rarity:       node.rarity       ?? null,
+            manufacturer: node.manufacturer ?? null,
+            burstType:    node.burstType    ?? null,
+            classType:    node.class        ?? null,
+            isLimited:    node.isLimited === true,
+            updatedAt:    new Date().toISOString(),
+          })
+        })
+        fetched += batch.length
+        status.textContent = `개별 fetch 중... ${fetched}/${matched.length}`
+      }
+
+      // 5. 50개씩 청크 UPDATE (nameKo·nameEn·slug·metadata 절대 포함 안 함)
+      const UPDATE_CHUNK = 50
+      let updated = 0
+      for (let i = 0; i < updates.length; i += UPDATE_CHUNK) {
+        const chunk = updates.slice(i, i + UPDATE_CHUNK)
+        await Promise.all(chunk.map(({ id, ...fields }) =>
+          db.from('Character').update(fields).eq('id', id)
+        ))
+        updated += chunk.length
+        status.textContent = `DB 업데이트 중... ${updated}/${updates.length}`
+      }
+
+      status.textContent = `✅ ${updated}명 동기화 완료 (매칭 실패 ${unmatched.length}명, 콘솔 확인)`
+      btn.disabled = false
+      if (selectedCharGameId) loadCharsForGame()
+    } catch(e) {
+      status.textContent = `⚠️ ${e.message}`
+      btn.disabled = false
+    }
   }
 
   // ===== 초기화 =====
