@@ -65,6 +65,9 @@ export async function onRequest({ params }) {
   const elemColor = ELEM_COLOR[c.element] || '#6c47ff'
   const canonical = `https://resetlist.kr/game/zzz/characters/${slug}/`
 
+  // hero용 전신 이미지 (IconRoleSelect → IconRole 변환, 없으면 얼굴 이미지로 fallback)
+  const portraitUrl = (c.imageUrl || '').replace('IconRoleSelect', 'IconRole').replace('.png', '.webp')
+
   // 같은 원소 추천
   let related = []
   if (c.element) {
@@ -276,7 +279,7 @@ export async function onRequest({ params }) {
 
   <section class="gc-hero">
     <div class="gc-hero-img">
-      ${c.imageUrl ? `<img src="${esc(c.imageUrl)}" alt="${esc(c.nameKo)}" fetchpriority="high">` : ''}
+      ${portraitUrl ? `<img src="${esc(portraitUrl)}" alt="${esc(c.nameKo)}" fetchpriority="high" onerror="this.onerror=null;this.src='${esc(c.imageUrl)}';this.onerror=function(){this.style.display='none';};">` : ''}
     </div>
     <div>
       <h1 class="gc-char-name">${esc(c.nameKo)}</h1>
