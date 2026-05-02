@@ -381,6 +381,33 @@ let useMyHeroes    = false
 let myHeroCodes    = new Set()
 let currentUser    = null
 
+// ─── URL 파라미터 자동 입력 (강화 어시스트 연동) ──
+function applyUrlParams() {
+  const p = new URLSearchParams(location.search)
+  if (!p.has('slot') && !p.has('sub1')) return  // 파라미터 없으면 스킵
+
+  if (p.has('slot'))  { selectedSlot  = p.get('slot');  applySlotRules() }
+  if (p.has('set'))   { selectedSet   = p.get('set')   }
+  if (p.has('main'))  { selectedMain  = p.get('main');  syncMainStatBtns() }
+
+  ;['sub1','sub2','sub3','sub4'].forEach(k => {
+    const v = p.get(k)
+    if (!v) return
+    const [key] = v.split(':')
+    if (key && !selectedStats.includes(key) && selectedStats.length < 4) selectedStats.push(key)
+  })
+
+  // 슬롯 버튼 UI 동기화
+  SLOTS.forEach(s => document.getElementById('slotbtn-' + s.key)?.classList.toggle('active', selectedSlot === s.key))
+  SETS.forEach(s => document.getElementById('setbtn-' + s.key)?.classList.toggle('active', selectedSet === s.key))
+  syncMainStatBtns()
+  syncSubStatBtns()
+  renderSubSlots()
+  updateSearchBtn()
+
+  if (selectedStats.length >= 4) doSearch()
+}
+
 // ─── 초기화 ──────────────────────────────────────
 async function init() {
   renderSlotBtns()
@@ -388,6 +415,8 @@ async function init() {
   renderSubStatBtns()
   renderSetBtns()
   renderSubSlots()
+
+  applyUrlParams()
 
   const { data: { session } } = await db.auth.getSession()
   if (session) {
