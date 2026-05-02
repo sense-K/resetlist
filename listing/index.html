@@ -539,10 +539,11 @@
     btn.disabled = true; btn.textContent = '전송 중...'
     try {
       const { data: { session } } = await db.auth.getSession()
-      const res = await fetch('https://ltcibadxwkupwjikqzik.supabase.co/functions/v1/quick-responder', {
+      if (!session) throw new Error('session_null')
+      const res = await fetch('/api/nudge', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-        body: JSON.stringify({ action: 'nudge', tradeId })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tradeId, token: session.access_token }),
       })
       if (res.ok) {
         btn.textContent = '전송됨 ✓'
@@ -552,6 +553,7 @@
         btn.disabled = false; btn.textContent = '연락 요청'
       }
     } catch (e) {
+      console.error('[nudge]', e)
       alert('오류가 발생했어요')
       btn.disabled = false; btn.textContent = '연락 요청'
     }
