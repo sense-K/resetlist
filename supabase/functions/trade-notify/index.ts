@@ -17,6 +17,7 @@ serve(async (req) => {
       const supabase = createClient(SUPABASE_URL, SERVICE_KEY)
 
       const { data: { user: caller } } = await supabase.auth.getUser(token)
+      console.log('[nudge] caller:', caller?.id ?? 'null')
       if (!caller) return new Response('unauthorized', { status: 401 })
 
       const { data: trade } = await supabase
@@ -26,6 +27,7 @@ serve(async (req) => {
         .in('status', ['active', 'trading', 'seller_confirmed'])
         .single()
 
+      console.log('[nudge] trade:', trade?.id ?? 'null', 'seller match:', trade?.sellerId === caller.id)
       if (!trade || trade.sellerId !== caller.id) return new Response('forbidden', { status: 403 })
 
       const { data: listing } = await supabase
@@ -37,10 +39,11 @@ serve(async (req) => {
       const gameName = listing?.game?.nameKo ?? '게임'
       const listingUrl = `${SITE_URL}/listing/?id=${trade.listingId}`
 
-      const { data: { user: buyer } } = await supabase.auth.admin.getUserById(trade.buyerId)
-      if (!buyer?.email) return ok()
+      const { data: { user: buyer }, error: buyerErr } = await supabase.auth.admin.getUserById(trade.buyerId)
+      console.log('[nudge] buyer:', buyer?.id ?? 'null', 'email:', buyer?.email ?? 'null', 'err:', buyerErr?.message ?? 'none')
+      if (!buyer?.email) return new Response('no_buyer_email', { status: 422 })
 
-      const res = await fetch('https://api.resend.com/emails', {
+      const resendRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -55,8 +58,10 @@ serve(async (req) => {
           )
         }),
       })
-      const data = await res.json()
-      return new Response(JSON.stringify(data), { status: 200 })
+      const resendData = await resendRes.json()
+      console.log('[nudge] Resend:', resendRes.status, JSON.stringify(resendData))
+      if (!resendRes.ok) return new Response(JSON.stringify(resendData), { status: 502 })
+      return new Response(JSON.stringify(resendData), { status: 200 })
     }
 
     const { type, record, old_record } = body
