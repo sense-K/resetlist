@@ -32,6 +32,7 @@ const STATIC_URLS = [
   { loc: '/game/epic7/rta/',               priority: '0.7', changefreq: 'weekly'  },
   { loc: '/game/epic7/artifacts/',         priority: '0.6', changefreq: 'weekly'  },
   { loc: '/game/epic7/gear-recommend/',    priority: '0.6', changefreq: 'weekly'  },
+  { loc: '/game/epic7/enhance-assist/',   priority: '0.7', changefreq: 'weekly'  },
   { loc: '/trade/',                        priority: '0.9', changefreq: 'daily'   },
   { loc: '/trade/genshin/',               priority: '0.9', changefreq: 'daily'   },
   { loc: '/trade/starrail/',              priority: '0.9', changefreq: 'daily'   },
