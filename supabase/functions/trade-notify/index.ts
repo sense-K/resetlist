@@ -23,7 +23,7 @@ serve(async (req) => {
         .from('Trade')
         .select('id, buyerId, sellerId, listingId')
         .eq('id', body.tradeId)
-        .eq('status', 'active')
+        .in('status', ['active', 'trading', 'seller_confirmed'])
         .single()
 
       if (!trade || trade.sellerId !== caller.id) return new Response('forbidden', { status: 403 })
