@@ -280,7 +280,7 @@ const _ICON_SVG = {
 }
 function guideIconSvg(name) {
   const inner = _ICON_SVG[name] || _ICON_SVG['book-open']
-  return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + inner + '</svg>'
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + inner + '</svg>'
 }
 
 function gameSlugToPath(slug) {
