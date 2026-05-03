@@ -406,11 +406,11 @@ async function loadAndRenderGameUI(activeSlug) {
       const iconHtml = g.imageUrl
         ? `<img class="guide-card-img" src="${g.imageUrl}" alt="${g.nameKo}">`
         : `<span class="guide-card-emoji">${g.emoji || '🎮'}</span>`
-      const miniCards = gd.guides.map(gde => `
-        <a href="${gde.url}" class="guide-mini-card">
-          ${gde.isNew ? `<span class="guide-mini-new">NEW</span>` : ''}
-          <span class="guide-mini-icon">${guideIconSvg(gde.icon)}</span>
-          <span class="guide-mini-label">${gde.name}</span>
+      const chips = gd.guides.map(gde => `
+        <a href="${gde.url}" class="guide-chip${gde.isNew ? ' is-new' : ''}">
+          <span class="guide-chip-icon">${guideIconSvg(gde.icon)}</span>
+          ${gde.name}
+          ${gde.isNew ? `<span class="guide-chip-new-tag">NEW</span>` : ''}
         </a>`).join('')
       return `
         <article class="guide-game-card">
@@ -422,7 +422,7 @@ async function loadAndRenderGameUI(activeSlug) {
             </div>
             <svg class="guide-card-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </a>
-          <div class="guide-mini-grid">${miniCards}</div>
+          <div class="guide-chips">${chips}</div>
         </article>`
     }).filter(Boolean).join('')
   }
