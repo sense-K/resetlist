@@ -1,17 +1,10 @@
 const SUPABASE_URL = 'https://ltcibadxwkupwjikqzik.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0Y2liYWR4d2t1cHdqaWtxemlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMTQ5OTEsImV4cCI6MjA5MDY5MDk5MX0.KYrP2xopjSxBOee2KcS8tM89misAkyzfBvx0828t4No'
 
-// 정적 파일로 서빙해야 하는 경로 — Function이 가로채지 않고 그대로 넘김
-const STATIC_SLUGS = new Set(['price', 'register', 'bulk'])
-
 export async function onRequest({ params, env, request }) {
   const slug = params.slug
   if (!slug || !/^[a-z0-9_-]+$/.test(slug)) {
     return new Response('Not Found', { status: 404 })
-  }
-
-  if (STATIC_SLUGS.has(slug)) {
-    return env.ASSETS.fetch(request)
   }
 
   // Supabase에서 게임 정보 조회
