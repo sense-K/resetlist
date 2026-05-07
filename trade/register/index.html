@@ -1127,6 +1127,18 @@
       if (!authUser) return
 
       const { data: { session } } = await db.auth.getSession()
+
+      // === INSERT debug (제거 예정) ===
+      const _debugUid = session?.user?.id
+      console.log('=== CharacterRequest INSERT debug ===')
+      console.log('requireAuth() authUser.id:', authUser.id)
+      console.log('session.user.id:', _debugUid)
+      console.log('match:', authUser.id === _debugUid)
+      console.log('JWT exists:', !!session?.access_token)
+      console.log('JWT prefix:', session?.access_token?.slice(0, 20))
+      console.log('payload:', { userId: authUser.id, gameId, characterName })
+      // === /debug ===
+
       const { data: inserted, error } = await db.from('CharacterRequest').insert({
         userId: authUser.id,
         gameId,
