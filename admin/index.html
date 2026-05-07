@@ -2633,6 +2633,10 @@
     const wrap = document.getElementById('stats-content')
     wrap.innerHTML = '<div style="color:#888;padding:20px 0;">불러오는 중...</div>'
 
+    // KST 날짜 헬퍼 — Date 객체의 로컬(KST) 날짜를 "YYYY-MM-DD"로 반환
+    const toLocalDateStr = d =>
+      `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+
     const now = new Date()
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
     const yestStart  = new Date(todayStart); yestStart.setDate(yestStart.getDate() - 1)
@@ -2670,14 +2674,14 @@
     const games      = gamesR.data    ?? []
     const gameMap    = Object.fromEntries(games.map(g => [g.id, g]))
 
-    // 일별 집계 (7일)
+    // 일별 집계 (7일) — KST 기준
     const dayBuckets = {}
     for (let i = 6; i >= 0; i--) {
       const d = new Date(todayStart); d.setDate(d.getDate() - i)
-      dayBuckets[d.toISOString().slice(0, 10)] = 0
+      dayBuckets[toLocalDateStr(d)] = 0  // KST 로컬 날짜 키
     }
     views.forEach(v => {
-      const day = v.viewedAt.slice(0, 10)
+      const day = toLocalDateStr(new Date(new Date(v.viewedAt).getTime() + 9 * 3600000))  // UTC → KST
       if (day in dayBuckets) dayBuckets[day]++
     })
     const days = Object.entries(dayBuckets)
