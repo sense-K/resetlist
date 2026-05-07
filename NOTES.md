@@ -75,6 +75,38 @@
 
 ---
 
+## 2026-05-07 작업 이력
+
+### 완료
+- **캐릭터 추가 요청 기능** (STEP 1~3 완료)
+  - DB: `CharacterRequest` 테이블 + RLS (스크립트: `scripts/character-request-setup.sql`)
+  - UI: `/trade/register/` 2단계 — 검색창 아래 보라 버튼 → 모달 (게임 선택 + 이름 입력)
+  - 알림: `trade-notify` Edge Function에 `action: 'char-request'` 분기 추가
+  - CF 프록시: `functions/api/char-request-notify.js` (nudge.js 패턴 그대로)
+- **이메일 알림 브랜드명 통일** — 제목·본문·발신자 '리세리스트' → '플레이센스' 일괄 변경
+  - `supabase/functions/trade-notify/index.ts` 10곳 치환 (도메인 이전 시 FROM 주소만 추가 수정 필요)
+- **등록 페이지 UX 개선**
+  - '캐릭터 추가 요청하기' + '여러 계정 한번에 올리기' 버튼 → 보라 실선 스타일 통일
+  - 대량 등록 안내 문구 추가 (`/contact/` 링크)
+- **거래소 게임 선택 칩 레이아웃 변경** — 세로 카드 6열 → 가로 컴팩트 행 PC 4열 / 모바일 2열
+
+### 디버깅 기록 (재발 방지)
+- **구글 OAuth 신규 가입자 `public.User` 미생성**
+  - `loginWithGoogle()` 콜백에 User INSERT 없음 → `initNavbarAuth()` 에만 의존
+  - 임시 해결: `submitCharRequest()` 에서 `requireAuth()` 경유 (자동 생성 포함)
+  - 근본 해결(DB 트리거) 미적용 → 아래 미해결 항목 참조
+- **CharacterRequest INSERT RLS 42501** — 위 User 미생성이 원인, requireAuth() 로 해결
+- **/trade/price/ → /trade/ 이슈** — 서버 정상, 브라우저 캐시된 옛 301이 원인. 디버깅 중 추가한 코드 전부 원복 완료
+
+### 미해결 (오늘 발생)
+- [ ] **DB 트리거 `handle_new_user`** — auth.users INSERT 시 public.User 자동 생성 (ON CONFLICT DO NOTHING)
+  - 이메일 가입 클라이언트 INSERT와 충돌 없음 확인 필요
+  - SQL은 이전 대화에 준비됨
+- [ ] **누락 User 백필** — auth에만 있고 public.User 없는 계정 (오늘 가입한 sense 계정 등)
+- [ ] **문의하기 이메일 경로** — 현재 Formspree 단독, 도메인 이전 시 trade-notify 통합 검토
+
+---
+
 ## 미해결 / 차후 작업
 
 ### 중요도 높음
