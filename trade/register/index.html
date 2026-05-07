@@ -281,19 +281,25 @@
     /* 캐릭터 추가 요청 버튼 */
     .char-req-btn {
       width: 100%;
-      padding: 9px 12px;
+      padding: 11px 14px;
+      min-height: 44px;
       margin-bottom: 10px;
-      background: none;
-      border: 1.5px dashed var(--border);
+      background: #f3f0ff;
+      border: 1.5px solid #6c47ff;
       border-radius: 8px;
-      color: var(--text-muted);
-      font-size: 12px;
+      color: #6c47ff;
+      font-size: 13px;
+      font-weight: 700;
       font-family: inherit;
       cursor: pointer;
-      transition: border-color 0.15s, color 0.15s;
+      transition: background 0.15s, box-shadow 0.15s;
       text-align: center;
+      box-sizing: border-box;
     }
-    .char-req-btn:hover { border-color: #6c47ff; color: #6c47ff; }
+    .char-req-btn:hover {
+      background: #ede9ff;
+      box-shadow: 0 2px 10px rgba(108,71,255,0.18);
+    }
 
     /* 캐릭터 요청 모달 */
     .creq-overlay {
@@ -406,7 +412,7 @@
       style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;margin-bottom:10px;outline:none;"
       onfocus="this.style.borderColor='#111'" onblur="this.style.borderColor='var(--border)'">
 
-    <button class="char-req-btn" onclick="openCharRequestModal()">찾는 캐릭터가 없나요? 캐릭터 추가 요청하기</button>
+    <button class="char-req-btn" onclick="openCharRequestModal()">💡 찾는 캐릭터가 없나요? 캐릭터 추가 요청하기</button>
 
     <div class="char-grade-list" id="char-grade-list">
       <div class="loading">불러오는 중...</div>
@@ -1147,7 +1153,7 @@
       if (error) throw error
 
       closeCharRequestModal()
-      showRegisterToast('요청이 접수되었어요! 빠르게 검토할게요')
+      setTimeout(() => showRegisterToast('요청이 접수되었어요! 빠르게 확인할게요'), 150)
 
       // 이메일 알림 (실패해도 UX 영향 없음)
       if (inserted?.id && session?.access_token) {
