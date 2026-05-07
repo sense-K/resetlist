@@ -98,6 +98,18 @@
 - **CharacterRequest INSERT RLS 42501** — 위 User 미생성이 원인, requireAuth() 로 해결
 - **/trade/price/ → /trade/ 이슈** — 서버 정상, 브라우저 캐시된 옛 301이 원인. 디버깅 중 추가한 코드 전부 원복 완료
 
+### 추가 완료 (오후)
+- **SEO 메타 태그 일괄 개선**
+  - `/trade/{game}/` 14개: `functions/trade/[slug].js` 1파일 수정 → 전 게임 자동 반영
+    - title 패턴: `플레이센스 - {게임명} 리세계 직거래 플랫폼`
+    - description 패턴: 수수료·직거래·1:1 거래 키워드 포함 통일 문구
+    - twitter:card 3태그 신규 추가
+  - `/trade/price/{game}/` 12개: description·og:description·twitter:description 일괄 통일
+  - starrail 시세 페이지 og:title/twitter:title 불일치 발견 → 수정
+
+### ⚠️ 운영 주의
+- Supabase Edge Function(`trade-notify`, 슬러그 `quick-responder`) 코드 변경 시 **Supabase 대시보드에서 수동 Deploy 필수**. `git push`로는 반영되지 않음.
+
 ### 미해결 (오늘 발생)
 - [ ] **DB 트리거 `handle_new_user`** — auth.users INSERT 시 public.User 자동 생성 (ON CONFLICT DO NOTHING)
   - 이메일 가입 클라이언트 INSERT와 충돌 없음 확인 필요
