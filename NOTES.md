@@ -109,6 +109,10 @@
 
 ## 미해결 / 차후 작업
 
+### og:image 미설정
+- [ ] 게임별 거래소·시세 페이지 og:image 미설정 — 카톡/트위터 공유 시 카드 이미지 빈 상태
+  - 각 게임별 1200×630 OG 이미지 제작 후 `functions/trade/[slug].js` + 시세 정적 HTML에 `og:image` 추가 필요
+
 ### 중요도 높음
 - [ ] 비밀번호 재설정 이메일 → Resend SMTP 교체 (도메인 인증 후)
 - [ ] 시세 데이터 Supabase INSERT (원신/니케/쿠킹덤 SQL 준비됨)
