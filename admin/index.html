@@ -2681,7 +2681,7 @@
       dayBuckets[toLocalDateStr(d)] = 0  // KST 로컬 날짜 키
     }
     views.forEach(v => {
-      const day = toLocalDateStr(new Date(new Date(v.viewedAt).getTime() + 9 * 3600000))  // UTC → KST
+      const day = toLocalDateStr(new Date(v.viewedAt))  // .getDate()가 KST 브라우저에서 자동 변환
       if (day in dayBuckets) dayBuckets[day]++
     })
     const days = Object.entries(dayBuckets)
