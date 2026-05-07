@@ -109,6 +109,7 @@
 
 ### ⚠️ 운영 주의
 - Supabase Edge Function(`trade-notify`, 슬러그 `quick-responder`) 코드 변경 시 **Supabase 대시보드에서 수동 Deploy 필수**. `git push`로는 반영되지 않음.
+- **어드민 통계 timezone 이중 오프셋** — KST 통일 작업 중 `+ 9 * 3600000` 추가했으나 브라우저가 이미 KST라 UTC+18이 됨. 수정: `new Date(v.viewedAt)` 그대로 사용 (브라우저 로컬 `.getDate()`에 맡김). **향후 timezone 헬퍼는 "브라우저 환경 가정" 명시 필수.**
 
 ### 미해결 (오늘 발생)
 - [ ] **DB 트리거 `handle_new_user`** — auth.users INSERT 시 public.User 자동 생성 (ON CONFLICT DO NOTHING)
