@@ -124,9 +124,9 @@ SELECT pg_size_pretty(pg_database_size(current_database())) AS "DB 총 용량";
 
 \echo ''
 \echo '--- 테이블별 용량 상위 12 ---'
-SELECT relname AS "테이블",
+SELECT c.relname AS "테이블",
        pg_size_pretty(pg_total_relation_size(c.oid)) AS "용량",
-       n_live_tup AS "행수"
+       s.n_live_tup AS "행수"
 FROM pg_class c
 JOIN pg_namespace n ON n.oid = c.relnamespace
 LEFT JOIN pg_stat_user_tables s ON s.relid = c.oid
