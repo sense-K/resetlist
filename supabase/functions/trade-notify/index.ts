@@ -5,7 +5,10 @@ const RESEND_KEY = Deno.env.get('RESEND_API_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const SITE_URL = 'https://resetlist.kr'
-const FROM = '리세리스트 <onboarding@resend.dev>'
+// resetlist.kr 도메인 인증 완료 후 자체 발신으로 전환 (2026-09-11)
+// 이전: onboarding@resend.dev — Resend 공용 테스트 주소라 '가입 계정(zzabhm@gmail.com)'
+// 에게만 발송됐다. 다른 판매자·구매자는 Resend 가 차단해 알림을 한 통도 못 받았음.
+const FROM = '리세리스트 <noreply@resetlist.kr>'
 
 serve(async (req) => {
   try {
