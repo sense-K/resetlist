@@ -154,6 +154,20 @@ resetlist/            # GitHub sense-K/resetlist
 - 후기작성(`/review/`) = 수령확인. 후기 제출 시 Trade→completed, Listing→sold 처리
 - RLS로 buyer가 Trade/Listing 업데이트 못 막히는 경우 있음 → listing 상세 페이지 진입 시 auto-recovery (Review 존재 여부로 완료 판단)
 
+### 거래중 7일 경과 → 자동 완료 (2026-11-02)
+실제 거래는 카톡에서 끝나고 아무도 사이트에 돌아와 '완료'를 안 누른다(취소 102 / 완료 15).
+그래서 **구매 신청(Trade.createdAt) 후 7일이 지나도 거래중이면 시스템이 완료로 간주**한다.
+- pg_cron `auto-complete-trades` (매시 20분) → `auto_complete_stale_trades()`:
+  Trade(active/seller_confirmed)→completed(+completedAt), Listing→sold, 같은 쌍 첫 완료면 tradeCount+1.
+  둘 다 **`autoCompletedAt`** 에 시각을 남긴다 — NULL 이면 사람이 직접 완료한 것.
+- 판매자 상점(`/shop/{username}`) '지금 처리할 일'에 보라색 **자동 완료** 카드 + 카드 하단 `판매중으로 전환` 버튼.
+  listing 상세의 내 글 상태 박스에도 같은 안내. `완료가 맞아요` 는 `autoCompletedAt` 만 지워 안내를 치운다.
+- 되돌리기는 RPC **`revert_auto_completed_listing(p_listing_id)`** (SECURITY DEFINER, authenticated):
+  본인 글인지 확인 → 자동 완료된 Trade→cancelled, Listing→active, 자동 완료 때 올린 tradeCount 복원.
+- **옛 cron `auto-close-stale-trades`(active 14일 → 자동 취소 + 매물 복귀)는 제거했다.** 새 규칙과 정반대였고
+  취소 건수의 상당 부분을 만들던 범인. 다시 등록하지 말 것.
+- 조사 쿼리: `ops/sql/reports/ops-health.sql` ⑧ 구간이 수정 전후 취소율을 비교한다.
+
 ## GRADE_ORDER_MAP (register.html, bulk.html 동일하게 유지)
 ```js
 const GRADE_ORDER_MAP = {

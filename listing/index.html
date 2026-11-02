@@ -198,7 +198,7 @@
     const { data: listing, error } = await db
       .from('Listing')
       .select(`
-        id, price, description, kakaoOpenChatUrl, createdAt, viewCount, status, userId, gameId, type, stock, images,
+        id, price, description, kakaoOpenChatUrl, createdAt, viewCount, status, userId, gameId, type, stock, images, autoCompletedAt,
         game:Game(nameKo, slug, emoji, imageUrl, artImageUrl),
         server:Server(nameKo),
         user:User(username, nickname, tradeCount, avgRating, sellerGrade),
@@ -405,6 +405,16 @@
     // 내 글
     if (isMine) {
       if (l.status === 'sold') {
+        // 거래중 7일 경과로 시스템이 자동 완료한 글이면 되돌릴 수 있게 안내
+        if (l.autoCompletedAt) {
+          return `<div class="status-info-box" style="background:#f5f3ff;color:#4c1d95;line-height:1.6;">
+            거래 시작 후 7일이 지나 <b>판매완료</b>로 자동 처리됐어요.<br>
+            아직 거래가 끝나지 않은 계정이라면 판매중으로 되돌려 주세요.
+            <div style="margin-top:10px;">
+              <button class="btn btn-primary" style="padding:9px 16px;font-size:13px;" onclick="revertAutoComplete('${l.id}')">판매중으로 전환</button>
+            </div>
+          </div>`
+        }
         return `<div class="status-info-box">판매 완료된 계정이에요.</div>`
       }
       // seller_confirmed: 진행중 거래 없거나 이미 후기가 작성됐으면 → 수령확인 완료된 것 → sold로 복구
@@ -545,6 +555,14 @@
       alert('오류가 발생했어요: ' + e.message)
       btn.disabled = false
     }
+  }
+
+  // 거래중 7일 경과로 자동 완료된 내 글을 판매중으로 되돌린다 (DB 함수가 본인 확인·거래 취소·카운트 복원까지 처리)
+  async function revertAutoComplete(id) {
+    if (!confirm('이 글을 다시 판매중으로 돌릴까요?\n자동으로 완료 처리된 거래는 취소로 바뀌어요.')) return
+    const { error } = await db.rpc('revert_auto_completed_listing', { p_listing_id: id })
+    if (error) { alert('되돌리지 못했어요: ' + error.message); return }
+    location.reload()
   }
 
   async function sellerConfirm() {

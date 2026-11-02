@@ -352,6 +352,13 @@ export async function onRequest({ params }) {
     .shop-action-btn.primary:hover { background: #2a2a2a; }
     .shop-action-btn.secondary { background: #fff; color: #111; border: 1.5px solid #e5e7eb; }
     .shop-action-btn.secondary:hover { border-color: #111; }
+    /* 자동 완료 안내 — 시스템이 처리한 것이라 색을 달리해 눈에 띄게 */
+    .shop-action-card.auto-done { background: #f5f3ff; border-color: #c4b5fd; }
+    .shop-action-role.role-auto { background: #ede9fe; color: #6d28d9; }
+    .shop-action-card.auto-done .shop-action-counterparty { color: #6b7280; line-height: 1.5; }
+    .shop-card-auto-note { font-size: 11px; color: #6d28d9; font-weight: 700; align-self: center; margin-right: auto; }
+    .shop-card-owner-btn.restore { background: #ede9fe; color: #6d28d9; }
+    .shop-card-owner-btn.restore:hover { background: #ddd6fe; color: #4c1d95; }
 
     @media (max-width: 480px) {
       .shop-action-card { padding: 12px; }
@@ -582,6 +589,7 @@ export async function onRequest({ params }) {
   let mgrStaleSellerConfirmedIds = new Set()
   let mgrStaleTradingIds = new Set()
   let mgrBumpedAt = {}   // listingId → bumpedAt (끌올 쿨다운 판정)
+  let mgrAutoCompleted = {}   // listingId → autoCompletedAt (거래중 7일 경과 자동 완료, 되돌리기 대상)
 
   async function mgrInit() {
     try {
@@ -608,7 +616,7 @@ export async function onRequest({ params }) {
     try {
       const { data: listings } = await db
         .from('Listing')
-        .select(\`id, price, status, createdAt, bumpedAt,
+        .select(\`id, price, status, createdAt, bumpedAt, autoCompletedAt,
           game:Game(nameKo, emoji, imageUrl, artImageUrl),
           characters:ListingCharacter(character:Character(nameKo))\`)
         .eq('userId', authUser.id)
@@ -617,6 +625,10 @@ export async function onRequest({ params }) {
       // 끌올 쿨다운 판정용 (id → bumpedAt)
       mgrBumpedAt = {}
       ;(listings ?? []).forEach(l => { mgrBumpedAt[l.id] = l.bumpedAt || l.createdAt })
+
+      // 거래중 7일 경과로 시스템이 자동 완료한 글 (id → 완료 시각). 판매자가 되돌릴 수 있다.
+      mgrAutoCompleted = {}
+      ;(listings ?? []).forEach(l => { if (l.status === 'sold' && l.autoCompletedAt) mgrAutoCompleted[l.id] = l.autoCompletedAt })
 
       // trading/seller_confirmed인데 실제 활성 Trade 없는 경우 보정
       const tradingOrConfirmedIds = (listings ?? [])
@@ -720,6 +732,26 @@ export async function onRequest({ params }) {
     const grid = document.getElementById('shop-action-grid')
     const cards = []
 
+    // 거래중 7일이 지나 시스템이 자동으로 판매완료 처리한 글 — 판매자가 확인하고 되돌릴 수 있다
+    Object.keys(mgrAutoCompleted).forEach(id => {
+      const card = document.querySelector(\`.shop-card[data-id="\${id}"]\`)
+      const gameName = card?.querySelector('.shop-card-game span:last-child')?.textContent || ''
+      const price = card?.querySelector('.shop-card-price')?.textContent || ''
+      cards.push(\`
+        <div class="shop-action-card auto-done">
+          <span class="shop-action-role role-auto">자동 완료</span>
+          <div class="shop-action-main">
+            <div class="shop-action-game">\${mgrEscapeHtml(gameName)}</div>
+            <div class="shop-action-price">\${mgrEscapeHtml(price)}</div>
+            <div class="shop-action-counterparty">거래 시작 후 7일이 지나 <b>판매완료</b>로 자동 처리됐어요 · \${timeAgo(mgrAutoCompleted[id])}<br>아직 거래가 끝나지 않은 계정이라면 판매중으로 되돌려 주세요.</div>
+          </div>
+          <div class="shop-action-btns">
+            <button class="shop-action-btn primary" onclick="mgrRevertAutoComplete('\${id}')">판매중으로 전환</button>
+            <button class="shop-action-btn secondary" onclick="mgrAckAutoComplete('\${id}')">완료가 맞아요</button>
+          </div>
+        </div>\`)
+    })
+
     sellActionTrades.forEach(t => {
       const l = t.listing
       if (!l) return
@@ -771,7 +803,19 @@ export async function onRequest({ params }) {
     document.querySelectorAll('.shop-card').forEach(card => {
       const id = card.getAttribute('data-id')
       const status = card.getAttribute('data-status')
-      if (!id || status === 'sold') return
+      if (!id) return
+      if (status === 'sold') {
+        // 자동 완료된 글에만 '판매중으로 전환' 을 카드에도 붙인다 (사람이 직접 완료한 글은 그대로)
+        if (!mgrAutoCompleted[id]) return
+        const bar = document.createElement('div')
+        bar.className = 'shop-card-owner-actions'
+        bar.innerHTML = \`
+          <span class="shop-card-auto-note">7일 경과 자동 완료</span>
+          <button class="shop-card-owner-btn restore" onclick="event.preventDefault();event.stopPropagation();mgrRevertAutoComplete('\${id}')">판매중으로 전환</button>
+        \`
+        card.appendChild(bar)
+        return
+      }
       const bar = document.createElement('div')
       bar.className = 'shop-card-owner-actions'
       bar.innerHTML = \`
@@ -1037,6 +1081,33 @@ export async function onRequest({ params }) {
   }
 
   // --- 거래 액션: 판매자 계정 전달 완료 / 구매자 수령 확인 / 매물 삭제 ---
+  // --- 자동 완료(거래중 7일 경과) 되돌리기 / 확인 ---
+  // 되돌리기는 DB 함수(revert_auto_completed_listing)가 본인 글인지 확인하고
+  // 거래 취소·글 판매중·tradeCount 복원까지 한 번에 처리한다.
+  async function mgrRevertAutoComplete(listingId) {
+    if (!confirm('이 글을 다시 판매중으로 돌릴까요?\\n자동으로 완료 처리된 거래는 취소로 바뀌어요.')) return
+    try {
+      const { error } = await db.rpc('revert_auto_completed_listing', { p_listing_id: listingId })
+      if (error) throw error
+      location.reload()
+    } catch (e) {
+      console.error(e)
+      alert('되돌리지 못했어요: ' + (e.message || e))
+    }
+  }
+
+  // '완료가 맞아요' — 안내만 치운다 (상태는 그대로 판매완료)
+  async function mgrAckAutoComplete(listingId) {
+    try {
+      const { error } = await db.from('Listing').update({ autoCompletedAt: null }).eq('id', listingId)
+      if (error) throw error
+      location.reload()
+    } catch (e) {
+      console.error(e)
+      alert('처리하지 못했어요: ' + (e.message || e))
+    }
+  }
+
   async function mgrSellerConfirm(tradeId, listingId) {
     if (!confirm('계정을 구매자에게 전달하셨나요?\\n확인을 누르면 구매자에게 수령 확인 요청이 돼요.')) return
     try {
