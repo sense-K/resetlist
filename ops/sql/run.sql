@@ -99,6 +99,10 @@ GRANT EXECUTE ON FUNCTION revert_auto_completed_listing(text) TO authenticated;
 -- 4. 매시 20분에 실행 (같은 이름이면 교체됨)
 SELECT cron.schedule('auto-complete-trades', '20 * * * *', $$SELECT auto_complete_stale_trades();$$);
 
+-- 4-1. 옛 잡 제거: 'active 14일 → 자동 취소 + 매물 복귀' 는 새 규칙(7일 → 완료)과 정반대라 충돌한다.
+--      seller_confirmed 7일 → 완료 부분도 새 함수가 autoCompletedAt 까지 남기며 대체한다.
+SELECT cron.unschedule('auto-close-stale-trades');
+
 -- 5. 확인: 지금 기준으로 다음 실행에 자동 완료될 거래
 \echo ''
 \echo '--- 다음 실행 때 자동 완료될 거래 (7일 경과) ---'
