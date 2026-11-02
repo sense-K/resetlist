@@ -145,3 +145,22 @@ SELECT
   (SELECT count(*) FROM "Trade"
      WHERE status='completed' AND "createdAt" >= now() - interval '30 days')              AS "거래완료",
   (SELECT count(*) FROM "ListingView" WHERE "viewedAt" >= now() - interval '30 days')     AS "매물조회";
+
+\echo ''
+\echo '════════════════════════════════════════════════════════════'
+\echo ' ⑧ 알림 수정(9/11) 전후 비교 — 거래가 더 닫히나'
+\echo '════════════════════════════════════════════════════════════'
+SELECT CASE WHEN "createdAt" < '2026-09-11' THEN '수정 전 (~9/10)' ELSE '수정 후 (9/11~)' END AS "구간",
+       count(*)                                        AS "구매신청",
+       count(*) FILTER (WHERE status='completed')      AS "완료",
+       count(*) FILTER (WHERE status='cancelled')      AS "취소",
+       count(*) FILTER (WHERE status NOT IN ('completed','cancelled')) AS "진행중",
+       round(100.0 * count(*) FILTER (WHERE status='cancelled') / NULLIF(count(*),0)) AS "취소율%"
+FROM "Trade" GROUP BY 1 ORDER BY 1;
+
+\echo ''
+\echo '--- 주별 매물 조회 (최근 10주) ---'
+SELECT to_char(date_trunc('week', "viewedAt" AT TIME ZONE 'Asia/Seoul'), 'MM-DD') AS "주 시작",
+       count(*) AS "조회", count(DISTINCT "listingId") AS "매물수"
+FROM "ListingView" WHERE "viewedAt" >= now() - interval '10 weeks'
+GROUP BY 1 ORDER BY 1;
