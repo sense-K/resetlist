@@ -2,6 +2,7 @@
 //   카카오 data.v5.js   : 한국어 이름·설명·성우·생일 등 (JS 변수라 정규식으로 뽑는다)
 //   umapyoi.net API     : 이미지 (thumb_img = 도감 카드 / sns_header = 상세 배너)
 //   매핑 키             : 카카오 eng ↔ umapyoi name_en
+//                         (목록 항목에 이름이 없으면 상세를 열어 확인 — 2026-11-11 부터 번호만 오는 항목이 있음)
 //
 // 서포트 카드는 별도 어댑터(games/umamusume-support.mjs, kind='support').
 
@@ -73,28 +74,44 @@ export async function fetchCharacters({ existing = [] } = {}) {
     if (!idxRes.ok) throw new Error(`umapyoi 목록 ${idxRes.status}`)
     const idx = await idxRes.json()
     const wanted = new Set(needImg.map(c => normEn(c.eng)))
-    // 목록 항목의 영문 이름 필드가 비어있거나 이름이 바뀐 경우를 대비해 이름류 필드를 전부 본다
-    const keysOf = u => [u.name_en, u.name, u.name_jp, u.name_ko, u.slug].filter(Boolean).map(normEn)
-    const targets = idx.filter(u => keysOf(u).some(k => wanted.has(k)))
-    console.log(`  umapyoi 매칭 ${targets.length}명 — 상세 조회`)
-    if (targets.length < needImg.length) {
-      // 진단: 못 맞춘 캐릭터와 목록 항목 모양을 남긴다 (2026-11-11 — 6명이 달마다 안 채워지던 원인 추적용)
-      const hit = new Set(targets.flatMap(keysOf))
-      const miss = needImg.filter(c => !hit.has(normEn(c.eng))).map(c => `${c.name}(${c.eng})`)
-      console.log(`  umapyoi 미매칭 ${miss.length}명: ${miss.slice(0, 12).join(', ')}`)
-      console.log(`  umapyoi 목록 항목 예시: ${JSON.stringify(idx[idx.length - 1]).slice(0, 200)}`)
+    const keysOf = u => [u?.name_en, u?.name, u?.name_jp, u?.name_ko, u?.slug].filter(Boolean).map(normEn)
+    // 2026-11-11: umapyoi 목록 항목이 {"web_id":10416} 처럼 번호만 오는 경우가 생겼다 (이름 없음).
+    // 이름으로 못 맞춘 항목은 상세를 직접 열어 이름을 확인한다 — 이미지가 빈 캐릭터가 있을 때만 비용이 든다.
+    const named = idx.filter(u => keysOf(u).length)
+    const unnamed = idx.filter(u => !keysOf(u).length)
+    const targets = named.filter(u => keysOf(u).some(k => wanted.has(k)))
+    console.log(`  umapyoi 목록 ${idx.length}개 (이름 있음 ${named.length} / 번호만 ${unnamed.length}) · 이름 매칭 ${targets.length}명`)
+
+    const getDetail = async u => {
+      const id = u.game_id ?? u.web_id ?? u.id
+      if (id === undefined) return null
+      try { return await (await fetch(`https://umapyoi.net/api/v1/character/${id}`, { headers: H })).json() }
+      catch { return null }
     }
-    for (const t of targets) {
-      try {
-        const d = await (await fetch(`https://umapyoi.net/api/v1/character/${t.game_id}`, { headers: H })).json()
-        const im = {
-          thumb: d?.thumb_img ?? d?.sns_icon ?? null,
-          header: d?.sns_header ?? d?.detail_img_pc ?? d?.thumb_img ?? null,
-        }
-        for (const k of [...keysOf(t), normEn(d?.name_en)]) if (k) imgByEn[k] = imgByEn[k] || im
-      } catch { /* 개별 실패는 넘어간다 */ }
-      await sleep(120)
+    const take = (t, d) => {
+      const im = {
+        thumb: d?.thumb_img ?? d?.sns_icon ?? null,
+        header: d?.sns_header ?? d?.detail_img_pc ?? d?.thumb_img ?? null,
+      }
+      if (!im.thumb) return false
+      for (const k of [...keysOf(t), ...keysOf(d)]) imgByEn[k] = imgByEn[k] || im
+      return true
     }
+    for (const t of targets) { take(t, await getDetail(t)); await sleep(120) }
+
+    const stillWanted = () => [...wanted].filter(k => !imgByEn[k])
+    if (stillWanted().length && unnamed.length) {
+      let found = 0
+      for (const u of unnamed) {
+        if (!stillWanted().length) break
+        const d = await getDetail(u)
+        if (d && keysOf(d).some(k => wanted.has(k)) && take(u, d)) found++
+        await sleep(120)
+      }
+      console.log(`  번호만 있는 항목 ${unnamed.length}개 상세 조회 → ${found}명 추가 매칭`)
+    }
+    const miss = needImg.filter(c => !imgByEn[normEn(c.eng)]).map(c => c.name)
+    if (miss.length) console.log(`  umapyoi 에 없음 ${miss.length}명: ${miss.slice(0, 12).join(', ')}`)
   }
 
   return list.map(c => {
