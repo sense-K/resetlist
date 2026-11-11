@@ -73,15 +73,25 @@ export async function fetchCharacters({ existing = [] } = {}) {
     if (!idxRes.ok) throw new Error(`umapyoi 목록 ${idxRes.status}`)
     const idx = await idxRes.json()
     const wanted = new Set(needImg.map(c => normEn(c.eng)))
-    const targets = idx.filter(u => wanted.has(normEn(u.name_en)))
+    // 목록 항목의 영문 이름 필드가 비어있거나 이름이 바뀐 경우를 대비해 이름류 필드를 전부 본다
+    const keysOf = u => [u.name_en, u.name, u.name_jp, u.name_ko, u.slug].filter(Boolean).map(normEn)
+    const targets = idx.filter(u => keysOf(u).some(k => wanted.has(k)))
     console.log(`  umapyoi 매칭 ${targets.length}명 — 상세 조회`)
+    if (targets.length < needImg.length) {
+      // 진단: 못 맞춘 캐릭터와 목록 항목 모양을 남긴다 (2026-11-11 — 6명이 달마다 안 채워지던 원인 추적용)
+      const hit = new Set(targets.flatMap(keysOf))
+      const miss = needImg.filter(c => !hit.has(normEn(c.eng))).map(c => `${c.name}(${c.eng})`)
+      console.log(`  umapyoi 미매칭 ${miss.length}명: ${miss.slice(0, 12).join(', ')}`)
+      console.log(`  umapyoi 목록 항목 예시: ${JSON.stringify(idx[idx.length - 1]).slice(0, 200)}`)
+    }
     for (const t of targets) {
       try {
         const d = await (await fetch(`https://umapyoi.net/api/v1/character/${t.game_id}`, { headers: H })).json()
-        imgByEn[normEn(t.name_en)] = {
+        const im = {
           thumb: d?.thumb_img ?? d?.sns_icon ?? null,
           header: d?.sns_header ?? d?.detail_img_pc ?? d?.thumb_img ?? null,
         }
+        for (const k of [...keysOf(t), normEn(d?.name_en)]) if (k) imgByEn[k] = imgByEn[k] || im
       } catch { /* 개별 실패는 넘어간다 */ }
       await sleep(120)
     }
