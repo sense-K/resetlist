@@ -78,6 +78,13 @@ export async function fetchCharacters({ existing = [] } = {}) {
       : charKo ? `${charKo} (${rarity})`
       : `${c.cardKo || s.title_en || charSlug} (${rarity})`
 
+    // 한국 서버 미출시 카드는 GameTora 한국어 페이지에도 일본어 카드명으로 나온다
+    // (예: "Efforia [トレセン学園]"). 한국 출시 뒤 한국어 이름이 붙으면 그때 받는다.
+    if (/[぀-ヿ]/.test(nameKo)) {
+      console.log(`    ⏸ 한국 미출시(일본어 이름) 건너뜀: ${nameKo}`)
+      await sleep(150); continue
+    }
+
     rows.push({
       nameKo: nameKo.slice(0, 140),
       nameEn: `${s.title_en || ''} ${charSlug}`.trim(),

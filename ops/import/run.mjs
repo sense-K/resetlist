@@ -31,6 +31,8 @@
 //   · 자체 호스팅(supabase storage) 이미지는 외부 URL 로 되돌리지 않는다
 //   · metadata 는 기존이 비어있을 때만 채운다 (수동 보강분 보호)
 //   · 삭제는 하지 않는다
+//   · 신규 캐릭터는 이미지가 실제로 열리는 것만 넣고, 아직 404 인 캐릭터는 '보류' 해 다음 날 다시 본다
+//     (게임 전체를 실패 처리하지 않는다 — 기존 캐릭터 이미지까지 안 열릴 때만 규칙 변경으로 보고 중단)
 
 import { execFileSync } from 'node:child_process'
 import { writeFileSync, existsSync } from 'node:fs'
@@ -63,28 +65,56 @@ function toSlug(nameEn) {
   return s || null
 }
 
-async function sampleImages(rows, say, n = 5, selfHosted = false) {
+const urlHost = u => { try { return new URL(u).host } catch { return '' } }
+const isSelfHostedUrl = u => /supabase\.co\/storage\/|resetlist\.kr\//.test(u || '')
+async function probeImage(url) {
+  try {
+    const res = await fetch(url, { headers: { 'User-Agent': UA, Referer: 'https://resetlist.kr/' } })
+    return res.ok && /^image\//.test(res.headers.get('content-type') || '') ? 'ok'
+      : `${res.status} ${res.headers.get('content-type')}`
+  } catch (e) { return e.message.slice(0, 40) }
+}
+
+// 신규 캐릭터의 이미지를 한 명씩 확인한다.
+//   · 이미지가 열리는 캐릭터만 이번에 넣고, 404 인 캐릭터는 '보류' — 다음 실행에서 다시 본다.
+//     (신캐는 소스 데이터가 이미지보다 먼저 올라오는 일이 아주 흔하다. 2026-08~11 석 달 동안
+//      젠레스·명조·우마 서포트가 그 이유로 매일 '실패' 로 찍혔지만 실제로는 정상 대기 상태였다)
+//   · 신규 전원이 실패했을 때만 기존 캐릭터 이미지로 서버 자체를 찔러 본다.
+//     기존 것도 안 열리면 URL 규칙이 바뀐 사고 → 그 게임은 중단(에러).
+// 반환: { ok: 넣을 캐릭터, deferred: 보류 캐릭터 }
+async function checkNewImages(news, existing, say, selfHosted = false) {
   if (selfHosted) {
     // 어댑터가 이 실행에서 직접 내려받아 repo 에 쓴 이미지다.
     // 아직 배포 전이라 HTTP 로는 404 가 나므로 파일 존재로 확인한다.
-    const withImg = rows.filter(r => r.localPath)
+    const withImg = news.filter(r => r.localPath)
     const ok = withImg.filter(r => existsSync(r.localPath)).length
     say(`  이미지 파일 ${ok}/${withImg.length}장 확보`)
     if (withImg.length && ok === 0) throw new Error('내려받은 이미지가 하나도 없음')
-    return
+    return { ok: news, deferred: [] }
   }
-  const picked = rows.filter(r => r.imageUrl).slice(0, n)
-  if (!picked.length) return
-  let ok = 0
-  for (const r of picked) {
-    try {
-      const res = await fetch(r.imageUrl, { headers: { 'User-Agent': UA, Referer: 'https://resetlist.kr/' } })
-      if (res.ok && /^image\//.test(res.headers.get('content-type') || '')) ok++
-      else log(`    ✗ ${r.nameKo} → ${res.status} ${res.headers.get('content-type')}`)
-    } catch (e) { log(`    ✗ ${r.nameKo} → ${e.message.slice(0, 40)}`) }
+  const ok = [], deferred = []
+  let checked = 0
+  for (const r of news) {
+    if (!r.imageUrl || checked >= 60) { ok.push(r); continue }   // 60명 넘는 첫 등록은 앞 60명만 확인
+    checked++
+    const v = await probeImage(r.imageUrl)
+    if (v === 'ok') ok.push(r)
+    else { log(`    ✗ ${r.nameKo} → ${v}`); deferred.push(r) }
   }
-  say(`  이미지 표본 ${ok}/${picked.length} 정상`)
-  if (ok === 0 && picked.length > 0) throw new Error('신규 캐릭터 이미지 표본이 전부 실패 — 이미지 URL 규칙이 바뀐 듯')
+  if (checked) say(`  이미지 확인 ${checked - deferred.length}/${checked} 정상`)
+
+  if (deferred.length && deferred.length === checked) {
+    // 신규 전원 실패 — '아직 안 올라옴' 인지 '서버/규칙이 바뀜' 인지 기존 캐릭터로 판별
+    const host = urlHost(deferred[0].imageUrl)
+    const ref = existing.filter(e => e.imageUrl && !isSelfHostedUrl(e.imageUrl) && urlHost(e.imageUrl) === host).slice(0, 2)
+    if (ref.length) {
+      let refOk = 0
+      for (const e of ref) if (await probeImage(e.imageUrl) === 'ok') refOk++
+      if (refOk === 0) throw new Error(`기존 캐릭터 이미지(${host})도 안 열림 — 이미지 서버/URL 규칙 변경 의심, 자동 반영 중단`)
+      say(`  기존 캐릭터 이미지는 정상(${refOk}/${ref.length}) → 신규는 아직 이미지가 안 올라온 것으로 보고 보류`)
+    }
+  }
+  return { ok, deferred }
 }
 
 // ---------------------------------------------------------------- 한 게임 처리
@@ -161,16 +191,21 @@ async function runGame(slug) {
     updates.forEach(u => Object.keys(u.diff).forEach(k => { fields[k] = (fields[k] || 0) + 1 }))
     say(`  갱신 필드: ${Object.entries(fields).map(([k, v]) => `${k} ${v}`).join(', ')}`)
   }
-  await sampleImages(news, say, 5, !!meta.selfHostedImages)
+  const { ok: toInsert, deferred } = await checkNewImages(news, existing, say, !!meta.selfHostedImages)
+  if (deferred.length) {
+    say(`  ⏸ 이미지 미준비 ${deferred.length}명 보류 (다음 실행에 재시도): ${deferred.slice(0, 8).map(r => r.nameKo).join(', ')}${deferred.length > 8 ? ` … 외 ${deferred.length - 8}명` : ''}`)
+  }
 
-  const addedNames = news.map(r => r.nameKo).slice(0, 100)
-  if (MODE !== 'import' || (!news.length && !updates.length)) {
-    return { game: slug, added: news.length, updated: updates.length, applied: false, lines, addedNames }
+  const addedNames = toInsert.map(r => r.nameKo).slice(0, 100)
+  const deferredNames = deferred.map(r => r.nameKo).slice(0, 100)
+  const base = { game: slug, added: toInsert.length, updated: updates.length, deferred: deferred.length, lines, addedNames, deferredNames }
+  if (MODE !== 'import' || (!toInsert.length && !updates.length)) {
+    return { ...base, applied: false }
   }
 
   const sql = ['\\set ON_ERROR_STOP on', 'BEGIN;']
   const maxOrder = Number(q(`SELECT coalesce(max("sortOrder"),0)+1 FROM "Character" WHERE "gameId" = ${esc(gameId)};`)[0][0] || 0)
-  for (const [i, r] of news.entries()) {
+  for (const [i, r] of toInsert.entries()) {
     sql.push(`
 INSERT INTO "Character" (id, "gameId", "nameKo", "nameEn", tier, "isLimited", "basePrice",
                          "imageUrl", "isActive", "sortOrder", "createdAt", "updatedAt",
@@ -191,13 +226,13 @@ VALUES (gen_random_uuid()::text, ${esc(gameId)}, ${esc(r.nameKo)}, ${esc(r.nameE
   writeFileSync(`/tmp/import-${slug}.sql`, sql.join('\n'))
   execFileSync('psql', [DB, '-v', 'ON_ERROR_STOP=1', '-q', '-f', `/tmp/import-${slug}.sql`], { stdio: 'inherit' })
   say(`  → DB 반영 완료`)
-  return { game: slug, added: news.length, updated: updates.length, applied: true, lines, addedNames }
+  return { ...base, applied: true }
 }
 
 // ---------------------------------------------------------------- 결과 기록 (admin 페이지가 읽는다)
 function writeImportLog(results) {
   const rows = results.map(r => `(gen_random_uuid()::text, now(), ${esc(r.game)}, ${r.added ?? 0}, ${r.updated ?? 0},
-     ${esc(r.error ?? null)}, ${esc(JSON.stringify({ added: r.addedNames || [], lines: (r.lines || []).slice(0, 12) }))}::jsonb)`)
+     ${esc(r.error ?? null)}, ${esc(JSON.stringify({ added: r.addedNames || [], deferred: r.deferredNames || [], lines: (r.lines || []).slice(0, 12) }))}::jsonb)`)
   const sql = `INSERT INTO "ImportLog" (id, "ranAt", game, added, updated, error, detail) VALUES ${rows.join(',')};`
   try { q(sql); log('ImportLog 기록 완료') }
   catch (e) { log(`::warning::ImportLog 기록 실패 (테이블 없으면 [sql] 로 생성 필요): ${e.message.slice(0, 120)}`) }
@@ -216,7 +251,8 @@ for (const slug of targets) {
 
 log(`\n${'='.repeat(60)}\n=== 전체 요약 (${MODE}) ===`)
 for (const r of results) {
-  log(r.error ? `  ✗ ${r.game}: ${r.error}` : `  ✓ ${r.game}: 신규 ${r.added} / 갱신 ${r.updated}${r.applied ? ' (반영됨)' : ''}`)
+  log(r.error ? `  ✗ ${r.game}: ${r.error}`
+    : `  ✓ ${r.game}: 신규 ${r.added} / 갱신 ${r.updated}${r.deferred ? ` / 보류 ${r.deferred}` : ''}${r.applied ? ' (반영됨)' : ''}`)
 }
 
 if (MODE === 'import') writeImportLog(results)

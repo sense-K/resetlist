@@ -381,12 +381,19 @@
           const html = batches.slice(0, 45).map(b => {
             const errs = b.rows.filter(r => r.error)
             const adds = b.rows.filter(r => !r.error && r.added > 0)
-            const quiet = b.rows.length - errs.length - adds.length
+            const waits = b.rows.filter(r => !r.error && !(r.added > 0) && (r.detail?.deferred || []).length > 0)
+            const quiet = b.rows.length - errs.length - adds.length - waits.length
             const parts = []
             for (const r of adds) {
               const names = (r.detail?.added || []).slice(0, 10).map(escT).join(', ')
               parts.push(`<span style="color:#16a34a;font-weight:700;">${escT(r.game)} +${r.added}</span>` +
                 (names ? ` <span style="color:#334155;">(${names}${r.added > 10 ? ' …' : ''})</span>` : ''))
+            }
+            for (const r of waits) {
+              // 소스엔 올라왔는데 이미지가 아직 없어 다음 날 다시 보는 캐릭터 — 실패가 아니다
+              const d = r.detail.deferred
+              parts.push(`<span style="color:#d97706;font-weight:700;">⏸ ${escT(r.game)} 이미지 대기 ${d.length}</span>` +
+                ` <span style="color:#92400e;">(${d.slice(0, 5).map(escT).join(', ')}${d.length > 5 ? ' …' : ''})</span>`)
             }
             for (const r of errs) {
               parts.push(`<span style="color:#dc2626;font-weight:700;">✗ ${escT(r.game)}:</span> ` +
